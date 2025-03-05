@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Калькулятор</title>
+</head>
+<body>
+
+<h1 th:text="'Число a ' + ${a} + ', число b ' + ${b} + ' знак: ' + ${ch}"/>
+<p><h2 th:text="${error} ? ${error}: 'Результат ' + ${result}"/></p>
+</body>
+</html>
