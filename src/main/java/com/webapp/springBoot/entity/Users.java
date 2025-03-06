@@ -1,10 +1,9 @@
 package com.webapp.springBoot.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
+@Schema(description = "Сущность пользователя")
 @Entity
 public class Users {
 
@@ -12,9 +11,16 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+
+    @Column(length = 15)
     private String name;
+
+    @Column(length = 20)
     private String surname;
+
     private int age;
+
 
     public String getSurname() {
         return surname;
@@ -36,7 +42,12 @@ public class Users {
         return age;
     }
 
-    public void setAge(int age) {
+    public Users(String name, String surname, int age) {
+        this.name = name;
+        this.surname = surname;
         this.age = age;
+    }
+    public Users() {
+
     }
 }

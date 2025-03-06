@@ -1,8 +1,11 @@
 package com.webapp.springBoot.DTO;
 
-public class ApiResponceDocsDOTO {
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Класс возращаемых значений DTO")
+public class ApiResponceDocsDTO {
     private String messages;
-    public ApiResponceDocsDOTO(String messages){
+    public ApiResponceDocsDTO(String messages){
         this.messages  = messages;
     }
 
