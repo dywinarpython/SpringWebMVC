@@ -4,15 +4,18 @@ package com.webapp.springBoot.DTO.Person;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Сущность пользователя")
 public class APiResponceUserDTO {
 
     @Size(min = 2, max = 15, message = "Длина имени от 2 до 15")
+    @Pattern(regexp = "^\\D{2}.*$", message = "Первыые 2 символа name не могут быть цифрами")
     private String name;
 
     @Size(min = 2, max = 20, message = "Длина фамилии от 2 до 20")
+    @Pattern(regexp = "^\\D{2}.*$", message = "Первыые 2 символа surname не могут быть цифрами")
     private String surname;
 
 
