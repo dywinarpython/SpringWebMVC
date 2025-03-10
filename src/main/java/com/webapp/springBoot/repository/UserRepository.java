@@ -10,6 +10,8 @@ public interface UserRepository extends JpaRepository<Users, Long>{
     List<Users> findByName(String name);
     List<Users> getUsersByAgeBetween(int ageOne, int ageTwo);
     List<Users> findByNameAndSurname(String name, String surname);
+    Optional<Users> findByNickname( String nickname);
+
 
 
 }

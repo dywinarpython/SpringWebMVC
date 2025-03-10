@@ -2,11 +2,14 @@ package com.webapp.springBoot.service;
 
 
 import com.webapp.springBoot.DTO.Person.APiResponceUserDTO;
+import com.webapp.springBoot.DTO.Person.ApiResponceSetNicknameDTO;
 import com.webapp.springBoot.entity.Users;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -20,16 +23,17 @@ public class UsersService {
     @Autowired
     private UserRepository userRepository;
 
-    public void saveUser(@Valid APiResponceUserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public void saveUser( APiResponceUserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+
         if(result.hasErrors()){
             throw  new ValidationErrorWithMethod(result.getAllErrors());
         }
-        Users users = new Users(
+        userRepository.save(new Users(
                 aPiResponceUserDTO.getName(),
                 aPiResponceUserDTO.getSurname(),
-                aPiResponceUserDTO.getAge()
-        );
-        userRepository.save(users);
+                aPiResponceUserDTO.getAge(),
+                aPiResponceUserDTO.getNickname()
+        ));
     }
 
     public List<Users> getUserByName(String name){
@@ -39,6 +43,7 @@ public class UsersService {
         }
         return users;
     }
+
 
     public List<Users> getAllUser(){
         return userRepository.findAll();
@@ -64,6 +69,24 @@ public class UsersService {
             throw new NoSuchElementException("Пользователей с таким именем и фамилией нет");
         }
         return users;
+    }
+
+    public Users findByNickname(String nickname){
+        Optional<Users> optionalUsers = userRepository.findByNickname(nickname);
+        if (optionalUsers.isEmpty()){
+            throw new NoSuchElementException("Пользователей с таким nickname нет");
+        }
+        return optionalUsers.get();
+    }
+
+
+    public void setNickname (ApiResponceSetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
+        if (result.hasErrors()){
+            throw new NoSuchElementException("Не корректный nickname");
+        }
+        Users user = findByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
+        user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
+        userRepository.save(user);
     }
 
 
