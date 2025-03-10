@@ -7,9 +7,9 @@ import com.webapp.springBoot.entity.Users;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
-import org.apache.catalina.User;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -18,10 +18,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+
 @Service
 public class UsersService {
     @Autowired
     private UserRepository userRepository;
+
+
+
 
     public void saveUser( APiResponceUserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
 
