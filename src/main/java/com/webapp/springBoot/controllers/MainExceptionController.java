@@ -2,7 +2,10 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.service.UsersService;
 import io.swagger.v3.oas.annotations.Hidden;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
@@ -15,17 +18,24 @@ import java.util.NoSuchElementException;
 @ControllerAdvice
 public class MainExceptionController {
 
+    private final Logger logger = LoggerFactory.getLogger(MainExceptionController.class);
+    private String messageError;
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<String> handlerNoSuchElementException(NoSuchElementException ex) {
+        messageError = "Ошибка нахождения элемента: " + ex.getMessage();
+        logger.error(messageError);
         return new ResponseEntity<>(
-                "Ошибка нахождения элемента: " + ex.getMessage(),
+                messageError,
                 HttpStatus.NOT_FOUND
         );
     }
     @ExceptionHandler(ValidationErrorWithMethod.class)
     public ResponseEntity<String> handlerValidationException(ValidationErrorWithMethod ex){
+        messageError = ex.getAllErrors().toString();
+        logger.warn(messageError);
         return new ResponseEntity<>(
-                ex.getAllErrors().toString(), HttpStatus.BAD_REQUEST
+                messageError, HttpStatus.BAD_REQUEST
         );
     }
 }

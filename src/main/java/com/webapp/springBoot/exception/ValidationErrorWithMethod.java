@@ -13,7 +13,7 @@ public class ValidationErrorWithMethod extends Exception {
     public StringBuilder getAllErrors(){
         StringBuilder stringBuilder = new StringBuilder("Ошибки валидации: ");
         objectErrorList.forEach(
-                x -> stringBuilder.append(x.getDefaultMessage()).append("\n")
+                x -> stringBuilder.append("\n     ").append(x.getDefaultMessage())
         );
         return stringBuilder;
     }

@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -34,7 +33,7 @@ public class PersonController {
             summary="Поиск пользователя по имени",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))),
-                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
 
             })
     public List<Users> findUserByName(@RequestParam String name){
@@ -58,9 +57,10 @@ public class PersonController {
     @GetMapping("/ageBetween")
     @Operation(
             summary = "Получение пользователе по возрасту в определенном промежутке",
-            responses = @ApiResponse(
-                    responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))
-            ),
+            responses = {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
                     @Parameter(description = "Значение возраста от (включительно)", name = "ageOne", required = true),
                     @Parameter(description = "Значение возраста до (включительно)", name="ageTwo", required = true)
@@ -72,9 +72,10 @@ public class PersonController {
     @GetMapping("/findByNameAndSurname")
     @Operation(
             summary = "Получение пользователе по возрасту и имени",
-            responses = @ApiResponse(
-                    responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))
-            ),
+            responses = {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
                     @Parameter(description = "Имя пользователя", name = "name", required = true),
                     @Parameter(description = "Фамилия пользователя", name="surname", required = true)
@@ -136,7 +137,10 @@ public class PersonController {
     @DeleteMapping("/deleteById/{id}")
     @Operation(
             summary="Удаления пользователя по ID",
-            responses =  @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
+            responses =  {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
 
     )
     public ResponseEntity<String> deleteUserByID(@PathVariable Long id) {
