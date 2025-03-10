@@ -109,12 +109,16 @@ public class PersonController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUser(@RequestBody @Valid APiResponceUserDTO users, BindingResult result) throws ValidationErrorWithMethod {
+    public ResponseEntity<String> saveNewUser(@Valid @RequestBody APiResponceUserDTO users, BindingResult result) throws ValidationErrorWithMethod {
         usersService.saveUser(users, result);
         return ResponseEntity.ok("Пользователь добавлен");
     }
 
-    @PostMapping("/setNickname")
+
+
+    // <------------------------ PATCH ЗАПРОСЫ -------------------------->
+
+    @PatchMapping("/setNickname")
     @Operation(
             summary = "Изменение nickname пользователя",
             responses = {@ApiResponse(
@@ -122,12 +126,10 @@ public class PersonController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> setNickname(@Valid ApiResponceSetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
+    public ResponseEntity<String> setNickname(@Valid @RequestBody ApiResponceSetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
         usersService.setNickname(apiResponceSetNicknameDTO, result);
         return ResponseEntity.ok("Nickname изменен");
     }
-
-
 
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
