@@ -1,17 +1,23 @@
 package com.webapp.springBoot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Setter
 @Schema(description = "Сущность пользователя")
 @Entity
-public class Users {
+public class UsersApp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @NotNull
     @Column(length = 15)
@@ -29,21 +35,26 @@ public class Users {
     @Column(length = 20, unique = true)
     private String nickname;
 
+    @JsonIgnore
+    @OneToOne(mappedBy = "userOwnerId")
+    private Community community;
 
-    public String getSurname() {
-        return surname;
-    }
 
-    public void setSurname(String surname) {
+    public UsersApp(String name, String surname, int age, String nickname) {
+        this.name = name;
         this.surname = surname;
+        this.age = age;
+        this.nickname = nickname;
+
+
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getSurname() {
+        return surname;
     }
 
     public int getAge() {
@@ -54,21 +65,7 @@ public class Users {
         return nickname;
     }
 
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
+    public Community getCommunity() {
+        return community;
     }
-
-    public Users(String name, String surname, int age, String nickname) {
-        this.name = name;
-        this.surname = surname;
-        this.age = age;
-        this.nickname = nickname;
-
-    }
-    public Users() {
-
-    }
-
-
-
 }

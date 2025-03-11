@@ -7,9 +7,15 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+@AllArgsConstructor
 @Schema(description = "Сущность пользователя")
-public class APiResponceUserDTO {
+public class UserDTO {
 
     @Schema( example = "Иван")
     @Size(min = 2, max = 15, message = "Длина имени от 2 до 15")
@@ -35,35 +41,4 @@ public class APiResponceUserDTO {
     @Pattern(regexp = "^\\D{2}.*", message = "Первые 2 символа nickname не могут быть цифрами")
     private String nickname;
 
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
 }

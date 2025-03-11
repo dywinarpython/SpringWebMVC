@@ -1,10 +1,10 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.Person.APiResponceUserDTO;
-import com.webapp.springBoot.DTO.Person.ApiResponceListUsersDTO;
-import com.webapp.springBoot.DTO.Person.ApiResponceSetNicknameDTO;
-import com.webapp.springBoot.entity.Users;
+import com.webapp.springBoot.DTO.Person.UserDTO;
+import com.webapp.springBoot.DTO.Person.ListUsersDTO;
+import com.webapp.springBoot.DTO.Person.SetNicknameDTO;
+import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,11 +32,11 @@ public class PersonController {
     @Operation(
             summary="Поиск пользователя по имени",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
 
             })
-    public List<Users> findUserByName(@RequestParam String name){
+    public List<UsersApp> findUserByName(@RequestParam String name){
         return usersService.getUserByName(name);
     }
 
@@ -44,11 +44,11 @@ public class PersonController {
     @Operation(
             summary="Вывод всех пользователей",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class)))
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class)))
             }
     )
-    public List<Users> findAllUser(){
-        return usersService.getAllUser();
+    public ListUsersDTO getAllUser(){
+        return new ListUsersDTO(usersService.getAllUser());
     }
 
 
@@ -58,14 +58,14 @@ public class PersonController {
     @Operation(
             summary = "Получение пользователе по возрасту в определенном промежутке",
             responses = {@ApiResponse(
-                    responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))),
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
                     @Parameter(description = "Значение возраста от (включительно)", name = "ageOne", required = true),
                     @Parameter(description = "Значение возраста до (включительно)", name="ageTwo", required = true)
             })
-    public List<Users> getUsersBetweenAge(@RequestParam int ageOne, @RequestParam  int ageTwo ){
+    public List<UsersApp> getUsersBetweenAge(@RequestParam int ageOne, @RequestParam  int ageTwo ){
         return usersService.getAgeUserBetween(ageOne, ageTwo);
         }
 
@@ -73,7 +73,7 @@ public class PersonController {
     @Operation(
             summary = "Получение пользователе по возрасту и имени",
             responses = {@ApiResponse(
-                    responseCode = "200", content = @Content(schema = @Schema(implementation = ApiResponceListUsersDTO.class))),
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
@@ -81,7 +81,7 @@ public class PersonController {
                     @Parameter(description = "Фамилия пользователя", name="surname", required = true)
             }
     )
-    public List<Users> findUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
+    public List<UsersApp> findUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
         return usersService.findByNameAndSurname(name, surname);
     }
 
@@ -90,14 +90,14 @@ public class PersonController {
     @Operation(
             summary = "Получение пользователе по nickname",
             responses = {@ApiResponse(
-                                responseCode = "200", content = @Content(schema = @Schema(implementation = APiResponceUserDTO.class))),
+                                responseCode = "200", content = @Content(schema = @Schema(implementation = UserDTO.class))),
                          @ApiResponse(
                                 responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
                     @Parameter(description = "Nickname пользователя", name = "nickname", required = true)
             }
     )
-    public Users findByNickname(@PathVariable String nickname){
+    public UsersApp findByNickname(@PathVariable String nickname){
         return usersService.findByNickname(nickname);
     }
 
@@ -110,7 +110,7 @@ public class PersonController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUser(@Valid @RequestBody APiResponceUserDTO users, BindingResult result) throws ValidationErrorWithMethod {
+    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserDTO users, BindingResult result) throws ValidationErrorWithMethod {
         usersService.saveUser(users, result);
         return ResponseEntity.ok("Пользователь добавлен");
     }
@@ -127,24 +127,24 @@ public class PersonController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> setNickname(@Valid @RequestBody ApiResponceSetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
+    public ResponseEntity<String> setNickname(@Valid @RequestBody SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
         usersService.setNickname(apiResponceSetNicknameDTO, result);
         return ResponseEntity.ok("Nickname изменен");
     }
 
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-    @DeleteMapping("/deleteById/{id}")
+    @DeleteMapping("/deleteById/{nickname}")
     @Operation(
-            summary="Удаления пользователя по ID",
+            summary="Удаления пользователя по nickname",
             responses =  {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
 
     )
-    public ResponseEntity<String> deleteUserByID(@PathVariable Long id) {
-        usersService.deleteUserByID(id);
+    public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) {
+        usersService.deleteUserByNickname(nickname);
         return ResponseEntity.ok("Пользователь был успешно удален");
     }
     }
