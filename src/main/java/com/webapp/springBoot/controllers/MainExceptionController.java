@@ -2,7 +2,6 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
-import com.webapp.springBoot.service.UsersService;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
 @Hidden
 @ControllerAdvice
@@ -34,6 +34,14 @@ public class MainExceptionController {
     public ResponseEntity<String> handlerValidationException(ValidationErrorWithMethod ex){
         messageError = ex.getAllErrors().toString();
         logger.warn(messageError);
+        return new ResponseEntity<>(
+                messageError, HttpStatus.BAD_REQUEST
+        );
+    }
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<String> handlerIOException(IOException ex){
+        messageError = ex.getMessage();
+        logger.error(messageError);
         return new ResponseEntity<>(
                 messageError, HttpStatus.BAD_REQUEST
         );

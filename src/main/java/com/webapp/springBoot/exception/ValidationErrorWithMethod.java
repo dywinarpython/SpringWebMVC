@@ -1,6 +1,5 @@
 package com.webapp.springBoot.exception;
 
-import org.springframework.boot.context.properties.bind.validation.ValidationErrors;
 import org.springframework.validation.ObjectError;
 
 import java.util.List;

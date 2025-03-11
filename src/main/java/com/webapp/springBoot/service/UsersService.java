@@ -1,15 +1,13 @@
 package com.webapp.springBoot.service;
 
 
-import com.webapp.springBoot.DTO.Person.APiResponceUserDTO;
-import com.webapp.springBoot.DTO.Person.ApiResponceSetNicknameDTO;
-import com.webapp.springBoot.entity.Users;
+import com.webapp.springBoot.DTO.Person.UserDTO;
+import com.webapp.springBoot.DTO.Person.SetNicknameDTO;
+import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -27,12 +25,12 @@ public class UsersService {
 
 
 
-    public void saveUser( APiResponceUserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public void saveUser(UserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
 
         if(result.hasErrors()){
             throw  new ValidationErrorWithMethod(result.getAllErrors());
         }
-        userRepository.save(new Users(
+        userRepository.save(new UsersApp(
                 aPiResponceUserDTO.getName(),
                 aPiResponceUserDTO.getSurname(),
                 aPiResponceUserDTO.getAge(),
@@ -40,8 +38,8 @@ public class UsersService {
         ));
     }
 
-    public List<Users> getUserByName(String name){
-        List<Users> users = userRepository.findByName(name);
+    public List<UsersApp> getUserByName(String name){
+        List<UsersApp> users = userRepository.findByName(name);
         if (users.isEmpty()){
             throw new NoSuchElementException("Имя пользователя не найдено");
         }
@@ -49,25 +47,25 @@ public class UsersService {
     }
 
 
-    public List<Users> getAllUser(){
+    public List<UsersApp> getAllUser(){
         return userRepository.findAll();
     }
 
-    public List<Users> getAgeUserBetween(int ageOne, int ageTwo){
+    public List<UsersApp> getAgeUserBetween(int ageOne, int ageTwo){
         return userRepository.getUsersByAgeBetween(ageOne, ageTwo);
     }
 
     @Transactional
-    public void deleteUserByID(Long id) throws NoSuchElementException {
-        Optional<Users> users = userRepository.findById(id);
+    public void deleteUserByNickname(String nickname) {
+        Optional<UsersApp> users = userRepository.findByNickname(nickname);
         if (users.isEmpty()){
-            throw new NoSuchElementException("ID пользователя не найден");
+            throw new NoSuchElementException("Nickname пользователя не найден");
         }
         userRepository.delete(users.get());
     }
 
-    public List<Users> findByNameAndSurname(String name, String surname){
-        List<Users> users = userRepository.findByNameAndSurname(name, surname);
+    public List<UsersApp> findByNameAndSurname(String name, String surname){
+        List<UsersApp> users = userRepository.findByNameAndSurname(name, surname);
         System.out.println(users);
         if (users.isEmpty()){
             throw new NoSuchElementException("Пользователей с таким именем и фамилией нет");
@@ -75,8 +73,8 @@ public class UsersService {
         return users;
     }
 
-    public Users findByNickname(String nickname){
-        Optional<Users> optionalUsers = userRepository.findByNickname(nickname);
+    public UsersApp findByNickname(String nickname){
+        Optional<UsersApp> optionalUsers = userRepository.findByNickname(nickname);
         if (optionalUsers.isEmpty()){
             throw new NoSuchElementException("Пользователей с таким nickname нет");
         }
@@ -84,11 +82,11 @@ public class UsersService {
     }
 
 
-    public void setNickname (ApiResponceSetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
+    public void setNickname (SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
         if (result.hasErrors()){
             throw new NoSuchElementException("Не корректный nickname");
         }
-        Users user = findByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
+        UsersApp user = findByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
         user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
         userRepository.save(user);
     }
