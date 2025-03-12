@@ -1,8 +1,8 @@
 package com.webapp.springBoot.service;
 
 
-import com.webapp.springBoot.DTO.Person.UserDTO;
-import com.webapp.springBoot.DTO.Person.SetNicknameDTO;
+import com.webapp.springBoot.DTO.Users.*;
+import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.UserRepository;
@@ -17,12 +17,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 
+
 @Service
 public class UsersService {
     @Autowired
     private UserRepository userRepository;
-
-
 
 
     public void saveUser(UserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
@@ -38,14 +37,14 @@ public class UsersService {
         ));
     }
 
+    // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Users ----------------------------->
     public List<UsersApp> getUserByName(String name){
-        List<UsersApp> users = userRepository.findByName(name);
+        List<UsersApp> users = userRepository.findByNameContaining(name);
         if (users.isEmpty()){
             throw new NoSuchElementException("Имя пользователя не найдено");
         }
         return users;
     }
-
 
     public List<UsersApp> getAllUser(){
         return userRepository.findAll();
@@ -56,6 +55,21 @@ public class UsersService {
     }
 
     @Transactional
+    public ListCommunityUsersDTO getAllCommunityForUser(String nickname){
+        UsersApp usersApp = findByNickname(nickname);
+        List<Community> communityList = usersApp.getCommunity();
+        List<CommunityUsersDTO> listCommunityUsersDTO = communityList.stream().map(community ->
+                    new CommunityUsersDTO(
+                            community.getName(),
+                            community.getDescription(),
+                            community.getNickname()
+                    )
+            ).toList();
+        return new ListCommunityUsersDTO(listCommunityUsersDTO);
+    }
+
+    // <----------------УДАЛЕНИЕ В СУЩНОСТИ  Users ----------------------------->
+    @Transactional
     public void deleteUserByNickname(String nickname) {
         Optional<UsersApp> users = userRepository.findByNickname(nickname);
         if (users.isEmpty()){
@@ -64,9 +78,9 @@ public class UsersService {
         userRepository.delete(users.get());
     }
 
+    // <----------------ПОИСК В СУЩНОСТИ  Users ----------------------------->
     public List<UsersApp> findByNameAndSurname(String name, String surname){
-        List<UsersApp> users = userRepository.findByNameAndSurname(name, surname);
-        System.out.println(users);
+        List<UsersApp> users = userRepository.findByNameContainingAndSurnameContaining(name, surname);
         if (users.isEmpty()){
             throw new NoSuchElementException("Пользователей с таким именем и фамилией нет");
         }
@@ -81,13 +95,31 @@ public class UsersService {
         return optionalUsers.get();
     }
 
-
-    public void setNickname (SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
+    // <----------------ИЗМЕНЕНИЕ В СУЩНОСТИ  Users ----------------------------->
+    public void setNickname (SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){
-            throw new NoSuchElementException("Не корректный nickname");
+            throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         UsersApp user = findByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
         user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
+        userRepository.save(user);
+    }
+
+    public void setName (SetNameDTO setNameDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if (result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        UsersApp user = findByNickname(setNameDTO.getNickname());
+        user.setName(setNameDTO.getNameAfter());
+        userRepository.save(user);
+    }
+
+    public void setSurname (SetSurnameDTO setSurnameDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if (result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        UsersApp user = findByNickname(setSurnameDTO.getNickname());
+        user.setSurname(setSurnameDTO.getSurnameAfter());
         userRepository.save(user);
     }
 

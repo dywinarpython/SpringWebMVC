@@ -1,4 +1,4 @@
-package com.webapp.springBoot.DTO.Person;
+package com.webapp.springBoot.DTO.Users;
 
 
 import com.webapp.springBoot.validation.Person.Unique;
@@ -9,23 +9,21 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 @AllArgsConstructor
 @Schema(description = "Сущность пользователя")
 public class UserDTO {
 
     @Schema( example = "Иван")
     @Size(min = 2, max = 15, message = "Длина имени от 2 до 15")
-    @Pattern(regexp = "[a-zA-zа-яА-яёЁ]*$", message = "Name должен состоять из букв латинского, русского языка (без спец. символов и цифр)")
+    @Pattern(regexp = "[A-ZА-ЯЁё][a-zа-яё]*$", message = "Name должен состоять из букв латинского, русского языка (без спец. символов и цифр), только первая буква большая")
     @Pattern(regexp = "^\\D{2}.*$", message = "Первые 2 символа name не могут быть цифрами")
     private String name;
 
     @Schema( example = "Иванов")
     @Size(min = 2, max = 20, message = "Длина фамилии от 2 до 20")
-    @Pattern(regexp = "[a-zA-zа-яА-яёЁ]*$", message = "Surname должен состоять из букв латинского, русского языка (без спец. символов и цифр)")
+    @Pattern(regexp = "[A-ZА-ЯЁё][a-zа-яё]*$", message = "Surname должен состоять из букв латинского, русского языка (без спец. символов и цифр), только первая буква большая")
     @Pattern(regexp = "^\\D{2}.*$", message = "Первые 2 символа surname не могут быть цифрами")
     private String surname;
 
@@ -37,8 +35,7 @@ public class UserDTO {
     @Schema( example = "nickname")
     @Unique(message = "Nickname должен быть уникальным")
     @Size(min = 2, max = 10,  message = "Длина nickname от 2 до 10")
-    @Pattern(regexp = "[a-zA-z0-9]*$", message = "Nickname должен состоять из букв латинского языка (без спец. символов) и цифр")
-    @Pattern(regexp = "^\\D{2}.*", message = "Первые 2 символа nickname не могут быть цифрами")
+    @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname сообщества должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")
     private String nickname;
 
 }

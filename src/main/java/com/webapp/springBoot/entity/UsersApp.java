@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @NoArgsConstructor
 @Setter
 @Schema(description = "Сущность пользователя")
@@ -36,8 +38,8 @@ public class UsersApp {
     private String nickname;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "userOwnerId")
-    private Community community;
+    @OneToMany(mappedBy = "userOwnerId", cascade = CascadeType.ALL)
+    private List<Community> community;
 
 
     public UsersApp(String name, String surname, int age, String nickname) {
@@ -65,7 +67,7 @@ public class UsersApp {
         return nickname;
     }
 
-    public Community getCommunity() {
+    public List<Community> getCommunity() {
         return community;
     }
 }

@@ -1,9 +1,9 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.Person.UserDTO;
-import com.webapp.springBoot.DTO.Person.ListUsersDTO;
-import com.webapp.springBoot.DTO.Person.SetNicknameDTO;
+import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
+import com.webapp.springBoot.DTO.Users.*;
+import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.UsersService;
@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +24,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
-public class PersonController {
+public class UsersController {
     @Autowired
     private UsersService usersService;
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
-    @GetMapping("/findByName")
+    @GetMapping("/getByName")
     @Operation(
             summary="Поиск пользователя по имени",
             responses = {
@@ -36,11 +37,11 @@ public class PersonController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
 
             })
-    public List<UsersApp> findUserByName(@RequestParam String name){
+    public List<UsersApp> getUserByName(@RequestParam String name){
         return usersService.getUserByName(name);
     }
 
-    @GetMapping("/findAll")
+    @GetMapping("/getAll")
     @Operation(
             summary="Вывод всех пользователей",
             responses = {
@@ -54,7 +55,7 @@ public class PersonController {
 
 
 
-    @GetMapping("/ageBetween")
+    @GetMapping("/getAgeBetween")
     @Operation(
             summary = "Получение пользователе по возрасту в определенном промежутке",
             responses = {@ApiResponse(
@@ -69,9 +70,9 @@ public class PersonController {
         return usersService.getAgeUserBetween(ageOne, ageTwo);
         }
 
-    @GetMapping("/findByNameAndSurname")
+    @GetMapping("/getByNameAndSurname")
     @Operation(
-            summary = "Получение пользователе по возрасту и имени",
+            summary = "Получение пользователе по фамилии и имени (ищет по первой букве именеи или фамилии или по первой буквы фамилиии. Пример: Иван Г -> Иван Горьков)",
             responses = {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class))),
                     @ApiResponse(
@@ -81,12 +82,12 @@ public class PersonController {
                     @Parameter(description = "Фамилия пользователя", name="surname", required = true)
             }
     )
-    public List<UsersApp> findUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
+    public List<UsersApp> getUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
         return usersService.findByNameAndSurname(name, surname);
     }
 
 
-    @GetMapping("/findByNickname/{nickname}")
+    @GetMapping("/getByNickname/{nickname}")
     @Operation(
             summary = "Получение пользователе по nickname",
             responses = {@ApiResponse(
@@ -97,9 +98,21 @@ public class PersonController {
                     @Parameter(description = "Nickname пользователя", name = "nickname", required = true)
             }
     )
-    public UsersApp findByNickname(@PathVariable String nickname){
+    public UsersApp getByNickname(@PathVariable String nickname){
         return usersService.findByNickname(nickname);
     }
+
+    @GetMapping("/getCommuntyByNickname/{nickname}")
+    @Operation(
+            summary="Получение всех сообществ пользователя, поиск по полю nickname",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityUsersDTO.class))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
+            })
+    public ListCommunityUsersDTO getCommunutyForUserByNickname(@PathVariable String nickname){
+        return usersService.getAllCommunityForUser(nickname);
+    }
+
 
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
@@ -112,7 +125,7 @@ public class PersonController {
             })
     public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserDTO users, BindingResult result) throws ValidationErrorWithMethod {
         usersService.saveUser(users, result);
-        return ResponseEntity.ok("Пользователь добавлен");
+        return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 
 
@@ -127,11 +140,36 @@ public class PersonController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> setNickname(@Valid @RequestBody SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result){
+    public ResponseEntity<String> setNickname(@Valid @RequestBody SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result) throws ValidationErrorWithMethod {
         usersService.setNickname(apiResponceSetNicknameDTO, result);
         return ResponseEntity.ok("Nickname изменен");
     }
 
+    @PatchMapping("/setName")
+    @Operation(
+            summary = "Изменение name пользователя",
+            responses = {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
+    )
+    public ResponseEntity<String> setName(@Valid @RequestBody SetNameDTO setNameDTO, BindingResult result) throws ValidationErrorWithMethod {
+        usersService.setName(setNameDTO, result);
+        return ResponseEntity.ok("Name изменен");
+    }
+
+    @PatchMapping("/setSurname")
+    @Operation(
+            summary = "Изменение surname пользователя",
+            responses = {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
+    )
+    public ResponseEntity<String> setSurname(@Valid @RequestBody SetSurnameDTO setSurnameDTO, BindingResult result) throws ValidationErrorWithMethod {
+        usersService.setSurname(setSurnameDTO, result);
+        return ResponseEntity.ok("Surname изменен");
+    }
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
     @DeleteMapping("/deleteById/{nickname}")

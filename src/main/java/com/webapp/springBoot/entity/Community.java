@@ -34,14 +34,14 @@ public class Community {
     private Long countUser;
 
     @NotNull
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     @JoinColumn(name = "user_owner_id",referencedColumnName = "id")
     private UsersApp userOwnerId;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_url_id",referencedColumnName = "id")
-    private ImagesCommunity imageUrlId;
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "image_url_id",referencedColumnName = "id")
+//    private ImagesCommunity imageUrlId;
 
     public Community(UsersApp userOwnerId, String description, String name, String nickname) {
         this.userOwnerId = userOwnerId;
@@ -70,7 +70,7 @@ public class Community {
         return userOwnerId;
     }
 
-    public ImagesCommunity getImageUrlId() {
-        return imageUrlId;
-    }
+//    public ImagesCommunity getImageUrlId() {
+//        return imageUrlId;
+//    }
 }

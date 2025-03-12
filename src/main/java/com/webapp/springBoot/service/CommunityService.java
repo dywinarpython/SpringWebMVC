@@ -2,6 +2,9 @@ package com.webapp.springBoot.service;
 
 
 import com.webapp.springBoot.DTO.Community.CommunityDTO;
+import com.webapp.springBoot.DTO.Community.SetDescriptionCommunityDTO;
+import com.webapp.springBoot.DTO.Community.SetNameCommunityDTO;
+import com.webapp.springBoot.DTO.Community.SetNicknameCommunityDTO;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
@@ -21,9 +24,9 @@ public class CommunityService {
     @Autowired
     private CommunityRepository communityRepository;
 
+
     @Autowired
     private UsersService usersService;
-
 
 
     public void addNewCommunity(CommunityDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
@@ -31,11 +34,11 @@ public class CommunityService {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         UsersApp userApp = usersService.findByNickname(communityDTO.getNicknameUser());
-        communityRepository.save(
-                new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity())
-        );
+        Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity());
+        communityRepository.save(community);
     }
 
+    // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
     public List<Community> getAllCommunity(){
         return communityRepository.findAll();
     }
@@ -43,33 +46,52 @@ public class CommunityService {
         return communityRepository.findByNameLike(name);
     }
 
+    // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
     @Transactional
     public void deleteCommunityByNickname(String nickname){
-        Optional<Community> optionalCommunity = communityRepository.findByNickname(nickname);
-        if (optionalCommunity.isEmpty()){
-            throw new NoSuchElementException("Nickname сообщества не найден");
-        }
-        communityRepository.delete(optionalCommunity.get());
+        Community community = findCommunityByNickname(nickname);
+        community.getUserOwnerId().setCommunity(null);
+        communityRepository.delete(community);
     }
 
-    public void setNameCommunity(String name, String nickname){
-        Optional<Community> optionalCommunity = communityRepository.findByNickname(nickname);
-        if (optionalCommunity.isEmpty()){
+    // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
+    public Community findCommunityByNickname(String nickname){
+        Optional<Community> communityOptional = communityRepository.findByNickname(nickname);
+        if (communityOptional.isEmpty()){
             throw new NoSuchElementException("Nickname сообщества не найден");
         }
-        Community community = optionalCommunity.get();
-        community.setName(name);
-        communityRepository.save(community);
+        return communityOptional.get();
+    }
 
-    }
-    public void setDescriptionCommunity(String description, String nickname){
-        Optional<Community> optionalCommunity = communityRepository.findByNickname(nickname);
-        if (optionalCommunity.isEmpty()){
-            throw new NoSuchElementException("Nickname сообщества не найден");
+    // <----------------ИЗМЕНЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
+    public void setDescriptionCommunity(SetDescriptionCommunityDTO setDescriptionCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        Community community = optionalCommunity.get();
-        community.setName(description);
+        Community community = findCommunityByNickname(setDescriptionCommunityDTO.getNickname());
+        community.setDescription(setDescriptionCommunityDTO.getDescription());
         communityRepository.save(community);
     }
+
+    public void setNicknameCommunity(SetNicknameCommunityDTO setNicknameCommunity, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        Community community = findCommunityByNickname(setNicknameCommunity.getNicknameBefore());
+        community.setNickname(setNicknameCommunity.getNicknameAfter());
+        communityRepository.save(community);
+    }
+
+    public void setNameCommunity(SetNameCommunityDTO setNameCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        Community community = findCommunityByNickname(setNameCommunityDTO.getNickname());
+        community.setName(setNameCommunityDTO.getName());
+        communityRepository.save(community);
+    }
+
+
+
 
 }
