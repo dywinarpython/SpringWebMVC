@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UsersApp, Long>{
-    List<UsersApp> findByName(String name);
+    List<UsersApp> findByNameContaining(String name);
     List<UsersApp> getUsersByAgeBetween(int ageOne, int ageTwo);
-    List<UsersApp> findByNameAndSurname(String name, String surname);
+    List<UsersApp> findByNameContainingAndSurnameContaining(String name, String surname);
     Optional<UsersApp> findByNickname(String nickname);
 
 }

@@ -1,11 +1,7 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.Community.CommunityDTO;
-import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
-import com.webapp.springBoot.DTO.Person.ListUsersDTO;
-import com.webapp.springBoot.entity.Community;
-import com.webapp.springBoot.entity.UsersApp;
+import com.webapp.springBoot.DTO.Community.*;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.CommunityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,12 +12,10 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.util.List;
 
 
 @RestController
@@ -51,11 +45,42 @@ public class CommunityController {
             responses = @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class)))
     )
     @PostMapping("add")
-    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityDTO communityDTO, BindingResult result) throws IOException, ValidationErrorWithMethod {
+    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
         communityService.addNewCommunity(communityDTO,result);
-        return ResponseEntity.ok("Сообщество добавлено");
+        return new ResponseEntity<>("Сообщество добавлено", HttpStatus.CREATED);
     }
+
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
+    @Operation(
+            summary = "Изменение nickname сообщества",
+            responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class)))
+    )
+    @PatchMapping("setNickname")
+    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestBody SetNicknameCommunityDTO setNicknameCommunity, BindingResult result) throws ValidationErrorWithMethod {
+        communityService.setNicknameCommunity(setNicknameCommunity,result);
+        return ResponseEntity.ok("Nickname сообещства изменен");
+    }
+
+    @Operation(
+            summary = "Изменение description сообщества",
+            responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class)))
+    )
+    @PatchMapping("setDescription")
+    public ResponseEntity<String> setDescriptionCommunity(@Valid @RequestBody SetDescriptionCommunityDTO setDescriptionCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
+        communityService.setDescriptionCommunity(setDescriptionCommunityDTO,result);
+        return ResponseEntity.ok("Description сообещства изменен");
+    }
+
+
+    @Operation(
+            summary = "Изменение name сообщества",
+            responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class)))
+    )
+    @PatchMapping("setName")
+    public ResponseEntity<String> setNameCommunity(@Valid @RequestBody SetNameCommunityDTO setNameCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
+        communityService.setNameCommunity(setNameCommunityDTO,result);
+        return ResponseEntity.ok("Name сообещства изменен");
+    }
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
 
     @DeleteMapping("deleteByNickname/{nickname}")

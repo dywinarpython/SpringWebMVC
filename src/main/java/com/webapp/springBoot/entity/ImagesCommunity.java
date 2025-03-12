@@ -28,9 +28,9 @@ public class ImagesCommunity {
     @NotNull
     private String imageUrl;
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "imageUrlId")
-    private Community community;
+//    @JsonIgnore
+//    @OneToOne(mappedBy = "imageUrlId")
+//    private Community community;
 
     public ImagesCommunity(UUID nameImage, String imageUrl) {
         this.nameImage = nameImage;
