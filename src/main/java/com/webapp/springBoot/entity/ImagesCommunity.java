@@ -22,18 +22,15 @@ public class ImagesCommunity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    private UUID nameImage;
 
     @NotNull
     private String imageUrl;
 
-//    @JsonIgnore
-//    @OneToOne(mappedBy = "imageUrlId")
-//    private Community community;
+    @JsonIgnore
+    @OneToOne(mappedBy = "imageUrlId")
+    private Community community;
 
-    public ImagesCommunity(UUID nameImage, String imageUrl) {
-        this.nameImage = nameImage;
+    public ImagesCommunity(String imageUrl) {
         this.imageUrl = imageUrl;
     }
 }

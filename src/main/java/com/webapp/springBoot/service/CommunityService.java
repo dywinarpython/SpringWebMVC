@@ -6,14 +6,18 @@ import com.webapp.springBoot.DTO.Community.SetDescriptionCommunityDTO;
 import com.webapp.springBoot.DTO.Community.SetNameCommunityDTO;
 import com.webapp.springBoot.DTO.Community.SetNicknameCommunityDTO;
 import com.webapp.springBoot.entity.Community;
+import com.webapp.springBoot.entity.ImagesCommunity;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
+import com.webapp.springBoot.validation.File.UploadFileValidation;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -27,6 +31,12 @@ public class CommunityService {
 
     @Autowired
     private UsersService usersService;
+
+    @Autowired
+    private UploadFileValidation uploadFileValidation;
+
+
+
 
 
     public void addNewCommunity(CommunityDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
@@ -54,7 +64,7 @@ public class CommunityService {
         communityRepository.delete(community);
     }
 
-    // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
+    // <----------------ПОИСК В СУЩНОСТИ  Community ----------------------------->
     public Community findCommunityByNickname(String nickname){
         Optional<Community> communityOptional = communityRepository.findByNickname(nickname);
         if (communityOptional.isEmpty()){
@@ -88,6 +98,14 @@ public class CommunityService {
         }
         Community community = findCommunityByNickname(setNameCommunityDTO.getNickname());
         community.setName(setNameCommunityDTO.getName());
+        communityRepository.save(community);
+    }
+
+    public void setImageCommunity(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
+        Community community = findCommunityByNickname(nickname);
+        String path = uploadFileValidation.validationFileAndUpload(file, "image/png");
+        ImagesCommunity imagesCommunity = new ImagesCommunity(path);
+        community.setImageUrlId(imagesCommunity);
         communityRepository.save(community);
     }
 

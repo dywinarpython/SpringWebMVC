@@ -7,5 +7,4 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ImagesCommunityRepository extends JpaRepository<ImagesCommunity, Long>  {
-    Optional<ImagesCommunity> findByNameImage(UUID nameImage);
 }

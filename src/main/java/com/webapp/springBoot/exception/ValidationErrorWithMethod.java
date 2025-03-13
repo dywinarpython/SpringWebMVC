@@ -5,15 +5,18 @@ import org.springframework.validation.ObjectError;
 import java.util.List;
 
 public class ValidationErrorWithMethod extends Exception {
-    private List<ObjectError> objectErrorList;
+
     public ValidationErrorWithMethod(List<ObjectError> objectErrorList){
-        this.objectErrorList = objectErrorList;
+        super(greateMessageError(objectErrorList));
     }
-    public StringBuilder getAllErrors(){
-        StringBuilder stringBuilder = new StringBuilder("Ошибки валидации: ");
+    public ValidationErrorWithMethod(String message){
+        super(message);
+    }
+    private static String greateMessageError(List<ObjectError> objectErrorList){
+        StringBuilder stringBuilder = new StringBuilder("Ошибка валидации: ");
         objectErrorList.forEach(
-                x -> stringBuilder.append("\n     ").append(x.getDefaultMessage())
-        );
-        return stringBuilder;
+                x -> stringBuilder.append("\n     ").append(x.getDefaultMessage()));
+        return stringBuilder.toString();
     }
+
 }
