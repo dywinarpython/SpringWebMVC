@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
+@Tag(name="Управление пользователями")
 @RestController
 @RequestMapping("/api/user")
 public class UsersController {
@@ -29,7 +31,7 @@ public class UsersController {
     private UsersService usersService;
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
-    @GetMapping("/getByName")
+    @GetMapping("/name")
     @Operation(
             summary="Поиск пользователя по имени",
             responses = {
@@ -41,7 +43,7 @@ public class UsersController {
         return usersService.getUserByName(name);
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/all")
     @Operation(
             summary="Вывод всех пользователей",
             responses = {
@@ -55,7 +57,7 @@ public class UsersController {
 
 
 
-    @GetMapping("/getAgeBetween")
+    @GetMapping("/age")
     @Operation(
             summary = "Получение пользователе по возрасту в определенном промежутке",
             responses = {@ApiResponse(
@@ -70,7 +72,7 @@ public class UsersController {
         return usersService.getAgeUserBetween(ageOne, ageTwo);
         }
 
-    @GetMapping("/getByNameAndSurname")
+    @GetMapping("/nameSurname")
     @Operation(
             summary = "Получение пользователе по фамилии и имени (ищет по первой букве именеи или фамилии или по первой буквы фамилиии. Пример: Иван Г -> Иван Горьков)",
             responses = {@ApiResponse(
@@ -87,7 +89,7 @@ public class UsersController {
     }
 
 
-    @GetMapping("/getByNickname/{nickname}")
+    @GetMapping("/{nickname}")
     @Operation(
             summary = "Получение пользователе по nickname",
             responses = {@ApiResponse(
@@ -102,7 +104,7 @@ public class UsersController {
         return usersService.findByNickname(nickname);
     }
 
-    @GetMapping("/getCommuntyByNickname/{nickname}")
+    @GetMapping("/communty/{nickname}")
     @Operation(
             summary="Получение всех сообществ пользователя, поиск по полю nickname",
             responses = {
@@ -132,7 +134,7 @@ public class UsersController {
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
 
-    @PatchMapping("/setNickname")
+    @PatchMapping("/nickname")
     @Operation(
             summary = "Изменение nickname пользователя",
             responses = {@ApiResponse(
@@ -145,7 +147,7 @@ public class UsersController {
         return ResponseEntity.ok("Nickname изменен");
     }
 
-    @PatchMapping("/setName")
+    @PatchMapping("/name")
     @Operation(
             summary = "Изменение name пользователя",
             responses = {@ApiResponse(
@@ -158,7 +160,7 @@ public class UsersController {
         return ResponseEntity.ok("Name изменен");
     }
 
-    @PatchMapping("/setSurname")
+    @PatchMapping("/surname")
     @Operation(
             summary = "Изменение surname пользователя",
             responses = {@ApiResponse(
@@ -172,7 +174,7 @@ public class UsersController {
     }
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-    @DeleteMapping("/deleteById/{nickname}")
+    @DeleteMapping("/{nickname}")
     @Operation(
             summary="Удаления пользователя по nickname",
             responses =  {@ApiResponse(
