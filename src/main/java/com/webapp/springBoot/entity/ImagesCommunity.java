@@ -5,23 +5,21 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@NoArgsConstructor
-@Getter
-@Setter
 @Entity
 @Schema(description = "Сущность загрузки изображений")
 public class ImagesCommunity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @NotNull
+    private String nameImage;
 
     @NotNull
     private String imageUrl;
@@ -30,7 +28,20 @@ public class ImagesCommunity {
     @OneToOne(mappedBy = "imageUrlId")
     private Community community;
 
-    public ImagesCommunity(String imageUrl) {
+    public ImagesCommunity() {
+        nameImage = UUID.randomUUID().toString();
+    }
+
+    public String getNameImage() {
+        return nameImage;
+    }
+
+    public String getImageUrl(){
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+    public void setCommunity(Community community) {this.community = community;}
 }

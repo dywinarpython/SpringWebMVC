@@ -32,8 +32,9 @@ public class CommunityService {
     @Autowired
     private UsersService usersService;
 
+
     @Autowired
-    private UploadFileValidation uploadFileValidation;
+    private ImageCommunityService imageCommunityService;
 
 
 
@@ -56,6 +57,7 @@ public class CommunityService {
         return communityRepository.findByNameLike(name);
     }
 
+
     // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
     @Transactional
     public void deleteCommunityByNickname(String nickname){
@@ -64,6 +66,9 @@ public class CommunityService {
         communityRepository.delete(community);
     }
 
+    public void deleteImageCommunity(String nickname) throws IOException {
+        imageCommunityService.deleteImageCommunity(nickname);
+    }
     // <----------------ПОИСК В СУЩНОСТИ  Community ----------------------------->
     public Community findCommunityByNickname(String nickname){
         Optional<Community> communityOptional = communityRepository.findByNickname(nickname);
@@ -102,11 +107,7 @@ public class CommunityService {
     }
 
     public void setImageCommunity(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
-        Community community = findCommunityByNickname(nickname);
-        String path = uploadFileValidation.validationFileAndUpload(file, "image/png");
-        ImagesCommunity imagesCommunity = new ImagesCommunity(path);
-        community.setImageUrlId(imagesCommunity);
-        communityRepository.save(community);
+        imageCommunityService.createImagesCommunty(nickname, file);
     }
 
 

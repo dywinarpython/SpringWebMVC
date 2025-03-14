@@ -1,6 +1,7 @@
 package com.webapp.springBoot.controllers;
 
 
+import com.webapp.springBoot.exception.FileIsNull;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import io.swagger.v3.oas.annotations.Hidden;
 
@@ -37,6 +38,14 @@ public class MainExceptionController {
     public ResponseEntity<String> handlerValidationException(ValidationErrorWithMethod ex){
         messageError = ex.getMessage();
         logger.warn(messageError);
+        return new ResponseEntity<>(
+                messageError, HttpStatus.BAD_REQUEST
+        );
+    }
+    @ExceptionHandler(FileIsNull.class)
+    public ResponseEntity<String> handlerValidationException(FileIsNull ex){
+        messageError = ex.getMessage();
+        logger.error(messageError);
         return new ResponseEntity<>(
                 messageError, HttpStatus.BAD_REQUEST
         );
