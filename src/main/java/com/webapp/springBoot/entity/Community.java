@@ -73,4 +73,5 @@ public class Community {
     public ImagesCommunity getImageUrlId() {
         return imageUrlId;
     }
+
 }

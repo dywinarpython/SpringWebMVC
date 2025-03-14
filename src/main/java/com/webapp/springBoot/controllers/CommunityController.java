@@ -4,7 +4,9 @@ package com.webapp.springBoot.controllers;
 import com.webapp.springBoot.DTO.Community.*;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.CommunityService;
+import com.webapp.springBoot.service.ImageCommunityService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,7 +14,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +32,8 @@ import java.io.IOException;
 public class CommunityController {
     @Autowired
     private CommunityService communityService;
-
+    @Autowired
+    private ImageCommunityService imageCommunityService;
 
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
@@ -44,6 +49,17 @@ public class CommunityController {
         return new ListCommunityDTO(communityService.getAllCommunity());
     }
 
+    @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
+    @Operation(
+            summary="Вывод изображения сообщества",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = byte[].class))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    public byte[] getImageCommunity(@PathVariable("nameImage") String nameImage) throws IOException {
+        return imageCommunityService.getImagePath(nameImage);
+    }
     // <------------------------ POST ЗАПРОСЫ -------------------------->
     @Operation(
             summary = "Добавление нового сообщества при привязке к пользователя по nickname",
@@ -89,13 +105,14 @@ public class CommunityController {
 
     @Operation(
             summary = "Изменение картинки сообщества",
+
             responses = {
                     @ApiResponse(responseCode = "200", description = "Изображение успешно обновлено"),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации файла")
             }
     )
     @PatchMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> setImageCommunity(@RequestParam MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
+    public ResponseEntity<String> setImageCommunity(@RequestParam @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
         communityService.setImageCommunity(file, nickname);
         return ResponseEntity.ok("Image сообещства изменен");
     }
@@ -112,6 +129,19 @@ public class CommunityController {
     public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname){
         communityService.deleteCommunityByNickname(nickname);
         return ResponseEntity.ok("Сообщество удалено");
+    }
+
+    @DeleteMapping("image/{nickname}")
+    @Operation(
+            summary = "Удаление изображения сообщества по nickname",
+            responses =  {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
+    )
+    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable String nickname) throws IOException {
+        communityService.deleteImageCommunity(nickname);
+        return ResponseEntity.ok("Изображение сообщества удалено");
     }
 
 }

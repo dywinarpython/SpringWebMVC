@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.UUID;
 
 @Component
 public class UploadFileValidation {
@@ -24,17 +23,16 @@ public class UploadFileValidation {
     @Value("${type.Image}")
     private String typeImage;
 
-    public String validationFileAndUpload(MultipartFile file, String typeFile) throws ValidationErrorWithMethod, IOException {
+
+    public String validationFileAndUpload(MultipartFile file, String typeFile, String nameFile) throws ValidationErrorWithMethod, IOException {
         if(!Objects.equals(file.getContentType(), typeFile)){
             throw new ValidationErrorWithMethod("Файл не соответсвует ождиаемому типу, а именно:" + typeFile);
         }
-        return uploadFile(file);
+        return uploadFile(file, nameFile);
     }
 
-    private String uploadFile(MultipartFile file) throws IOException {
-        String fileName = UUID.randomUUID().toString();
-        Path path = Paths.get(uploadPath, fileName+ typeImage);
-
+    private String uploadFile(MultipartFile file, String nameFile) throws IOException {
+        Path path = Paths.get(uploadPath, nameFile+ typeImage);
         Files.write(path, file.getBytes());
         return path.toString();
     }
