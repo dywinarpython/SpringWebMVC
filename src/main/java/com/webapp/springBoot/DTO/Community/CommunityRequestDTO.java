@@ -14,7 +14,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 @Schema(description = "Сущность создания сообщества")
-public class CommunityDTO {
+public class CommunityRequestDTO {
 
     @Size(max = 20, min = 2)
     @Schema(example = "Сообщество Messages")
@@ -31,7 +31,7 @@ public class CommunityDTO {
     @Schema( example = "nickname")
     private String nicknameUser;
 
-    @Schema( example = "nicknameсomm")
+    @Schema( example = "nickname")
     @UniqueCommunity(message = "NicknameCommunity должен быть уникальным")
     @Size(min = 2, max = 20,  message = "Длина сообщества nickname от 2 до 10")
     @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname сообщества должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")
