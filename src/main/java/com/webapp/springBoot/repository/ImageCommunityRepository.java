@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface ImagesCommunityRepository extends JpaRepository<ImagesCommunity, Long>  {
+public interface ImageCommunityRepository extends JpaRepository<ImagesCommunity, Long> {
     Optional<ImagesCommunity> findByNameImage(String nameImage);
 }

@@ -16,7 +16,6 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -57,8 +56,20 @@ public class CommunityController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             }
     )
-    public byte[] getImageCommunity(@PathVariable("nameImage") String nameImage) throws IOException {
+    public byte[] getImageCommunity(@PathVariable String nameImage) throws IOException {
         return imageCommunityService.getImagePath(nameImage);
+    }
+
+    @GetMapping(value = "/name")
+    @Operation(
+            summary="Получение сообществ по имени",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityDTO.class))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    public ListCommunityDTO getCommunityByName(@RequestParam String name){
+        return new ListCommunityDTO(communityService.findByNameLike(name));
     }
     // <------------------------ POST ЗАПРОСЫ -------------------------->
     @Operation(
@@ -66,7 +77,7 @@ public class CommunityController {
             responses = @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class)))
     )
     @PostMapping("add")
-    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
         communityService.addNewCommunity(communityDTO,result);
         return new ResponseEntity<>("Сообщество добавлено", HttpStatus.CREATED);
     }

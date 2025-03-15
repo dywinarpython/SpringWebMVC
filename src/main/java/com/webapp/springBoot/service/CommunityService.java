@@ -1,16 +1,11 @@
 package com.webapp.springBoot.service;
 
 
-import com.webapp.springBoot.DTO.Community.CommunityDTO;
-import com.webapp.springBoot.DTO.Community.SetDescriptionCommunityDTO;
-import com.webapp.springBoot.DTO.Community.SetNameCommunityDTO;
-import com.webapp.springBoot.DTO.Community.SetNicknameCommunityDTO;
+import com.webapp.springBoot.DTO.Community.*;
 import com.webapp.springBoot.entity.Community;
-import com.webapp.springBoot.entity.ImagesCommunity;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
-import com.webapp.springBoot.validation.File.UploadFileValidation;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -40,7 +36,7 @@ public class CommunityService {
 
 
 
-    public void addNewCommunity(CommunityDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public void addNewCommunity(CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
@@ -50,11 +46,35 @@ public class CommunityService {
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
-    public List<Community> getAllCommunity(){
-        return communityRepository.findAll();
+    public List<CommunityResponceDTO> getAllCommunity(){
+        List<CommunityResponceDTO> communityResponceDTOList = new ArrayList<>();
+        communityRepository.findAll().forEach(
+                community -> communityResponceDTOList.add(
+                        new CommunityResponceDTO(
+                                community.getName(),
+                                community.getDescription(),
+                                community.getUserOwnerId().getNickname(),
+                                community.getNickname(),
+                                imageCommunityService.getImageName(community)
+                        )
+                )
+        );
+        return communityResponceDTOList;
     }
-    public  List<Community> findByNameLike(String name){
-        return communityRepository.findByNameLike(name);
+    public  List<CommunityResponceDTO> findByNameLike(String name){
+        List<CommunityResponceDTO> communityResponceDTOList = new ArrayList<>();
+        communityRepository.findByNameContains(name).forEach(
+                community -> communityResponceDTOList.add(
+                        new CommunityResponceDTO(
+                                community.getName(),
+                                community.getDescription(),
+                                community.getUserOwnerId().getNickname(),
+                                community.getNickname(),
+                                imageCommunityService.getImageName(community)
+                        )
+                )
+        );
+        return communityResponceDTOList;
     }
 
 
@@ -67,7 +87,7 @@ public class CommunityService {
     }
 
     public void deleteImageCommunity(String nickname) throws IOException {
-        imageCommunityService.deleteImageCommunity(nickname);
+        imageCommunityService.deleteImageCommunity(findCommunityByNickname(nickname));
     }
     // <----------------ПОИСК В СУЩНОСТИ  Community ----------------------------->
     public Community findCommunityByNickname(String nickname){
@@ -107,7 +127,7 @@ public class CommunityService {
     }
 
     public void setImageCommunity(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
-        imageCommunityService.createImagesCommunty(nickname, file);
+        imageCommunityService.createImagesCommunty(file, findCommunityByNickname(nickname));
     }
 
 
