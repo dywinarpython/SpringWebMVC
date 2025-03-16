@@ -1,11 +1,10 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
 import com.webapp.springBoot.DTO.Users.*;
-import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,10 +15,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -29,6 +31,9 @@ import java.util.List;
 public class UsersController {
     @Autowired
     private UsersService usersService;
+    @Autowired
+    private ImageUsersAppService imageUsersAppService;
+
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
     @GetMapping("/name")
@@ -93,7 +98,7 @@ public class UsersController {
     @Operation(
             summary = "Получение пользователе по nickname",
             responses = {@ApiResponse(
-                                responseCode = "200", content = @Content(schema = @Schema(implementation = UserDTO.class))),
+                                responseCode = "200", content = @Content(schema = @Schema(implementation = UserRequestDTO.class))),
                          @ApiResponse(
                                 responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
@@ -101,7 +106,7 @@ public class UsersController {
             }
     )
     public UsersApp getByNickname(@PathVariable String nickname){
-        return usersService.findByNickname(nickname);
+        return usersService.findUsersByNickname(nickname);
     }
 
     @GetMapping("/communty/{nickname}")
@@ -115,6 +120,18 @@ public class UsersController {
         return usersService.getAllCommunityForUser(nickname);
     }
 
+    @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
+    @Operation(
+            summary="Вывод изображения пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = byte[].class))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    public byte[] getImageUsersApp(@PathVariable String nameImage) throws IOException {
+        return imageUsersAppService.getImagePath(nameImage);
+    }
+
 
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
@@ -125,7 +142,7 @@ public class UsersController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserDTO users, BindingResult result) throws ValidationErrorWithMethod {
+    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result) throws ValidationErrorWithMethod {
         usersService.saveUser(users, result);
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
@@ -173,6 +190,20 @@ public class UsersController {
         return ResponseEntity.ok("Surname изменен");
     }
 
+    @Operation(
+            summary = "Изменение изображения пользователя",
+
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Изображение успешно обновлено"),
+                    @ApiResponse(responseCode = "400", description = "Ошибка валидации файла")
+            }
+    )
+    @PatchMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> setImagesUsersApp(@RequestParam @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
+        usersService.setImageUsersApp(file, nickname);
+        return ResponseEntity.ok("Image пользователя изменен");
+    }
+
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
     @DeleteMapping("/{nickname}")
     @Operation(
@@ -186,6 +217,19 @@ public class UsersController {
     public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) {
         usersService.deleteUserByNickname(nickname);
         return ResponseEntity.ok("Пользователь был успешно удален");
+    }
+
+    @DeleteMapping("image/{nickname}")
+    @Operation(
+            summary = "Удаление изображения пользователя по nickname",
+            responses =  {@ApiResponse(
+                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
+    )
+    public ResponseEntity<String> deleteImagesUsersApp(@PathVariable String nickname) throws IOException {
+        usersService.deleteImageUsersApp(nickname);
+        return ResponseEntity.ok("Изображение пользователя удалено");
     }
     }
 

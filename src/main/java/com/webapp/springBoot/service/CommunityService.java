@@ -40,17 +40,28 @@ public class CommunityService {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        UsersApp userApp = usersService.findByNickname(communityDTO.getNicknameUser());
+        UsersApp userApp = usersService.findUsersByNickname(communityDTO.getNicknameUser());
         Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity());
         communityRepository.save(community);
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
-    public List<CommunityResponceDTO> getAllCommunity(){
-        List<CommunityResponceDTO> communityResponceDTOList = new ArrayList<>();
+    
+    public CommunityResponseDTO getByNickname(String nickname){
+        Community community = findCommunityByNickname(nickname);
+        return new CommunityResponseDTO(
+                community.getName(),
+                community.getDescription(),
+                community.getUserOwnerId().getNickname(),
+                community.getNickname(),
+                imageCommunityService.getImageName(community)
+        );
+    }
+    public List<CommunityResponseDTO> getAllCommunity(){
+        List<CommunityResponseDTO> communityResponceDTOList = new ArrayList<>();
         communityRepository.findAll().forEach(
                 community -> communityResponceDTOList.add(
-                        new CommunityResponceDTO(
+                        new CommunityResponseDTO(
                                 community.getName(),
                                 community.getDescription(),
                                 community.getUserOwnerId().getNickname(),
@@ -61,11 +72,11 @@ public class CommunityService {
         );
         return communityResponceDTOList;
     }
-    public  List<CommunityResponceDTO> findByNameLike(String name){
-        List<CommunityResponceDTO> communityResponceDTOList = new ArrayList<>();
+    public  List<CommunityResponseDTO> findByNameLike(String name){
+        List<CommunityResponseDTO> communityResponceDTOList = new ArrayList<>();
         communityRepository.findByNameContains(name).forEach(
                 community -> communityResponceDTOList.add(
-                        new CommunityResponceDTO(
+                        new CommunityResponseDTO(
                                 community.getName(),
                                 community.getDescription(),
                                 community.getUserOwnerId().getNickname(),
