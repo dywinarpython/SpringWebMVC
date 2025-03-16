@@ -2,6 +2,7 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.Community.*;
+import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.CommunityService;
 import com.webapp.springBoot.service.ImageCommunityService;
@@ -71,6 +72,18 @@ public class CommunityController {
     public ListCommunityDTO getCommunityByName(@RequestParam String name){
         return new ListCommunityDTO(communityService.findByNameLike(name));
     }
+
+    @GetMapping(value = "/{nickname}")
+    @Operation(
+            summary="Получение сообществ по nickname",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityDTO.class))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    public CommunityResponseDTO getCommunityByNickname(@PathVariable String nickname){
+        return communityService.getByNickname(nickname);
+    }
     // <------------------------ POST ЗАПРОСЫ -------------------------->
     @Operation(
             summary = "Добавление нового сообщества при привязке к пользователя по nickname",
@@ -115,7 +128,7 @@ public class CommunityController {
 
 
     @Operation(
-            summary = "Изменение картинки сообщества",
+            summary = "Изменение изображения сообщества",
 
             responses = {
                     @ApiResponse(responseCode = "200", description = "Изображение успешно обновлено"),

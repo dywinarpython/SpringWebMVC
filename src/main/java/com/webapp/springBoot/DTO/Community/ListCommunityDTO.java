@@ -10,5 +10,5 @@ import java.util.List;
 @AllArgsConstructor
 @Schema(description = "Лист сущностей сообществ")
 public class ListCommunityDTO {
-    private List<CommunityResponceDTO> communityList;
+    private List<CommunityResponseDTO> communityList;
 }
