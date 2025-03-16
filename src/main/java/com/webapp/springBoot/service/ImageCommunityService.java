@@ -42,7 +42,7 @@ public class ImageCommunityService {
     public String getImageName(Community community) {
         ImagesCommunity imagesCommunityOptional = community.getImageUrlId();
         if(imagesCommunityOptional == null){
-            return "";
+            return null;
         }
         return imagesCommunityOptional.getNameImage();
     }
@@ -50,7 +50,6 @@ public class ImageCommunityService {
 
 
     // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
-    @Transactional
     public void deleteImageCommunity(Community community) throws IOException {
         ImagesCommunity imagesCommunity = community.getImageUrlId();
         if(imagesCommunity == null){
@@ -63,7 +62,6 @@ public class ImageCommunityService {
         Files.delete(Path.of(path));
     }
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
-    @Transactional
     public void createImagesCommunty(MultipartFile file, Community community) throws IOException, ValidationErrorWithMethod {
         ImagesCommunity imagesCommunity = new ImagesCommunity();
         String path = uploadFileValidation.validationFileAndUpload(file, "image/png", imagesCommunity.getNameImage());
@@ -72,7 +70,7 @@ public class ImageCommunityService {
         communityRepository.save(community);
     }
     // <----------------ИЗМЕНЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
-    public void setImagesCommunity(String nickname, MultipartFile file, Community community) throws IOException, ValidationErrorWithMethod {
+    public void setImagesCommunity(MultipartFile file, Community community) throws IOException, ValidationErrorWithMethod {
         if(community.getImageUrlId() == null){
             createImagesCommunty(file, community);
         } else {
