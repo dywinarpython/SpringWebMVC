@@ -125,9 +125,9 @@ public class CommunityService {
         community.setName(setNameCommunityDTO.getName());
         communityRepository.save(community);
     }
-
+    @Transactional
     public void setImageCommunity(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
-        imageCommunityService.createImagesCommunty(file, findCommunityByNickname(nickname));
+        imageCommunityService.setImagesCommunity(file, findCommunityByNickname(nickname));
     }
 
 
