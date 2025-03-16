@@ -85,7 +85,7 @@ public class CommunityService {
         community.getUserOwnerId().setCommunity(null);
         communityRepository.delete(community);
     }
-
+    @Transactional
     public void deleteImageCommunity(String nickname) throws IOException {
         imageCommunityService.deleteImageCommunity(findCommunityByNickname(nickname));
     }
