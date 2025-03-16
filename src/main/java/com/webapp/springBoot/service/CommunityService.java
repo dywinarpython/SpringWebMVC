@@ -118,7 +118,6 @@ public class CommunityService {
         community.setDescription(setDescriptionCommunityDTO.getDescription());
         communityRepository.save(community);
     }
-
     public void setNicknameCommunity(SetNicknameCommunityDTO setNicknameCommunity, BindingResult result) throws ValidationErrorWithMethod {
         if(result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
@@ -127,7 +126,6 @@ public class CommunityService {
         community.setNickname(setNicknameCommunity.getNicknameAfter());
         communityRepository.save(community);
     }
-
     public void setNameCommunity(SetNameCommunityDTO setNameCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
         if(result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
@@ -140,8 +138,4 @@ public class CommunityService {
     public void setImageCommunity(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
         imageCommunityService.setImagesCommunity(file, findCommunityByNickname(nickname));
     }
-
-
-
-
 }

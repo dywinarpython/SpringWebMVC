@@ -77,7 +77,7 @@ public class CommunityController {
     @Operation(
             summary="Получение сообществ по nickname",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = CommunityResponseDTO.class))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             }
     )
