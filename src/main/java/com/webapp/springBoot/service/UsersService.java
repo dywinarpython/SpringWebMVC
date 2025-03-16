@@ -46,15 +46,36 @@ public class UsersService {
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Users ----------------------------->
-    public List<UsersApp> getUserByName(String name){
+    public ListUsersDTO getUserByName(String name){
         List<UsersApp> users = userRepository.findByNameContaining(name);
         if (users.isEmpty()){
             throw new NoSuchElementException("Имя пользователя не найдено");
         }
-        return users;
+        List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
+        users.forEach(
+                usersApp -> usersResponceDTOList.add(
+                        new UserResponceDTO(
+                                usersApp.getName(),
+                                usersApp.getSurname(),
+                                usersApp.getAge(),
+                                usersApp.getNickname(),
+                                imageUsersAppService.getImageName(usersApp))
+                )
+        );
+        return new ListUsersDTO(usersResponceDTOList);
     }
 
-    public List<UserResponceDTO> getAllUser(){
+    public UserResponceDTO getUserByNickname(String nickname){
+        UsersApp usersApp = findUsersByNickname(nickname);
+        return new UserResponceDTO(
+                usersApp.getName(),
+                usersApp.getSurname(),
+                usersApp.getAge(),
+                usersApp.getNickname(),
+                imageUsersAppService.getImageName(usersApp));
+    }
+
+    public ListUsersDTO getAllUser(){
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
         userRepository.findAll().forEach(
                 usersApp -> usersResponceDTOList.add(
@@ -66,11 +87,22 @@ public class UsersService {
                                 imageUsersAppService.getImageName(usersApp))
                 )
         );
-        return usersResponceDTOList;
+        return new ListUsersDTO(usersResponceDTOList);
     }
 
-    public List<UsersApp> getAgeUserBetween(int ageOne, int ageTwo){
-        return userRepository.getUsersByAgeBetween(ageOne, ageTwo);
+    public ListUsersDTO getAgeUserBetween(int ageOne, int ageTwo){
+        List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
+        userRepository.getUsersByAgeBetween(ageOne, ageTwo).forEach(
+                usersApp -> usersResponceDTOList.add(
+                        new UserResponceDTO(
+                                usersApp.getName(),
+                                usersApp.getSurname(),
+                                usersApp.getAge(),
+                                usersApp.getNickname(),
+                                imageUsersAppService.getImageName(usersApp))
+                )
+        );
+        return new ListUsersDTO(usersResponceDTOList);
     }
 
     @Transactional
@@ -106,12 +138,19 @@ public class UsersService {
     }
 
     // <----------------ПОИСК В СУЩНОСТИ  Users ----------------------------->
-    public List<UsersApp> findByNameAndSurname(String name, String surname){
-        List<UsersApp> users = userRepository.findByNameContainingAndSurnameContaining(name, surname);
-        if (users.isEmpty()){
-            throw new NoSuchElementException("Пользователей с таким именем и фамилией нет");
-        }
-        return users;
+    public ListUsersDTO findByNameAndSurname(String name, String surname){
+        List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
+        userRepository.findByNameContainingAndSurnameContaining(name, surname).forEach(
+                usersApp -> usersResponceDTOList.add(
+                        new UserResponceDTO(
+                                usersApp.getName(),
+                                usersApp.getSurname(),
+                                usersApp.getAge(),
+                                usersApp.getNickname(),
+                                imageUsersAppService.getImageName(usersApp))
+                )
+        );
+        return new ListUsersDTO(usersResponceDTOList);
     }
 
     public UsersApp findUsersByNickname(String nickname){

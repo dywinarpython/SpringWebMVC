@@ -2,7 +2,6 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.Users.*;
-import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 
 @Tag(name="Управление пользователями")
@@ -44,7 +42,7 @@ public class UsersController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
 
             })
-    public List<UsersApp> getUserByName(@RequestParam String name){
+    public ListUsersDTO getUserByName(@RequestParam String name){
         return usersService.getUserByName(name);
     }
 
@@ -56,7 +54,7 @@ public class UsersController {
             }
     )
     public ListUsersDTO getAllUser(){
-        return new ListUsersDTO(usersService.getAllUser());
+        return usersService.getAllUser();
     }
 
 
@@ -73,7 +71,7 @@ public class UsersController {
                     @Parameter(description = "Значение возраста от (включительно)", name = "ageOne", required = true),
                     @Parameter(description = "Значение возраста до (включительно)", name="ageTwo", required = true)
             })
-    public List<UsersApp> getUsersBetweenAge(@RequestParam int ageOne, @RequestParam  int ageTwo ){
+    public ListUsersDTO getUsersBetweenAge(@RequestParam int ageOne, @RequestParam  int ageTwo ){
         return usersService.getAgeUserBetween(ageOne, ageTwo);
         }
 
@@ -89,24 +87,23 @@ public class UsersController {
                     @Parameter(description = "Фамилия пользователя", name="surname", required = true)
             }
     )
-    public List<UsersApp> getUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
+    public ListUsersDTO getUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
         return usersService.findByNameAndSurname(name, surname);
     }
-
 
     @GetMapping("/{nickname}")
     @Operation(
             summary = "Получение пользователе по nickname",
             responses = {@ApiResponse(
-                                responseCode = "200", content = @Content(schema = @Schema(implementation = UserRequestDTO.class))),
+                                responseCode = "200", content = @Content(schema = @Schema(implementation = UserResponceDTO.class))),
                          @ApiResponse(
                                 responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             parameters = {
                     @Parameter(description = "Nickname пользователя", name = "nickname", required = true)
             }
     )
-    public UsersApp getByNickname(@PathVariable String nickname){
-        return usersService.findUsersByNickname(nickname);
+    public UserResponceDTO getByNickname(@PathVariable String nickname){
+        return usersService.getUserByNickname(nickname);
     }
 
     @GetMapping("/communty/{nickname}")
@@ -116,7 +113,7 @@ public class UsersController {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityUsersDTO.class))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ListCommunityUsersDTO getCommunutyForUserByNickname(@PathVariable String nickname){
+    public ListCommunityUsersDTO getCommunityForUserByNickname(@PathVariable String nickname){
         return usersService.getAllCommunityForUser(nickname);
     }
 
