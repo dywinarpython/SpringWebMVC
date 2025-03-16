@@ -3,14 +3,13 @@ package com.webapp.springBoot.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
 @Entity
 @Schema(description = "Сущность загрузки изображений")
-public class ImagesCommunity {
+public class ImagesUsersApp {
 
 
     @Id
@@ -26,9 +25,9 @@ public class ImagesCommunity {
 
     @JsonIgnore
     @OneToOne(mappedBy = "imageUrlId")
-    private Community community;
+    private UsersApp usersApp;
 
-    public ImagesCommunity() {
+    public ImagesUsersApp() {
         nameImage = UUID.randomUUID().toString();
     }
 
@@ -43,6 +42,11 @@ public class ImagesCommunity {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-    public void setCommunity(Community community) {this.community = community;}
 
+    public UsersApp getUsersApp() {
+        return usersApp;
+    }
+    public void setUsersApp(UsersApp usersApp) {
+        this.usersApp = usersApp;
+    }
 }

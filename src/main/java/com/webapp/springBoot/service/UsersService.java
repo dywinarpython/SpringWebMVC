@@ -1,6 +1,7 @@
 package com.webapp.springBoot.service;
 
 
+import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
@@ -11,7 +12,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -22,9 +26,13 @@ import java.util.Optional;
 public class UsersService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ImageUsersAppService imageUsersAppService;
+    @Autowired
+    private ImageCommunityService imageCommunityService;
 
 
-    public void saveUser(UserDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public void saveUser(UserRequestDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
 
         if(result.hasErrors()){
             throw  new ValidationErrorWithMethod(result.getAllErrors());
@@ -46,8 +54,19 @@ public class UsersService {
         return users;
     }
 
-    public List<UsersApp> getAllUser(){
-        return userRepository.findAll();
+    public List<UserResponceDTO> getAllUser(){
+        List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
+        userRepository.findAll().forEach(
+                usersApp -> usersResponceDTOList.add(
+                        new UserResponceDTO(
+                                usersApp.getName(),
+                                usersApp.getSurname(),
+                                usersApp.getAge(),
+                                usersApp.getNickname(),
+                                imageUsersAppService.getImageName(usersApp))
+                )
+        );
+        return usersResponceDTOList;
     }
 
     public List<UsersApp> getAgeUserBetween(int ageOne, int ageTwo){
@@ -56,15 +75,18 @@ public class UsersService {
 
     @Transactional
     public ListCommunityUsersDTO getAllCommunityForUser(String nickname){
-        UsersApp usersApp = findByNickname(nickname);
+        UsersApp usersApp = findUsersByNickname(nickname);
         List<Community> communityList = usersApp.getCommunity();
-        List<CommunityUsersDTO> listCommunityUsersDTO = communityList.stream().map(community ->
-                    new CommunityUsersDTO(
+        List<CommunityResponseDTO> listCommunityUsersDTO = new ArrayList<>();
+        communityList.forEach(community ->
+                    listCommunityUsersDTO.add(new CommunityResponseDTO(
                             community.getName(),
                             community.getDescription(),
-                            community.getNickname()
+                            usersApp.getNickname(),
+                            community.getNickname(),
+                            imageCommunityService.getImageName(community))
                     )
-            ).toList();
+            );
         return new ListCommunityUsersDTO(listCommunityUsersDTO);
     }
 
@@ -78,6 +100,11 @@ public class UsersService {
         userRepository.delete(users.get());
     }
 
+    @Transactional
+    public void deleteImageUsersApp(String nickname) throws IOException {
+        imageUsersAppService.deleteImageUsersApp(findUsersByNickname(nickname));
+    }
+
     // <----------------ПОИСК В СУЩНОСТИ  Users ----------------------------->
     public List<UsersApp> findByNameAndSurname(String name, String surname){
         List<UsersApp> users = userRepository.findByNameContainingAndSurnameContaining(name, surname);
@@ -87,7 +114,7 @@ public class UsersService {
         return users;
     }
 
-    public UsersApp findByNickname(String nickname){
+    public UsersApp findUsersByNickname(String nickname){
         Optional<UsersApp> optionalUsers = userRepository.findByNickname(nickname);
         if (optionalUsers.isEmpty()){
             throw new NoSuchElementException("Пользователей с таким nickname нет");
@@ -100,7 +127,7 @@ public class UsersService {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        UsersApp user = findByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
+        UsersApp user = findUsersByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
         user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
         userRepository.save(user);
     }
@@ -109,7 +136,7 @@ public class UsersService {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        UsersApp user = findByNickname(setNameDTO.getNickname());
+        UsersApp user = findUsersByNickname(setNameDTO.getNickname());
         user.setName(setNameDTO.getNameAfter());
         userRepository.save(user);
     }
@@ -118,9 +145,13 @@ public class UsersService {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        UsersApp user = findByNickname(setSurnameDTO.getNickname());
+        UsersApp user = findUsersByNickname(setSurnameDTO.getNickname());
         user.setSurname(setSurnameDTO.getSurnameAfter());
         userRepository.save(user);
+    }
+    @Transactional
+    public void setImageUsersApp(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
+        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(nickname));
     }
 
 

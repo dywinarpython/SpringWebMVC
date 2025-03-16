@@ -12,8 +12,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@Schema(description = "Сущность пользователя")
-public class UserDTO {
+@Schema(description = "Сущность создания пользователя")
+public class UserRequestDTO {
 
     @Schema( example = "Иван")
     @Size(min = 2, max = 15, message = "Длина имени от 2 до 15")
