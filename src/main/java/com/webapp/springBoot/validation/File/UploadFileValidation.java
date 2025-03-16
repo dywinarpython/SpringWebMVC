@@ -17,22 +17,35 @@ import java.util.Objects;
 
 @Component
 public class UploadFileValidation {
-    @Value("${upload.path}")
-    private  String uploadPath;
+    @Value("${upload.pathCommunuty}")
+    private  String uploadPathCommunity;
+
+    @Value("${upload.pathUser}")
+    private  String uploadPathUser;
 
     @Value("${type.Image}")
     private String typeImage;
 
-
-    public String validationFileAndUpload(MultipartFile file, String typeFile, String nameFile) throws ValidationErrorWithMethod, IOException {
-        if(!Objects.equals(file.getContentType(), typeFile)){
-            throw new ValidationErrorWithMethod("Файл не соответсвует ождиаемому типу, а именно:" + typeFile);
-        }
-        return uploadFile(file, nameFile);
+    public enum UploadTypeEntity{
+        COMMUNITY, USER
     }
 
-    private String uploadFile(MultipartFile file, String nameFile) throws IOException {
-        Path path = Paths.get(uploadPath, nameFile+ typeImage);
+
+    public String validationFileAndUpload(MultipartFile file, String nameFile, UploadTypeEntity uploadTypeEntity) throws ValidationErrorWithMethod, IOException {
+        if(!Objects.equals(file.getContentType(), "image/" + typeImage)){
+            throw new ValidationErrorWithMethod("Файл не соответсвует ождиаемому типу, а именно:" + typeImage);
+        }
+        return uploadFile(file, nameFile, uploadTypeEntity);
+    }
+
+    private String uploadFile(MultipartFile file, String nameFile, UploadTypeEntity uploadTypeEntity) throws IOException {
+        String uploadPath;
+        switch (uploadTypeEntity){
+            case USER -> uploadPath = uploadPathUser;
+            case COMMUNITY -> uploadPath = uploadPathCommunity;
+            default -> uploadPath = "uploads/";
+        }
+        Path path = Paths.get(uploadPath, nameFile + "." + typeImage);
         Files.write(path, file.getBytes());
         return path.toString();
     }

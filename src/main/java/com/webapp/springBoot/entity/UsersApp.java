@@ -41,6 +41,10 @@ public class UsersApp {
     @OneToMany(mappedBy = "userOwnerId", cascade = CascadeType.ALL)
     private List<Community> community;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "image_url_id",referencedColumnName = "id")
+    private ImagesUsersApp imageUrlId;
+
 
     public UsersApp(String name, String surname, int age, String nickname) {
         this.name = name;
@@ -69,5 +73,9 @@ public class UsersApp {
 
     public List<Community> getCommunity() {
         return community;
+    }
+
+    public ImagesUsersApp getImageUrlId() {
+        return imageUrlId;
     }
 }

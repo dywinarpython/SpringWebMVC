@@ -7,7 +7,6 @@ import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.ImageCommunityRepository;
 import com.webapp.springBoot.validation.File.UploadFileValidation;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,7 +63,7 @@ public class ImageCommunityService {
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
     public void createImagesCommunty(MultipartFile file, Community community) throws IOException, ValidationErrorWithMethod {
         ImagesCommunity imagesCommunity = new ImagesCommunity();
-        String path = uploadFileValidation.validationFileAndUpload(file, "image/png", imagesCommunity.getNameImage());
+        String path = uploadFileValidation.validationFileAndUpload(file, imagesCommunity.getNameImage(), UploadFileValidation.UploadTypeEntity.COMMUNITY);
         imagesCommunity.setImageUrl(path);
         community.setImageUrlId(imagesCommunity);
         communityRepository.save(community);

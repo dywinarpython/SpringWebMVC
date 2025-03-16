@@ -12,5 +12,5 @@ import java.util.List;
 @AllArgsConstructor
 @Schema(description = "Лист сущностей пользователей")
 public class ListUsersDTO {
-    private List<UsersApp> userList;
+    private List<UserResponceDTO> userList;
 }
