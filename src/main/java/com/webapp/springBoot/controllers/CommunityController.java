@@ -2,7 +2,6 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.Community.*;
-import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.CommunityService;
 import com.webapp.springBoot.service.ImageCommunityService;
@@ -87,7 +86,8 @@ public class CommunityController {
     // <------------------------ POST ЗАПРОСЫ -------------------------->
     @Operation(
             summary = "Добавление нового сообщества при привязке к пользователя по nickname",
-            responses = @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class)))
+            responses = {@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))}
     )
     @PostMapping("add")
     public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
@@ -136,7 +136,7 @@ public class CommunityController {
             }
     )
     @PatchMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> setImageCommunity(@RequestParam @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
+    public ResponseEntity<String> setImageCommunity(@RequestPart("file") @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
         communityService.setImageCommunity(file, nickname);
         return ResponseEntity.ok("Image сообещства изменен");
     }

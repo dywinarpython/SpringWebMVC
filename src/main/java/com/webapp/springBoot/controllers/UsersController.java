@@ -196,7 +196,7 @@ public class UsersController {
             }
     )
     @PatchMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> setImagesUsersApp(@RequestParam @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
+    public ResponseEntity<String> setImagesUsersApp(@RequestPart("file") @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
         usersService.setImageUsersApp(file, nickname);
         return ResponseEntity.ok("Image пользователя изменен");
     }

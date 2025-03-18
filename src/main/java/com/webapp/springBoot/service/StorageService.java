@@ -20,13 +20,31 @@ public class StorageService {
     @Value("${upload.pathUser}")
     private String pathUser;
 
+    @Value("${upload.pathUser.video}")
+    private String pathUserVideo;
+
+    @Value("${upload.pathCommunity.video}")
+    private String pathCommunityVideo;
+
+    @Value("${upload.pathCommunity.image}")
+    private String pathCommunityImage;
+
+    @Value("${upload.pathUser.image}")
+    private String pathUserImage;
+
     @PostConstruct
     public void init() throws IOException {
         Path communityPath = Path.of(pathCommunity);
         Path userPath = Path.of(pathUser);
-        if(!Files.exists(userPath) && !Files.exists(communityPath)){
-            Files.createDirectories(communityPath);
-            Files.createDirectories(userPath);
-        }
+        Path userVideoPath = Path.of(pathUserVideo);
+        Path communityVideoPath = Path.of(pathCommunityVideo);
+        Path communityImagePath = Path.of(pathCommunityImage);
+        Path userImagePath = Path.of(pathUserImage);
+        Files.createDirectories(communityPath);
+        Files.createDirectories(userPath);
+        Files.createDirectories(userVideoPath);
+        Files.createDirectories(communityVideoPath);
+        Files.createDirectories(communityImagePath);
+        Files.createDirectories(userImagePath);
     }
 }

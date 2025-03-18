@@ -1,7 +1,7 @@
 package com.webapp.springBoot.validation.Person;
 
 import com.webapp.springBoot.entity.UsersApp;
-import com.webapp.springBoot.repository.UserRepository;
+import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import java.util.Optional;
 @Component
 public class UniqueValidation implements ConstraintValidator<Unique, String> {
     @Autowired
-    private UserRepository userRepository;
+    private UsersAppRepository userRepository;
 
 
     @Override

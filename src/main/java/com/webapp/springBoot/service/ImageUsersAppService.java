@@ -1,16 +1,14 @@
 package com.webapp.springBoot.service;
 
 
-import com.webapp.springBoot.entity.Community;
-import com.webapp.springBoot.entity.ImagesCommunity;
 import com.webapp.springBoot.entity.ImagesUsersApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
-import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.ImageUsersAppRepository;
-import com.webapp.springBoot.repository.UserRepository;
-import com.webapp.springBoot.validation.File.UploadFileValidation;
+import com.webapp.springBoot.repository.UsersAppRepository;
+import com.webapp.springBoot.validation.File.UploadFileValidationImage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -25,10 +24,11 @@ public class ImageUsersAppService {
     @Autowired
     private ImageUsersAppRepository imageUsersAppRepository;
     @Autowired
-    private UserRepository userRepository;
+    private UsersAppRepository userRepository;
     @Autowired
-    private UploadFileValidation uploadFileValidation;
-
+    private UploadFileValidationImage uploadFileValidation;
+    @Value("${type.Image}")
+    private String typeImage;
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
 
@@ -65,7 +65,10 @@ public class ImageUsersAppService {
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  ImageUsersApp ----------------------------->
     public void createImagesCommunty(MultipartFile file, UsersApp usersApp) throws IOException, ValidationErrorWithMethod {
         ImagesUsersApp imagesUsersApp = new ImagesUsersApp();
-        String path = uploadFileValidation.validationFileAndUpload(file, imagesUsersApp.getNameImage(), UploadFileValidation.UploadTypeEntity.USER);
+        if(!Objects.equals(file.getContentType(), "image/" + typeImage)){
+            throw new ValidationErrorWithMethod("Файл не соответсвует ождиаемому типу, а именно: " + typeImage);
+        }
+        String path = uploadFileValidation.uploadFile(file, imagesUsersApp.getNameImage(), UploadFileValidationImage.UploadTypeEntity.USER, typeImage);
         imagesUsersApp.setImageUrl(path);
         usersApp.setImageUrlId(imagesUsersApp);
         userRepository.save(usersApp);
