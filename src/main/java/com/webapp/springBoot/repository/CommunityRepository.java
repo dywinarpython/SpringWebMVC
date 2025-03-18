@@ -10,7 +10,7 @@ import java.util.Optional;
 
 
 public interface CommunityRepository extends JpaRepository<Community, Long> {
-    List<Community> findByNameContains( String nickname);
+    List<Community> findByNameContainsIgnoreCase( String nickname);
     Optional<Community> findByNickname(String nickname);
 
 }

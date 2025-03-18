@@ -42,16 +42,24 @@ public class UsersApp {
     private List<Community> community;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_url_id",referencedColumnName = "id")
     private ImagesUsersApp imageUrlId;
 
+    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
+    private List<PostsUserApp> tapeUserAppList;
+
+    public void setTapeUserAppList(PostsUserApp postsUserApp) {
+        tapeUserAppList.add(postsUserApp);
+    }
+
+    public List<PostsUserApp> getPostsUserAppList() {
+        return tapeUserAppList;
+    }
 
     public UsersApp(String name, String surname, int age, String nickname) {
         this.name = name;
         this.surname = surname;
         this.age = age;
         this.nickname = nickname;
-
 
     }
 

@@ -6,7 +6,7 @@ import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
-import com.webapp.springBoot.repository.UserRepository;
+import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import java.util.Optional;
 @Service
 public class UsersService {
     @Autowired
-    private UserRepository userRepository;
+    private UsersAppRepository userRepository;
     @Autowired
     private ImageUsersAppService imageUsersAppService;
     @Autowired
@@ -47,19 +47,14 @@ public class UsersService {
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Users ----------------------------->
     public ListUsersDTO getUserByName(String name){
-        List<UsersApp> users = userRepository.findByNameContaining(name);
+        List<UsersApp> users = userRepository.findByNameContainingIgnoreCase(name);
         if (users.isEmpty()){
             throw new NoSuchElementException("Имя пользователя не найдено");
         }
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
         users.forEach(
                 usersApp -> usersResponceDTOList.add(
-                        new UserResponceDTO(
-                                usersApp.getName(),
-                                usersApp.getSurname(),
-                                usersApp.getAge(),
-                                usersApp.getNickname(),
-                                imageUsersAppService.getImageName(usersApp))
+                        new UserResponceDTO(usersApp,imageUsersAppService.getImageName(usersApp))
                 )
         );
         return new ListUsersDTO(usersResponceDTOList);
@@ -67,23 +62,14 @@ public class UsersService {
 
     public UserResponceDTO getUserByNickname(String nickname){
         UsersApp usersApp = findUsersByNickname(nickname);
-        return new UserResponceDTO(
-                usersApp.getName(),
-                usersApp.getSurname(),
-                usersApp.getAge(),
-                usersApp.getNickname(),
-                imageUsersAppService.getImageName(usersApp));
+        return new UserResponceDTO(usersApp, imageUsersAppService.getImageName(usersApp));
     }
 
     public ListUsersDTO getAllUser(){
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
         userRepository.findAll().forEach(
                 usersApp -> usersResponceDTOList.add(
-                        new UserResponceDTO(
-                                usersApp.getName(),
-                                usersApp.getSurname(),
-                                usersApp.getAge(),
-                                usersApp.getNickname(),
+                        new UserResponceDTO(usersApp,
                                 imageUsersAppService.getImageName(usersApp))
                 )
         );
@@ -94,11 +80,7 @@ public class UsersService {
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
         userRepository.getUsersByAgeBetween(ageOne, ageTwo).forEach(
                 usersApp -> usersResponceDTOList.add(
-                        new UserResponceDTO(
-                                usersApp.getName(),
-                                usersApp.getSurname(),
-                                usersApp.getAge(),
-                                usersApp.getNickname(),
+                        new UserResponceDTO(usersApp,
                                 imageUsersAppService.getImageName(usersApp))
                 )
         );
@@ -140,13 +122,9 @@ public class UsersService {
     // <----------------ПОИСК В СУЩНОСТИ  Users ----------------------------->
     public ListUsersDTO findByNameAndSurname(String name, String surname){
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
-        userRepository.findByNameContainingAndSurnameContaining(name, surname).forEach(
+        userRepository.findByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(name, surname).forEach(
                 usersApp -> usersResponceDTOList.add(
-                        new UserResponceDTO(
-                                usersApp.getName(),
-                                usersApp.getSurname(),
-                                usersApp.getAge(),
-                                usersApp.getNickname(),
+                        new UserResponceDTO(usersApp,
                                 imageUsersAppService.getImageName(usersApp))
                 )
         );

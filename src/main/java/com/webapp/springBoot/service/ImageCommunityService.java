@@ -6,8 +6,9 @@ import com.webapp.springBoot.entity.ImagesCommunity;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.ImageCommunityRepository;
-import com.webapp.springBoot.validation.File.UploadFileValidation;
+import com.webapp.springBoot.validation.File.UploadFileValidationImage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -25,7 +27,9 @@ public class ImageCommunityService {
     @Autowired
     private CommunityRepository communityRepository;
     @Autowired
-    private UploadFileValidation uploadFileValidation;
+    private UploadFileValidationImage uploadFileValidation;
+    @Value("${type.Image}")
+    private String typeImage;
 
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
@@ -63,7 +67,10 @@ public class ImageCommunityService {
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
     public void createImagesCommunty(MultipartFile file, Community community) throws IOException, ValidationErrorWithMethod {
         ImagesCommunity imagesCommunity = new ImagesCommunity();
-        String path = uploadFileValidation.validationFileAndUpload(file, imagesCommunity.getNameImage(), UploadFileValidation.UploadTypeEntity.COMMUNITY);
+        if(!Objects.equals(file.getContentType(), "image/" + typeImage)){
+            throw new ValidationErrorWithMethod("Файл не соответсвует ождиаемому типу, а именно: " + typeImage);
+        }
+        String path = uploadFileValidation.uploadFile(file, imagesCommunity.getNameImage(), UploadFileValidationImage.UploadTypeEntity.COMMUNITY, typeImage);
         imagesCommunity.setImageUrl(path);
         community.setImageUrlId(imagesCommunity);
         communityRepository.save(community);

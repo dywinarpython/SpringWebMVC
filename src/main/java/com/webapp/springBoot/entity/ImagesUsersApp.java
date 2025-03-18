@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Entity
-@Schema(description = "Сущность загрузки изображений")
+@Schema(description = "Сущность загрузки изображений пользователя")
 public class ImagesUsersApp {
 
 
@@ -45,8 +45,5 @@ public class ImagesUsersApp {
 
     public UsersApp getUsersApp() {
         return usersApp;
-    }
-    public void setUsersApp(UsersApp usersApp) {
-        this.usersApp = usersApp;
     }
 }

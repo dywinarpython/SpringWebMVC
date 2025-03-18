@@ -74,7 +74,7 @@ public class CommunityService {
     }
     public  List<CommunityResponseDTO> findByNameLike(String name){
         List<CommunityResponseDTO> communityResponceDTOList = new ArrayList<>();
-        communityRepository.findByNameContains(name).forEach(
+        communityRepository.findByNameContainsIgnoreCase(name).forEach(
                 community -> communityResponceDTOList.add(
                         new CommunityResponseDTO(
                                 community.getName(),

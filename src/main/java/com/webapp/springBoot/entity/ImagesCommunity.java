@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Entity
-@Schema(description = "Сущность загрузки изображений")
+@Schema(description = "Сущность загрузки изображений сообщества")
 public class ImagesCommunity {
 
 
@@ -43,6 +43,4 @@ public class ImagesCommunity {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-    public void setCommunity(Community community) {this.community = community;}
-
 }
