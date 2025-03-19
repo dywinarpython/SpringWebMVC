@@ -45,14 +45,14 @@ public class UsersApp {
     private ImagesUsersApp imageUrlId;
 
     @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
-    private List<PostsUserApp> tapeUserAppList;
+    private List<PostsUserApp> postUserAppList;
 
-    public void setTapeUserAppList(PostsUserApp postsUserApp) {
-        tapeUserAppList.add(postsUserApp);
+    public void setPostUserAppList(PostsUserApp postsUserApp) {
+        postUserAppList.add(postsUserApp);
     }
 
     public List<PostsUserApp> getPostsUserAppList() {
-        return tapeUserAppList;
+        return postUserAppList;
     }
 
     public UsersApp(String name, String surname, int age, String nickname) {

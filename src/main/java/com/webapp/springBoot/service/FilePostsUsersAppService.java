@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-
 @Service
 public class FilePostsUsersAppService {
 
@@ -35,7 +34,6 @@ public class FilePostsUsersAppService {
     @Autowired
     private UploadFileValidationImage uploadFileValidationImage;
 
-
     @Autowired
     private UsersAppRepository usersAppRepository;
 
@@ -45,70 +43,70 @@ public class FilePostsUsersAppService {
     @Value("${type.VIDEO}")
     private String typeVideo;
 
-    // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  FilePostsUsersAppService ----------------------------->
+    // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService ----------------------------->
 
     public byte[] getFile(String nameImage) throws IOException {
         Optional<PostsUserAppFile> imagesCommunityOptional = filePostsUserAppRepository.findByNameFile(nameImage);
-        if(imagesCommunityOptional.isEmpty()){
+        if (imagesCommunityOptional.isEmpty()) {
             throw new NoSuchElementException("Файл не найден");
         }
         return Files.readAllBytes(Path.of(imagesCommunityOptional.get().getFileUrl()));
     }
 
     public List<String> getFileName(PostsUserApp tapeUserApp) {
-        List<PostsUserAppFile> tapeUserAppFileList = tapeUserApp.getFIle();
-        if(tapeUserAppFileList == null){
+        List<PostsUserAppFile> tapeUserAppFileList = tapeUserApp.getFiles();
+        if (tapeUserAppFileList == null) {
             return null;
         }
         List<String> stringList = new ArrayList<>();
         tapeUserAppFileList.forEach(
-                tapeUserAppForeach ->
-                        stringList.add(tapeUserAppForeach.getNameFile())
-        );
+                tapeUserAppForeach -> stringList.add(tapeUserAppForeach.getNameFile()));
         return stringList;
     }
 
-
-    // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ  FilePostsUsersAppService ----------------------------->
+    // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService ----------------------------->
     public void deleteFileTapeUsersAppService(PostsUserApp postsUserApp) throws IOException {
-        List<PostsUserAppFile> postsUserAppFile;
-        postsUserAppFile =  postsUserApp.getFIle();
+        List<PostsUserAppFile> postsUserAppFileList = postsUserApp.getFiles();
         postsUserApp.setUsersApp(null);
         postsUsersAppRepository.delete(postsUserApp);
-        if(!(postsUserAppFile == null)){
-            for (PostsUserAppFile postsUserAppFileFor: postsUserAppFile){
+        if (!(postsUserAppFileList == null)) {
+            for (PostsUserAppFile postsUserAppFileFor : postsUserAppFileList) {
                 String path = postsUserAppFileFor.getFileUrl();
                 Files.delete(Path.of(path));
             }
         }
-        }
-    // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  FilePostsUsersAppService ----------------------------->
-    public void createFIlesForPosts(MultipartFile[] multipartFiles, PostsUserApp postsUserApp) throws IOException, ValidationErrorWithMethod {
+    }
+
+    // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService---------------------------->
+    public void createFIlesForPosts(MultipartFile[] multipartFiles, PostsUserApp postsUserApp)
+            throws IOException, ValidationErrorWithMethod {
         List<PostsUserAppFile> postsUserAppFileList = new ArrayList<>();
         String path;
-        for(MultipartFile file: multipartFiles){
+        for (MultipartFile file : multipartFiles) {
             PostsUserAppFile postsUserAppFile = new PostsUserAppFile();
-            if(Objects.equals(file.getContentType(), "image/" + typeImage)){
-                path = uploadFileValidationImage.uploadFile(file, postsUserAppFile.getNameFile(), UploadFileValidationImage.UploadTypeEntity.USER, typeImage);
-            } else if(Objects.equals(file.getContentType(), "video/" + typeImage)){
-                path = uploadFileValidationVideo.uploadFile(file, postsUserAppFile.getNameFile(), UploadFileValidationVideo.UploadTypeEntity.USER, typeVideo);
-            } else{
-                throw new ValidationErrorWithMethod("Какой то из файлов некоректного типа, аимено: " + file.getContentType() + " доступные типы: " + typeImage + " " + typeVideo);
+            if (Objects.equals(file.getContentType(), "image/" + typeImage)) {
+                path = uploadFileValidationImage.uploadFile(file, postsUserAppFile.getNameFile(),
+                        UploadFileValidationImage.UploadTypeEntity.USERS_APP_POSTS, typeImage);
+            } else if (Objects.equals(file.getContentType(), "video/" + typeVideo)) {
+                path = uploadFileValidationVideo.uploadFile(file, postsUserAppFile.getNameFile(),
+                        UploadFileValidationVideo.UploadTypeEntity.USER_POSTS, typeVideo);
+            } else {
+                throw new ValidationErrorWithMethod(STR."Какой то из файлов некоректного типа, а именно: \{file.getContentType()} доступные типы: \{typeImage} \{typeVideo}");
             }
             postsUserAppFile.setImageUrl(path);
             postsUserAppFileList.add(postsUserAppFile);
         }
-        postsUserApp.setListFile(postsUserAppFileList);
+        postsUserApp.setFiles(postsUserAppFileList);
     }
-    // <----------------ИЗМЕНЕНИЕ ДАННЫХ В СУЩНОСТИ  FilePostsUsersAppService ----------------------------->
-    public void setFileTapeUsersAppService(MultipartFile[] file, PostsUserApp postsUserApp) throws IOException, ValidationErrorWithMethod {
-        if (file.length > 7){
-            throw new ValidationErrorWithMethod("Количсетво файлов для загрузки не может превышать 7, то есть на пост максимум 7 файлов");
+
+    // <----------------ИЗМЕНЕНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService---------------------------->
+    public void setFileTapeUsersAppService(MultipartFile[] file, PostsUserApp postsUserApp)
+            throws IOException, ValidationErrorWithMethod {
+        if (file.length > 7) {
+            throw new ValidationErrorWithMethod(
+                    "Количсетво файлов для загрузки не может превышать 7, то есть на пост максимум 7 файлов");
         }
         deleteFileTapeUsersAppService(postsUserApp);
         createFIlesForPosts(file, postsUserApp);
     }
 }
-
-
-
