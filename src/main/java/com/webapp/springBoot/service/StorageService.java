@@ -14,7 +14,7 @@ import java.nio.file.Path;
 @Service
 public class StorageService {
 
-    @Value("${upload.pathCommunuty}")
+    @Value("${upload.pathCommunity}")
     private String pathCommunity;
 
     @Value("${upload.pathUser}")

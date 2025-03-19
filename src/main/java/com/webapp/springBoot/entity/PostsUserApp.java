@@ -1,15 +1,18 @@
 package com.webapp.springBoot.entity;
 
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
+@Getter
+@Setter
 @Entity
 @Schema(description = "Сущность ленты пользователя")
 public class PostsUserApp {
@@ -31,7 +34,6 @@ public class PostsUserApp {
     @CreationTimestamp
     private LocalDateTime createDate;
 
-
     private LocalDateTime updateDate;
 
     @NotNull
@@ -47,33 +49,8 @@ public class PostsUserApp {
     @JoinColumn(referencedColumnName = "id")
     private List<PostsUserAppFile> files;
 
-    public List<PostsUserAppFile> getFIle() {
-        return files;
+    public void generateName() {
+        this.name = "posts_" + UUID.randomUUID();
     }
-
-    public void setListFile(List<PostsUserAppFile> listFile) {
-        this.files = listFile;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public LocalDateTime getCreateDate() {
-        return createDate;
-    }
-
-    public LocalDateTime getUpdateDate() {
-        return updateDate;
-    }
-
-    public void setUpdateDate(LocalDateTime updateDate) {
-        this.updateDate = updateDate;
-    }
-
 
 }

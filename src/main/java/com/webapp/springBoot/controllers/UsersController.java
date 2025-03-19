@@ -211,7 +211,7 @@ public class UsersController {
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
 
     )
-    public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) {
+    public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) throws IOException {
         usersService.deleteUserByNickname(nickname);
         return ResponseEntity.ok("Пользователь был успешно удален");
     }

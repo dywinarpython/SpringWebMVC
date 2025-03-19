@@ -25,15 +25,14 @@ public class UploadFileValidationVideo {
 
 
     public enum UploadTypeEntity{
-        COMMUNITY, USER
+        COMMUNITY_POSTS, USER_POSTS
     }
-
 
     public String uploadFile(MultipartFile file, String nameFile, UploadTypeEntity uploadTypeEntity, String typeVideo) throws IOException {
         String uploadPath;
         switch (uploadTypeEntity){
-            case USER -> uploadPath = uploadPathUser;
-            case COMMUNITY -> uploadPath = uploadPathCommunity;
+            case COMMUNITY_POSTS -> uploadPath = uploadPathCommunity;
+            case USER_POSTS -> uploadPath = uploadPathUser;
             default -> uploadPath = "uploads/";
         }
         Path path = Paths.get(uploadPath, nameFile + "." + typeVideo);

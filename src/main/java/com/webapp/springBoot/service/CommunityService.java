@@ -36,6 +36,7 @@ public class CommunityService {
 
 
 
+
     public void addNewCommunity(CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
@@ -91,9 +92,10 @@ public class CommunityService {
 
     // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
     @Transactional
-    public void deleteCommunityByNickname(String nickname){
+    public void deleteCommunityByNickname(String nickname) throws IOException{
         Community community = findCommunityByNickname(nickname);
         community.getUserOwnerId().setCommunity(null);
+        imageCommunityService.deleteImageCommunity(community);
         communityRepository.delete(community);
     }
     @Transactional

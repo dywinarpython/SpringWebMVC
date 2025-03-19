@@ -8,19 +8,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Сущность создания постов")
-public class RequestUsersPostDTO {
-    @NotNull
-    @Size(max = 30, min = 3)
+public class ResponceUsersPostDTO {
+
+
     private String title;
 
-
-    @Size(max = 280)
     private String description;
 
-    @NotNull
+
     private String nicknameUser;
+
+    private List<String> namePostsFile;
 }

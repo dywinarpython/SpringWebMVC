@@ -150,7 +150,7 @@ public class CommunityController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname){
+    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname) throws IOException{
         communityService.deleteCommunityByNickname(nickname);
         return ResponseEntity.ok("Сообщество удалено");
     }
