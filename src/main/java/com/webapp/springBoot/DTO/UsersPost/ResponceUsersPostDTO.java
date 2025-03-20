@@ -24,5 +24,8 @@ public class ResponceUsersPostDTO {
 
     private String nicknameUser;
 
+    private String namePost;
+
     private List<String> namePostsFile;
+
 }

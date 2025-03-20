@@ -48,6 +48,7 @@ public class PostUsersAppService {
                         postsUserApp.getTitle(),
                         postsUserApp.getDescription(),
                         nickname,
+                        postsUserApp.getName(),
                         filePostsUsersAppService.getFileName(postsUserApp)
                 ))
                 );
