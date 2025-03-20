@@ -72,4 +72,16 @@ public class PostUsersController {
         return new ResponseEntity<>("Пост добавлен", HttpStatus.CREATED);
     }
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
+    @DeleteMapping("/{namePost}")
+    @Operation(
+            summary = "Удаление поста пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Удален создан"),
+                    @ApiResponse(responseCode = "404", description = "Пост не найден")
+            }
+    )
+    public ResponseEntity<String> deletePost(@PathVariable String namePost) throws ValidationErrorWithMethod, IOException {
+        postUsersAppService.deletePostUsersApp(namePost);
+        return ResponseEntity.ok("Пост удален");
+    }
 }
