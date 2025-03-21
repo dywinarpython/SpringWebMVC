@@ -112,32 +112,50 @@ public class CommunityService {
     }
 
     // <----------------ИЗМЕНЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
-    public void setDescriptionCommunity(SetDescriptionCommunityDTO setDescriptionCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
-        if(result.hasErrors()){
+    @Transactional
+    public void setCommunity(SetCommunityDTO setCommunityDTO, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
+        boolean flag = false;
+        if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        Community community = findCommunityByNickname(setDescriptionCommunityDTO.getNickname());
-        community.setDescription(setDescriptionCommunityDTO.getDescription());
+        if(setCommunityDTO.getDescription() != null){
+            setDescription(setCommunityDTO);
+            flag = true;
+        }
+        if (setCommunityDTO.getName() != null) {
+            setName(setCommunityDTO);
+            flag = true;
+        }
+        if(file != null){
+            setImage(setCommunityDTO, file);
+            flag = true;
+        }
+        if(setCommunityDTO.getNicknameAfter() != null){
+            setNickname(setCommunityDTO);
+            flag = true;
+        }
+        if(!flag){
+            throw new ValidationErrorWithMethod("Нет даных для обновления");
+        }
+    }
+
+    public void setDescription(SetCommunityDTO setCommunityDTO)  {
+        Community community = findCommunityByNickname(setCommunityDTO.getNickname());
+        community.setDescription(setCommunityDTO.getDescription());
         communityRepository.save(community);
     }
-    public void setNicknameCommunity(SetNicknameCommunityDTO setNicknameCommunity, BindingResult result) throws ValidationErrorWithMethod {
-        if(result.hasErrors()){
-            throw new ValidationErrorWithMethod(result.getAllErrors());
-        }
-        Community community = findCommunityByNickname(setNicknameCommunity.getNicknameBefore());
+    public void setNickname(SetCommunityDTO setNicknameCommunity) {
+        Community community = findCommunityByNickname(setNicknameCommunity.getNickname());
         community.setNickname(setNicknameCommunity.getNicknameAfter());
         communityRepository.save(community);
     }
-    public void setNameCommunity(SetNameCommunityDTO setNameCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
-        if(result.hasErrors()){
-            throw new ValidationErrorWithMethod(result.getAllErrors());
-        }
+    public void setName(SetCommunityDTO setNameCommunityDTO){
         Community community = findCommunityByNickname(setNameCommunityDTO.getNickname());
         community.setName(setNameCommunityDTO.getName());
         communityRepository.save(community);
     }
     @Transactional
-    public void setImageCommunity(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
-        imageCommunityService.setImagesCommunity(file, findCommunityByNickname(nickname));
+    public void setImage(SetCommunityDTO setCommunityDTO, MultipartFile file) throws IOException, ValidationErrorWithMethod {
+        imageCommunityService.setImagesCommunity(file, findCommunityByNickname(setCommunityDTO.getNickname()));
     }
 }

@@ -8,6 +8,7 @@ import com.webapp.springBoot.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -132,7 +133,7 @@ public class UsersController {
 
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
-    @PostMapping("/add")
+    @PostMapping("/")
     @Operation(
             summary="Добавление нового пользователя",
             responses = {
@@ -148,57 +149,18 @@ public class UsersController {
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
 
-    @PatchMapping("/nickname")
+    @PatchMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
-            summary = "Изменение nickname пользователя",
+            summary = "Изменение сущности пользователи",
             responses = {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
-                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
+                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setNickname(@Valid @RequestBody SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result) throws ValidationErrorWithMethod {
-        usersService.setNickname(apiResponceSetNicknameDTO, result);
-        return ResponseEntity.ok("Nickname изменен");
-    }
-
-    @PatchMapping("/name")
-    @Operation(
-            summary = "Изменение name пользователя",
-            responses = {@ApiResponse(
-                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
-                    @ApiResponse(
-                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
-    )
-    public ResponseEntity<String> setName(@Valid @RequestBody SetNameDTO setNameDTO, BindingResult result) throws ValidationErrorWithMethod {
-        usersService.setName(setNameDTO, result);
-        return ResponseEntity.ok("Name изменен");
-    }
-
-    @PatchMapping("/surname")
-    @Operation(
-            summary = "Изменение surname пользователя",
-            responses = {@ApiResponse(
-                    responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
-                    @ApiResponse(
-                            responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
-    )
-    public ResponseEntity<String> setSurname(@Valid @RequestBody SetSurnameDTO setSurnameDTO, BindingResult result) throws ValidationErrorWithMethod {
-        usersService.setSurname(setSurnameDTO, result);
-        return ResponseEntity.ok("Surname изменен");
-    }
-
-    @Operation(
-            summary = "Изменение изображения пользователя",
-
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Изображение успешно обновлено"),
-                    @ApiResponse(responseCode = "400", description = "Ошибка валидации файла")
-            }
-    )
-    @PatchMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> setImagesUsersApp(@RequestPart("file") @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
-        usersService.setImageUsersApp(file, nickname);
-        return ResponseEntity.ok("Image пользователя изменен");
+    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUserDTO setUserDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file) throws ValidationErrorWithMethod, IOException {
+        usersService.setUsers(setUserDTO,result, file);
+        return ResponseEntity.ok("Сущность пользователя изменена");
     }
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
@@ -209,7 +171,6 @@ public class UsersController {
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
-
     )
     public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) throws IOException {
         usersService.deleteUserByNickname(nickname);

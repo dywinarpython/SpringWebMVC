@@ -8,6 +8,7 @@ import com.webapp.springBoot.service.ImageCommunityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -84,62 +85,30 @@ public class CommunityController {
         return communityService.getByNickname(nickname);
     }
     // <------------------------ POST ЗАПРОСЫ -------------------------->
+    @PostMapping("/")
     @Operation(
             summary = "Добавление нового сообщества при привязке к пользователя по nickname",
             responses = {@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    @PostMapping("add")
     public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
         communityService.addNewCommunity(communityDTO,result);
         return new ResponseEntity<>("Сообщество добавлено", HttpStatus.CREATED);
     }
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
+    @PatchMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
-            summary = "Изменение nickname сообщества",
-            responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class)))
+            summary = "Изменение сущности Community",
+            responses = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    @PatchMapping("nickname")
-    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestBody SetNicknameCommunityDTO setNicknameCommunity, BindingResult result) throws ValidationErrorWithMethod {
-        communityService.setNicknameCommunity(setNicknameCommunity,result);
-        return ResponseEntity.ok("Nickname сообещства изменен");
+    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestPart("metadata") SetCommunityDTO setCommunityDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file) throws ValidationErrorWithMethod, IOException {
+        communityService.setCommunity(setCommunityDTO,result, file);
+        return ResponseEntity.ok("Сущность сообещства изменена");
     }
 
-    @Operation(
-            summary = "Изменение description сообщества",
-            responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class)))
-    )
-    @PatchMapping("description")
-    public ResponseEntity<String> setDescriptionCommunity(@Valid @RequestBody SetDescriptionCommunityDTO setDescriptionCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
-        communityService.setDescriptionCommunity(setDescriptionCommunityDTO,result);
-        return ResponseEntity.ok("Description сообещства изменен");
-    }
-
-    @Operation(
-            summary = "Изменение name сообщества",
-            responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class)))
-    )
-    @PatchMapping("name")
-    public ResponseEntity<String> setNameCommunity(@Valid @RequestBody SetNameCommunityDTO setNameCommunityDTO, BindingResult result) throws ValidationErrorWithMethod {
-        communityService.setNameCommunity(setNameCommunityDTO,result);
-        return ResponseEntity.ok("Name сообещства изменен");
-    }
-
-
-    @Operation(
-            summary = "Изменение изображения сообщества",
-
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Изображение успешно обновлено"),
-                    @ApiResponse(responseCode = "400", description = "Ошибка валидации файла")
-            }
-    )
-    @PatchMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> setImageCommunity(@RequestPart("file") @Parameter(description = "Изображение только формата: PNG" ) MultipartFile file, @RequestParam String nickname) throws IOException, ValidationErrorWithMethod {
-        communityService.setImageCommunity(file, nickname);
-        return ResponseEntity.ok("Image сообещства изменен");
-    }
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
 
     @DeleteMapping("/{nickname}")

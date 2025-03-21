@@ -125,37 +125,56 @@ public class UsersService {
     }
 
     // <----------------ИЗМЕНЕНИЕ В СУЩНОСТИ Users ----------------------------->
-    public void setNickname(SetNicknameDTO apiResponceSetNicknameDTO, BindingResult result)
-            throws ValidationErrorWithMethod {
+
+    @Transactional
+    public void setUsers(SetUserDTO setUserDTO, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
+        boolean flag = false;
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        UsersApp user = findUsersByNickname(apiResponceSetNicknameDTO.getNicknameBefore());
+        if(setUserDTO.getSurname() != null){
+            setSurname(setUserDTO);
+            flag = true;
+        }
+        if (setUserDTO.getName() != null) {
+            setName(setUserDTO);
+            flag = true;
+        }
+        if(file != null){
+            setImageUsersApp(setUserDTO, file);
+            flag = true;
+        }
+        if(setUserDTO.getNicknameAfter() != null){
+            setNickname(setUserDTO);
+            flag = true;
+        }
+        if(!flag){
+            throw new ValidationErrorWithMethod("Нет даных для обновления");
+        }
+    }
+    public void setNickname(SetUserDTO apiResponceSetNicknameDTO) {
+
+        UsersApp user = findUsersByNickname(apiResponceSetNicknameDTO.getNickname());
         user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
         userRepository.save(user);
     }
 
-    public void setName(SetNameDTO setNameDTO, BindingResult result) throws ValidationErrorWithMethod {
-        if (result.hasErrors()) {
-            throw new ValidationErrorWithMethod(result.getAllErrors());
-        }
-        UsersApp user = findUsersByNickname(setNameDTO.getNickname());
-        user.setName(setNameDTO.getNameAfter());
+    public void setName(SetUserDTO setUserDTO){
+
+        UsersApp user = findUsersByNickname(setUserDTO.getNickname());
+        user.setName(setUserDTO.getName());
         userRepository.save(user);
     }
 
-    public void setSurname(SetSurnameDTO setSurnameDTO, BindingResult result) throws ValidationErrorWithMethod {
-        if (result.hasErrors()) {
-            throw new ValidationErrorWithMethod(result.getAllErrors());
-        }
-        UsersApp user = findUsersByNickname(setSurnameDTO.getNickname());
-        user.setSurname(setSurnameDTO.getSurnameAfter());
+    public void setSurname(SetUserDTO setUserDTO){
+        UsersApp user = findUsersByNickname(setUserDTO.getNickname());
+        user.setSurname(setUserDTO.getSurname());
         userRepository.save(user);
     }
 
     @Transactional
-    public void setImageUsersApp(MultipartFile file, String nickname) throws IOException, ValidationErrorWithMethod {
-        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(nickname));
+    public void setImageUsersApp(SetUserDTO setUserDTO, MultipartFile file) throws IOException, ValidationErrorWithMethod {
+        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(setUserDTO.getNickname()));
     }
 
 }

@@ -3,6 +3,7 @@ package com.webapp.springBoot.service;
 import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
@@ -81,7 +82,16 @@ public class PostUsersAppService {
         postsUserApp.setTitle(requestUsersPostDTO.getTitle());
         postsUserApp.generateName();
         postsUserApp.setDescription(requestUsersPostDTO.getDescription());
-        filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
+        if(multipartFiles!=null) {
+            filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
+        }
         postsUsersAppRepository.save(postsUserApp);
+    }
+    @Transactional
+    public void setPostUserApp(SetUsersPostDTO setUsersPostDTO, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+        PostsUserApp postsUserApp = findByName(setUsersPostDTO.getNamePost());
+        String nicknameUser = postsUserApp.getUsersApp().getNickname();
+        deletePostUsersApp(setUsersPostDTO.getNamePost());
+        createPostUsersApp(new RequestUsersPostDTO(setUsersPostDTO.getTitle(), setUsersPostDTO.getDescription(), nicknameUser), result, multipartFiles);
     }
 }
