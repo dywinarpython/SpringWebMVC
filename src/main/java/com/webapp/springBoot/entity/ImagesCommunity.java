@@ -25,7 +25,7 @@ public class ImagesCommunity {
     private String imageUrl;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "imageUrlId")
+    @OneToOne(mappedBy = "imageUrl")
     private Community community;
 
     public ImagesCommunity() {

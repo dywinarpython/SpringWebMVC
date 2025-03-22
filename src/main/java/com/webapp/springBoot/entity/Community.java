@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 @NoArgsConstructor
 
@@ -35,19 +37,23 @@ public class Community {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "user_owner_id",referencedColumnName = "id")
-    private UsersApp userOwnerId;
+    @JoinColumn(referencedColumnName = "id")
+    private UsersApp userOwner;
 
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_url_id",referencedColumnName = "id")
-    private ImagesCommunity imageUrlId;
+    @JoinColumn(referencedColumnName = "id")
+    private ImagesCommunity imageUrl;
 
-    public Community(UsersApp userOwnerId, String description, String name, String nickname) {
-        this.userOwnerId = userOwnerId;
-        this.description = description;
-        this.name = name;
-        this.nickname = nickname;
+    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL)
+    private List<PostsCommunity> postsCommunityList;
+
+    public void setPostCommunityList(PostsCommunity postsCommunity) {
+        postsCommunityList.add(postsCommunity);
+    }
+
+    public List<PostsCommunity> getPostsUserAppList() {
+        return postsCommunityList;
     }
 
     public String getName() {
@@ -66,12 +72,22 @@ public class Community {
         return countUser;
     }
 
-    public UsersApp getUserOwnerId() {
-        return userOwnerId;
+    public UsersApp getUserOwner() {
+        return userOwner;
+    }
+
+    public List<PostsCommunity> getPostsCommunityList() {
+        return postsCommunityList;
     }
 
     public ImagesCommunity getImageUrlId() {
-        return imageUrlId;
+        return imageUrl;
     }
 
+    public Community(UsersApp userOwnerId, String description, String name, String nickname) {
+        this.userOwner = userOwnerId;
+        this.description = description;
+        this.name = name;
+        this.nickname = nickname;
+    }
 }

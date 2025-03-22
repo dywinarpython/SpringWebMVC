@@ -13,12 +13,22 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -56,6 +66,16 @@ public class PostUsersAppService {
         return new ResponceListUsersPostDTO(usersPostDTOList);
     }
 
+    public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
+        String fileStringPath = filePostsUsersAppService.getFile(nameFile);
+        String contentType = Files.probeContentType(Path.of(fileStringPath));
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(fileStringPath));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .body(resource);
+    }
+
     // <------------------------ ПОИСК В СУЩНОСТИ PostUsersAppService-------------------------->
     public PostsUserApp findByName(String name) {
         Optional<PostsUserApp> optionalPostsUserApp = postsUsersAppRepository.findByName(name);
@@ -68,7 +88,10 @@ public class PostUsersAppService {
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Transactional
     public void deletePostUsersApp(String namePost) throws IOException {
-        filePostsUsersAppService.deleteFileTapeUsersAppService(findByName(namePost));
+        PostsUserApp postsUserApp = findByName(namePost);
+        postsUserApp.setUsersApp(null);
+        filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
+        postsUsersAppRepository.delete(postsUserApp);
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
@@ -89,9 +112,28 @@ public class PostUsersAppService {
     }
     @Transactional
     public void setPostUserApp(SetUsersPostDTO setUsersPostDTO, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+        if (result.hasErrors()) {
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        boolean flag = false;
         PostsUserApp postsUserApp = findByName(setUsersPostDTO.getNamePost());
-        String nicknameUser = postsUserApp.getUsersApp().getNickname();
-        deletePostUsersApp(setUsersPostDTO.getNamePost());
-        createPostUsersApp(new RequestUsersPostDTO(setUsersPostDTO.getTitle(), setUsersPostDTO.getDescription(), nicknameUser), result, multipartFiles);
+        filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
+        if(setUsersPostDTO.getTitle() != null) {
+            postsUserApp.setTitle(setUsersPostDTO.getTitle());
+            flag = true;
+        }
+        if(setUsersPostDTO.getDescription() != null){
+            postsUserApp.setDescription(setUsersPostDTO.getDescription());
+            flag = true;
+        }
+        postsUserApp.setUpdateDate(LocalDateTime.now());
+        if(multipartFiles!=null) {
+            filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
+            flag = true;
+        }
+        if(!flag){
+            throw new ValidationErrorWithMethod("Нет даных для обновления");
+        }
+        postsUsersAppRepository.save(postsUserApp);
     }
 }

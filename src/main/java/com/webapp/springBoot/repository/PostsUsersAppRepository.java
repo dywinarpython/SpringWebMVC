@@ -9,6 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostsUsersAppRepository extends JpaRepository<PostsUserApp, Long> {
     List<PostsUserApp> findByTitleContainingIgnoreCase(String title);
-
     Optional<PostsUserApp> findByName(String name);
 }

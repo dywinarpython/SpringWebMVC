@@ -6,7 +6,6 @@ import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.CommunityService;
 import com.webapp.springBoot.service.ImageCommunityService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -38,15 +37,15 @@ public class CommunityController {
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
 
-    @GetMapping("/all")
+    @GetMapping("/")
     @Operation(
-            summary="Вывод всех сообществ",
+            summary="Вывод сообществ по 10 штук",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityDTO.class)))
             }
     )
-    public ListCommunityDTO getAllCommunity(){
-        return new ListCommunityDTO(communityService.getAllCommunity());
+    public ListCommunityDTO getCommunity(@RequestParam(value = "page", defaultValue = "0", required = false) int page){
+        return new ListCommunityDTO(communityService.getСommunity(page));
     }
 
     @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
@@ -69,8 +68,8 @@ public class CommunityController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             }
     )
-    public ListCommunityDTO getCommunityByName(@RequestParam String name){
-        return new ListCommunityDTO(communityService.findByNameLike(name));
+    public ListCommunityDTO getCommunityByName(@RequestParam String name, @RequestParam(value = "page", defaultValue = "0", required = false) int page){
+        return new ListCommunityDTO(communityService.findByNameLike(name, page));
     }
 
     @GetMapping(value = "/{nickname}")

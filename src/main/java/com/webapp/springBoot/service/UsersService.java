@@ -9,6 +9,7 @@ import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,8 +42,8 @@ public class UsersService {
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ Users ----------------------------->
-    public ListUsersDTO getUserByName(String name) {
-        List<UsersApp> users = userRepository.findByNameContainingIgnoreCase(name);
+    public ListUsersDTO getUserByName(String name, int page) {
+        List<UsersApp> users = userRepository.findByNameContainingIgnoreCase(name, PageRequest.of(page, 10));
         if (users.isEmpty()) {
             throw new NoSuchElementException("Имя пользователя не найдено");
         }
@@ -58,18 +59,18 @@ public class UsersService {
         return new UserResponceDTO(usersApp, imageUsersAppService.getImageName(usersApp));
     }
 
-    public ListUsersDTO getAllUser() {
+    public ListUsersDTO getUsers(int page) {
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
-        userRepository.findAll().forEach(
+        userRepository.findByOrderByNameAscSurnameAsc(PageRequest.of(page, 10)).forEach(
                 usersApp -> usersResponceDTOList.add(
                         new UserResponceDTO(usersApp,
                                 imageUsersAppService.getImageName(usersApp))));
         return new ListUsersDTO(usersResponceDTOList);
     }
 
-    public ListUsersDTO getAgeUserBetween(int ageOne, int ageTwo) {
+    public ListUsersDTO getAgeUserBetween(int ageOne, int ageTwo, int page) {
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
-        userRepository.getUsersByAgeBetween(ageOne, ageTwo).forEach(
+        userRepository.findByAgeBetween(ageOne, ageTwo, PageRequest.of(page, 10)).forEach(
                 usersApp -> usersResponceDTOList.add(
                         new UserResponceDTO(usersApp,
                                 imageUsersAppService.getImageName(usersApp))));
@@ -107,9 +108,9 @@ public class UsersService {
     }
 
     // <----------------ПОИСК В СУЩНОСТИ Users ----------------------------->
-    public ListUsersDTO findByNameAndSurname(String name, String surname) {
+    public ListUsersDTO findByNameAndSurname(String name, String surname, int page) {
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
-        userRepository.findByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(name, surname).forEach(
+        userRepository.findByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(name, surname, PageRequest.of(page, 10)).forEach(
                 usersApp -> usersResponceDTOList.add(
                         new UserResponceDTO(usersApp,
                                 imageUsersAppService.getImageName(usersApp))));

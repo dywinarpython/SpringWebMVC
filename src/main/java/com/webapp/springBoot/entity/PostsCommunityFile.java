@@ -1,15 +1,17 @@
 package com.webapp.springBoot.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
 @Entity
-@Schema(description = "Сущность загрузки файлов пользователя (лента)")
-public class PostsUserAppFile {
+@Schema(description = "Сущность загрузки файлов сообщества (лента)")
+public class PostsCommunityFile {
 
 
     @Id
@@ -24,7 +26,7 @@ public class PostsUserAppFile {
     private String fileUrl;
 
 
-    public PostsUserAppFile() {
+    public PostsCommunityFile() {
         nameFile = UUID.randomUUID().toString();
     }
 

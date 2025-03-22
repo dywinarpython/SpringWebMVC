@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,12 +46,12 @@ public class FilePostsUsersAppService {
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService ----------------------------->
 
-    public byte[] getFile(String nameImage) throws IOException {
-        Optional<PostsUserAppFile> imagesCommunityOptional = filePostsUserAppRepository.findByNameFile(nameImage);
-        if (imagesCommunityOptional.isEmpty()) {
+    public String getFile(String nameFile){
+        Optional<PostsUserAppFile> fileOptional = filePostsUserAppRepository.findByNameFile(nameFile);
+        if (fileOptional.isEmpty()) {
             throw new NoSuchElementException("Файл не найден");
         }
-        return Files.readAllBytes(Path.of(imagesCommunityOptional.get().getFileUrl()));
+        return fileOptional.get().getFileUrl();
     }
 
     public List<String> getFileName(PostsUserApp tapeUserApp) {
@@ -67,14 +68,14 @@ public class FilePostsUsersAppService {
     // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService ----------------------------->
     public void deleteFileTapeUsersAppService(PostsUserApp postsUserApp) throws IOException {
         List<PostsUserAppFile> postsUserAppFileList = postsUserApp.getFiles();
-        postsUserApp.setUsersApp(null);
-        postsUsersAppRepository.delete(postsUserApp);
         if (!(postsUserAppFileList == null)) {
             for (PostsUserAppFile postsUserAppFileFor : postsUserAppFileList) {
                 String path = postsUserAppFileFor.getFileUrl();
                 Files.delete(Path.of(path));
+                filePostsUserAppRepository.delete(postsUserAppFileFor);
             }
         }
+        postsUserApp.setFiles(null);
     }
 
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ FilePostsUsersAppService---------------------------->
@@ -104,7 +105,7 @@ public class FilePostsUsersAppService {
             throws IOException, ValidationErrorWithMethod {
         if (file.length > 7) {
             throw new ValidationErrorWithMethod(
-                    "Количсетво файлов для загрузки не может превышать 7, то есть на пост максимум 7 файлов");
+                    "Количество файлов для загрузки не может превышать 7, то есть на пост максимум 7 файлов");
         }
         deleteFileTapeUsersAppService(postsUserApp);
         createFIlesForPosts(file, postsUserApp);

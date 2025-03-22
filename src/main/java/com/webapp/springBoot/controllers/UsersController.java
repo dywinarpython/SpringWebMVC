@@ -43,19 +43,19 @@ public class UsersController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
 
             })
-    public ListUsersDTO getUserByName(@RequestParam String name){
-        return usersService.getUserByName(name);
+    public ListUsersDTO getUserByName(@RequestParam String name, @RequestParam(value = "page", defaultValue = "0", required = false) int page){
+        return usersService.getUserByName(name, page);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/")
     @Operation(
-            summary="Вывод всех пользователей",
+            summary="Вывод пользователей по 10 штук",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class)))
             }
     )
-    public ListUsersDTO getAllUser(){
-        return usersService.getAllUser();
+    public ListUsersDTO getUsers(@RequestParam(value = "page", defaultValue = "0", required = false) int page){
+        return usersService.getUsers(page);
     }
 
 
@@ -72,8 +72,8 @@ public class UsersController {
                     @Parameter(description = "Значение возраста от (включительно)", name = "ageOne", required = true),
                     @Parameter(description = "Значение возраста до (включительно)", name="ageTwo", required = true)
             })
-    public ListUsersDTO getUsersBetweenAge(@RequestParam int ageOne, @RequestParam  int ageTwo ){
-        return usersService.getAgeUserBetween(ageOne, ageTwo);
+    public ListUsersDTO getUsersBetweenAge(@RequestParam int ageOne, @RequestParam  int ageTwo, @RequestParam(value = "page", defaultValue = "0", required = false) int page ){
+        return usersService.getAgeUserBetween(ageOne, ageTwo, page);
         }
 
     @GetMapping("/nameSurname")
@@ -88,8 +88,8 @@ public class UsersController {
                     @Parameter(description = "Фамилия пользователя", name="surname", required = true)
             }
     )
-    public ListUsersDTO getUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname){
-        return usersService.findByNameAndSurname(name, surname);
+    public ListUsersDTO getUsersByNameAndSurname(@RequestParam String name, @RequestParam String surname, @RequestParam(value = "page", defaultValue = "0", required = false) int page){
+        return usersService.findByNameAndSurname(name, surname, page);
     }
 
     @GetMapping("/{nickname}")

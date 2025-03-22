@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "Сущность создания постов")
+@Schema(description = "Сущность создания постов пользователя")
 public class ResponceUsersPostDTO {
 
 
