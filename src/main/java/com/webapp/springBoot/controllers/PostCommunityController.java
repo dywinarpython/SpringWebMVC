@@ -1,12 +1,15 @@
 package com.webapp.springBoot.controllers;
 
 
+import com.webapp.springBoot.DTO.CommunityPost.RequestCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.ResponceListCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.SetCommunityPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
 import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.service.PostCommunityService;
 import com.webapp.springBoot.service.PostUsersAppService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
@@ -14,9 +17,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -26,25 +26,27 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 
-@Tag(name="Управление постами пользователей")
+
+@Tag(name="Управление постами сообществ")
 @RestController
-@RequestMapping("api/user/post")
-public class PostUsersController {
+@RequestMapping("api/community/post")
+public class PostCommunityController {
 
         @Autowired
-        private PostUsersAppService postUsersAppService;
+        private PostCommunityService postCommunityService;
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
 
     @GetMapping("/{nickname}")
-    @Operation(summary = "Получение постов по nickname пользователя",
+    @Operation(summary = "Получение постов по nickname сообщества",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponceListUsersPostDTO getPostByNicknameUsersApp(@PathVariable String nickname){
-        return postUsersAppService.getPostsByNickname(nickname);
+    public ResponceListCommunityPostDTO getPostByNicknameCommunityPosts(@PathVariable String nickname){
+        return postCommunityService.getPostsByNickname(nickname);
     }
 
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
@@ -55,13 +57,13 @@ public class PostUsersController {
             }
     )
     public ResponseEntity<Resource> getFilePost(@PathVariable String nameFile) throws IOException {
-        return postUsersAppService.getFilePost(nameFile);
+        return postCommunityService.getFilePost(nameFile);
     }
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
     @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
-            summary = "Создание поста пользователя",
+            summary = "Создание поста сообщества",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Пост создан"),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
@@ -78,10 +80,10 @@ public class PostUsersController {
             )
     )
     public ResponseEntity<String> addNewPost(
-            @Valid @RequestPart("metadata") RequestUsersPostDTO requestUsersPostDTO, BindingResult result,
+            @Valid @RequestPart("metadata") RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
             @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!")MultipartFile[] multipartFiles
     ) throws ValidationErrorWithMethod, IOException {
-        postUsersAppService.createPostUsersApp(requestUsersPostDTO, result, multipartFiles);
+        postCommunityService.createPostUsersApp(requestCommunityPostDTO, result, multipartFiles);
         return new ResponseEntity<>("Пост добавлен", HttpStatus.CREATED);
     }
 
@@ -89,30 +91,30 @@ public class PostUsersController {
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
     @PatchMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
-            summary = "Изменение сущности поста пользователя",
+            summary = "Изменение сущности поста сообщества",
             responses = {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUsersPostDTO setUsersPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file) throws ValidationErrorWithMethod, IOException {
-        postUsersAppService.setPostUserApp(setUsersPostDTO,result, file);
-        return ResponseEntity.ok("Сущность поста пользователя изменена");
+    public ResponseEntity<String> setCommunityPosts(@Valid @RequestPart("metadata") SetCommunityPostDTO setCommunityPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file) throws ValidationErrorWithMethod, IOException {
+        postCommunityService.setPostUserApp(setCommunityPostDTO,result, file);
+        return ResponseEntity.ok("Сущность поста сообщества изменена");
     }
 
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
     @DeleteMapping("/{namePost}")
     @Operation(
-            summary = "Удаление поста пользователя",
+            summary = "Удаление поста сообщества",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Пост удален "),
                     @ApiResponse(responseCode = "404", description = "Пост не найден")
             }
     )
     public ResponseEntity<String> deletePost(@PathVariable String namePost) throws IOException {
-        postUsersAppService.deletePostUsersApp(namePost);
+        postCommunityService.deletePostUsersApp(namePost);
         return ResponseEntity.ok("Пост удален");
     }
 }

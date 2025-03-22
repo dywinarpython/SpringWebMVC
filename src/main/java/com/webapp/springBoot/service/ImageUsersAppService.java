@@ -41,7 +41,7 @@ public class ImageUsersAppService {
     }
 
     public String getImageName(UsersApp usersApp) {
-        ImagesUsersApp imagesUsersAppOptional = usersApp.getImageUrlId();
+        ImagesUsersApp imagesUsersAppOptional = usersApp.getImageUrl();
         if(imagesUsersAppOptional == null){
             return null;
         }
@@ -52,12 +52,12 @@ public class ImageUsersAppService {
 
     // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageUsersApp ----------------------------->
     public void deleteImageUsersApp(UsersApp usersApp) throws IOException {
-        ImagesUsersApp imagesUsersApp = usersApp.getImageUrlId();
+        ImagesUsersApp imagesUsersApp = usersApp.getImageUrl();
         if(imagesUsersApp == null){
             throw new NoSuchElementException("Изображение сообщества не найдено");
         }
         String path = imagesUsersApp.getImageUrl();
-        usersApp.setImageUrlId(null);
+        usersApp.setImageUrl(null);
         userRepository.save(usersApp);
         imageUsersAppRepository.delete(imagesUsersApp);
         Files.delete(Path.of(path));
@@ -70,12 +70,12 @@ public class ImageUsersAppService {
         }
         String path = uploadFileValidation.uploadFile(file, imagesUsersApp.getNameImage(), UploadFileValidationImage.UploadTypeEntity.USER, typeImage);
         imagesUsersApp.setImageUrl(path);
-        usersApp.setImageUrlId(imagesUsersApp);
+        usersApp.setImageUrl(imagesUsersApp);
         userRepository.save(usersApp);
     }
     // <----------------ИЗМЕНЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageUsersApp ----------------------------->
     public void setImagesUsersApp(MultipartFile file, UsersApp usersApp) throws IOException, ValidationErrorWithMethod {
-        if(usersApp.getImageUrlId() == null){
+        if(usersApp.getImageUrl() == null){
             createImagesCommunty(file, usersApp);
         } else {
             deleteImageUsersApp(usersApp);

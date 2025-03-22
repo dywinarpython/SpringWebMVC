@@ -24,7 +24,7 @@ public class ImagesUsersApp {
     private String imageUrl;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "imageUrlId")
+    @OneToOne(mappedBy = "imageUrl")
     private UsersApp usersApp;
 
     public ImagesUsersApp() {

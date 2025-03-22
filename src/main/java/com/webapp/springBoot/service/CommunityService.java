@@ -8,6 +8,7 @@ import com.webapp.springBoot.exception.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,13 +38,18 @@ public class CommunityService {
 
 
 
+    @Transactional
     public void addNewCommunity(CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         UsersApp userApp = usersService.findUsersByNickname(communityDTO.getNicknameUser());
-        Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity());
-        communityRepository.save(community);
+        if(userApp.getCommunity().size() < 3) {
+            Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity());
+            communityRepository.save(community);
+        } else {
+            throw new ValidationErrorWithMethod("Пользователь не может иметь более 3 сообществ");
+        }
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
@@ -53,19 +59,19 @@ public class CommunityService {
         return new CommunityResponseDTO(
                 community.getName(),
                 community.getDescription(),
-                community.getUserOwnerId().getNickname(),
+                community.getUserOwner().getNickname(),
                 community.getNickname(),
                 imageCommunityService.getImageName(community)
         );
     }
-    public List<CommunityResponseDTO> getAllCommunity(){
+    public List<CommunityResponseDTO> getСommunity(int page){
         List<CommunityResponseDTO> communityResponceDTOList = new ArrayList<>();
-        communityRepository.findAll().forEach(
+        communityRepository.findByOrderByName(PageRequest.of(page, 10)).forEach(
                 community -> communityResponceDTOList.add(
                         new CommunityResponseDTO(
                                 community.getName(),
                                 community.getDescription(),
-                                community.getUserOwnerId().getNickname(),
+                                community.getUserOwner().getNickname(),
                                 community.getNickname(),
                                 imageCommunityService.getImageName(community)
                         )
@@ -73,14 +79,14 @@ public class CommunityService {
         );
         return communityResponceDTOList;
     }
-    public  List<CommunityResponseDTO> findByNameLike(String name){
+    public  List<CommunityResponseDTO> findByNameLike(String name, int page){
         List<CommunityResponseDTO> communityResponceDTOList = new ArrayList<>();
-        communityRepository.findByNameContainsIgnoreCase(name).forEach(
+        communityRepository.findByNameContainsIgnoreCaseOrderByName(name, PageRequest.of(page, 10)).forEach(
                 community -> communityResponceDTOList.add(
                         new CommunityResponseDTO(
                                 community.getName(),
                                 community.getDescription(),
-                                community.getUserOwnerId().getNickname(),
+                                community.getUserOwner().getNickname(),
                                 community.getNickname(),
                                 imageCommunityService.getImageName(community)
                         )
@@ -94,7 +100,7 @@ public class CommunityService {
     @Transactional
     public void deleteCommunityByNickname(String nickname) throws IOException{
         Community community = findCommunityByNickname(nickname);
-        community.getUserOwnerId().setCommunity(null);
+        community.getUserOwner().setCommunity(null);
         imageCommunityService.deleteImageCommunity(community);
         communityRepository.delete(community);
     }

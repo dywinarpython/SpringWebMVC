@@ -59,7 +59,7 @@ public class ImageCommunityService {
             throw new NoSuchElementException("Изображение сообщества не найдено");
         }
         String path = imagesCommunity.getImageUrl();
-        community.setImageUrlId(null);
+        community.setImageUrl(null);
         communityRepository.save(community);
         imagesCommunityRepository.delete(imagesCommunity);
         Files.delete(Path.of(path));
@@ -72,7 +72,7 @@ public class ImageCommunityService {
         }
         String path = uploadFileValidation.uploadFile(file, imagesCommunity.getNameImage(), UploadFileValidationImage.UploadTypeEntity.COMMUNITY, typeImage);
         imagesCommunity.setImageUrl(path);
-        community.setImageUrlId(imagesCommunity);
+        community.setImageUrl(imagesCommunity);
         communityRepository.save(community);
     }
     // <----------------ИЗМЕНЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->

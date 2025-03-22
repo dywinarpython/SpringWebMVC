@@ -38,11 +38,11 @@ public class UsersApp {
     private String nickname;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "userOwnerId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL)
     private List<Community> community;
 
     @OneToOne(cascade = CascadeType.ALL)
-    private ImagesUsersApp imageUrlId;
+    private ImagesUsersApp imageUrl;
 
     @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
     private List<PostsUserApp> postUserAppList;
@@ -83,7 +83,7 @@ public class UsersApp {
         return community;
     }
 
-    public ImagesUsersApp getImageUrlId() {
-        return imageUrlId;
+    public ImagesUsersApp getImageUrl() {
+        return imageUrl;
     }
 }

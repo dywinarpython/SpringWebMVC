@@ -1,6 +1,5 @@
-package com.webapp.springBoot.DTO.UsersPost;
+package com.webapp.springBoot.DTO.CommunityPost;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,17 +11,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Сущность создания постов")
-public class RequestUsersPostDTO {
-
+public class RequestCommunityPostDTO {
     @NotNull
-    private String nicknameUser;
-    @NotNull
-    @Schema(description = "Title поста пользователя")
+    @Schema(description = "Title поста сообщества")
     @Size(max = 30, min = 3)
     private String title;
 
-    @Schema(description = "Description поста пользователя")
+    @Schema(description = "Description поста сообщества")
     @Size(max = 280)
     private String description;
 
+    @Schema(description = "nickname")
+    @NotNull
+    private String nicknameCommunity;
 }
