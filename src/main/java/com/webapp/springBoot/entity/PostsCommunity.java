@@ -27,7 +27,6 @@ public class PostsCommunity {
     @Column(length = 30)
     private String title;
 
-    @NotNull
     @Column(length = 280)
     private String description;
 

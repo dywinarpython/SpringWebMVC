@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="24.03.2025-001-init-schema" author="Dywinar">
+        <createTable tableName="community">
+            <column name="id" autoIncrement="true" type="bigint">
+                    <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="count_user" type="bigint"/>
+            <column name="name" type="varchar(20)"/>
+            <column name="image_url_id" type="bigint">
+                <constraints unique="true"/>
+            </column>
+            <column name="user_owner_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nickname" type="varchar(20)">
+                <constraints unique="true"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+        </createTable>
+        <createTable tableName="images_community">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="image_url" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_image" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="images_users_app">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="image_url" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_image" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="posts_community">
+            <column name="community_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_date" type="timestamp(6)"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="update_date" type="timestamp(6)"/>
+            <column name="title" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="posts_community_file">
+            <column name="files_id" type="bigint"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="file_url" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_file" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="posts_user_app">
+            <column name="create_date" type="timestamp(6)"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="update_date" type="timestamp(6)"/>
+            <column name="users_app_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(280)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="posts_user_app_file">
+            <column name="files_id" type="bigint"/>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="file_url" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_file" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="users_app">
+            <column name="age" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="image_url_id" type="bigint">
+                <constraints unique="true"/>
+            </column>
+            <column name="name" type="varchar(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nickname" type="varchar(20)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="surname" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="community"
+                baseColumnNames="user_owner_id"
+                referencedTableName="users_app"
+                referencedColumnNames="id"
+                constraintName="fk_community_users_app"/>
+
+        <!--Сущность community создание-->
+        <addForeignKeyConstraint
+            baseTableName="community"
+            baseColumnNames="image_url_id"
+            referencedTableName="images_community"
+            referencedColumnNames="id"
+            constraintName="fk_community_images_community"/>
+
+        <addForeignKeyConstraint
+                baseTableName="posts_community"
+                baseColumnNames="community_id"
+                referencedTableName="community"
+                referencedColumnNames="id"
+                constraintName="fk_posts_community_community"/>
+
+        <addForeignKeyConstraint
+                baseTableName="posts_community_file"
+                baseColumnNames="files_id"
+                referencedTableName="posts_community"
+                referencedColumnNames="id"
+                constraintName="fk_posts_community_file_posts_community"/>
+
+        <!--Сущность usersApp создание-->
+        <addForeignKeyConstraint
+                baseTableName="users_app"
+                baseColumnNames="image_url_id"
+                referencedTableName="images_users_app"
+                referencedColumnNames="id"
+                constraintName="fk_users_app_images_users_app"/>
+
+        <addForeignKeyConstraint
+                baseTableName="posts_user_app"
+                baseColumnNames="users_app_id"
+                referencedTableName="users_app"
+                referencedColumnNames="id"
+                constraintName="fk_posts_user_app_users_app"/>
+
+        <addForeignKeyConstraint
+                baseTableName="posts_user_app_file"
+                baseColumnNames="files_id"
+                referencedTableName="posts_user_app"
+                referencedColumnNames="id"
+                constraintName="fk_posts_user_app_file_posts_user_app"/>
+    </changeSet>
+</databaseChangeLog>
