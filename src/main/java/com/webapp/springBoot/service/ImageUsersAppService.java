@@ -53,14 +53,13 @@ public class ImageUsersAppService {
     // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageUsersApp ----------------------------->
     public void deleteImageUsersApp(UsersApp usersApp) throws IOException {
         ImagesUsersApp imagesUsersApp = usersApp.getImageUrl();
-        if(imagesUsersApp == null){
-            throw new NoSuchElementException("Изображение сообщества не найдено");
+        if(imagesUsersApp != null){
+            String path = imagesUsersApp.getImageUrl();
+            usersApp.setImageUrl(null);
+            userRepository.save(usersApp);
+            imageUsersAppRepository.delete(imagesUsersApp);
+            Files.delete(Path.of(path));
         }
-        String path = imagesUsersApp.getImageUrl();
-        usersApp.setImageUrl(null);
-        userRepository.save(usersApp);
-        imageUsersAppRepository.delete(imagesUsersApp);
-        Files.delete(Path.of(path));
     }
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  ImageUsersApp ----------------------------->
     public void createImagesCommunty(MultipartFile file, UsersApp usersApp) throws IOException, ValidationErrorWithMethod {
