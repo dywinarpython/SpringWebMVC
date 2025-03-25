@@ -55,14 +55,14 @@ public class ImageCommunityService {
     // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
     public void deleteImageCommunity(Community community) throws IOException {
         ImagesCommunity imagesCommunity = community.getImageUrlId();
-        if(imagesCommunity == null){
-            throw new NoSuchElementException("Изображение сообщества не найдено");
+        if(imagesCommunity != null){
+            String path = imagesCommunity.getImageUrl();
+            community.setImageUrl(null);
+            communityRepository.save(community);
+            imagesCommunityRepository.delete(imagesCommunity);
+            Files.delete(Path.of(path));
         }
-        String path = imagesCommunity.getImageUrl();
-        community.setImageUrl(null);
-        communityRepository.save(community);
-        imagesCommunityRepository.delete(imagesCommunity);
-        Files.delete(Path.of(path));
+
     }
     // <----------------СОЗДАНИЕ ДАННЫХ В СУЩНОСТИ  ImageCommunity ----------------------------->
     public void createImagesCommunty(MultipartFile file, Community community) throws IOException, ValidationErrorWithMethod {

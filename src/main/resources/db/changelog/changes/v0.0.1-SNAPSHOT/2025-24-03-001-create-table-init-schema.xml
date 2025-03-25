@@ -67,7 +67,7 @@
         </createTable>
 
         <createTable tableName="posts_community_file">
-            <column name="files_id" type="bigint"/>
+            <column name="post_id" type="bigint"/>
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
@@ -100,7 +100,7 @@
         </createTable>
 
         <createTable tableName="posts_user_app_file">
-            <column name="files_id" type="bigint"/>
+            <column name="post_id" type="bigint"/>
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
@@ -157,7 +157,7 @@
 
         <addForeignKeyConstraint
                 baseTableName="posts_community_file"
-                baseColumnNames="files_id"
+                baseColumnNames="post_id"
                 referencedTableName="posts_community"
                 referencedColumnNames="id"
                 constraintName="fk_posts_community_file_posts_community"/>
@@ -179,7 +179,7 @@
 
         <addForeignKeyConstraint
                 baseTableName="posts_user_app_file"
-                baseColumnNames="files_id"
+                baseColumnNames="post_id"
                 referencedTableName="posts_user_app"
                 referencedColumnNames="id"
                 constraintName="fk_posts_user_app_file_posts_user_app"/>

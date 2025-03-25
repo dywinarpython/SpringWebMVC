@@ -37,7 +37,7 @@ public class PostsCommunity {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn
     private Community community;
 
     public void setCommunity(Community community) {
@@ -45,7 +45,7 @@ public class PostsCommunity {
     }
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "post_id")
     private List<PostsCommunityFile> files;
 
     public void generateName() {

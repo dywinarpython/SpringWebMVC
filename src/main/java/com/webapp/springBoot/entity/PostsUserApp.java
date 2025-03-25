@@ -37,8 +37,8 @@ public class PostsUserApp {
     private LocalDateTime updateDate;
 
     @NotNull
-    @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn
     private UsersApp usersApp;
 
     public void setUsersApp(UsersApp usersApp) {
@@ -46,7 +46,7 @@ public class PostsUserApp {
     }
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "post_id")
     private List<PostsUserAppFile> files;
 
     public void generateName() {
