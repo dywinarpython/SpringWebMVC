@@ -1,4 +1,4 @@
-package com.webapp.springBoot.validation.Person;
+package com.webapp.springBoot.validation.UsersApp;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

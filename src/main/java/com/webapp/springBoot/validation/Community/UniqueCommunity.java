@@ -1,6 +1,5 @@
 package com.webapp.springBoot.validation.Community;
 
-import com.webapp.springBoot.validation.Person.UniqueValidation;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

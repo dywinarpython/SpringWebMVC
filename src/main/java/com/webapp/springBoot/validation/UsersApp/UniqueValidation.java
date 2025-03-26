@@ -1,4 +1,4 @@
-package com.webapp.springBoot.validation.Person;
+package com.webapp.springBoot.validation.UsersApp;
 
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.repository.UsersAppRepository;

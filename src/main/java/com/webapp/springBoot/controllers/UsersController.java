@@ -12,8 +12,10 @@ import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,14 +49,14 @@ public class UsersController {
         return usersService.getUserByName(name, page);
     }
 
-    @GetMapping("/")
+    @GetMapping
     @Operation(
             summary="Вывод пользователей по 10 штук",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class)))
             }
     )
-    public ListUsersDTO getUsers(@RequestParam(value = "page", defaultValue = "0", required = false) int page){
+    public ListUsersDTO getUsers(@RequestParam(value = "page", defaultValue = "0", required = false) int page, HttpServletRequest request){
         return usersService.getUsers(page);
     }
 
@@ -133,7 +135,7 @@ public class UsersController {
 
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
-    @PostMapping("/")
+    @PostMapping
     @Operation(
             summary="Добавление нового пользователя",
             responses = {
@@ -149,7 +151,7 @@ public class UsersController {
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
 
-    @PatchMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Изменение сущности пользователи",
             responses = {@ApiResponse(

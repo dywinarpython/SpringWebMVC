@@ -1,7 +1,7 @@
 package com.webapp.springBoot.DTO.Users;
 
 
-import com.webapp.springBoot.validation.Person.Unique;
+import com.webapp.springBoot.validation.UsersApp.Unique;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
