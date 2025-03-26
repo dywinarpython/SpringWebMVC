@@ -37,7 +37,7 @@ public class CommunityController {
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
 
-    @GetMapping("/")
+    @GetMapping
     @Operation(
             summary="Вывод сообществ по 10 штук",
             responses = {
@@ -84,7 +84,7 @@ public class CommunityController {
         return communityService.getByNickname(nickname);
     }
     // <------------------------ POST ЗАПРОСЫ -------------------------->
-    @PostMapping("/")
+    @PostMapping
     @Operation(
             summary = "Добавление нового сообщества при привязке к пользователя по nickname",
             responses = {@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
@@ -96,7 +96,7 @@ public class CommunityController {
     }
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
-    @PatchMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Изменение сущности Community",
             responses = {@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),

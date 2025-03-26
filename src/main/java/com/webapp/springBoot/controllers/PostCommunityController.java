@@ -61,7 +61,7 @@ public class PostCommunityController {
     }
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
-    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Создание поста сообщества",
             responses = {
@@ -89,7 +89,7 @@ public class PostCommunityController {
 
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
-    @PatchMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Изменение сущности поста сообщества",
             responses = {@ApiResponse(
