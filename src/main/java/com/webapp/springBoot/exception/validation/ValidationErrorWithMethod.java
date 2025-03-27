@@ -1,4 +1,4 @@
-package com.webapp.springBoot.exception;
+package com.webapp.springBoot.exception.validation;
 
 import org.springframework.validation.ObjectError;
 

@@ -2,9 +2,7 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.PostsCommunityFile;
-import com.webapp.springBoot.entity.PostsUserApp;
-import com.webapp.springBoot.entity.PostsUserAppFile;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.*;
 import com.webapp.springBoot.validation.File.UploadFileValidationImage;
 import com.webapp.springBoot.validation.File.UploadFileValidationVideo;

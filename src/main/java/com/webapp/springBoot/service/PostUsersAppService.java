@@ -6,11 +6,10 @@ import com.webapp.springBoot.DTO.UsersPost.ResponceUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.PostsUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -20,10 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;

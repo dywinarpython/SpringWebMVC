@@ -4,7 +4,7 @@ package com.webapp.springBoot.service;
 import com.webapp.springBoot.DTO.Community.*;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

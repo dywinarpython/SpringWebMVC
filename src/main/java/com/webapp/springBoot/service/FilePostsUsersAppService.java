@@ -2,8 +2,7 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.entity.PostsUserAppFile;
 import com.webapp.springBoot.entity.PostsUserApp;
-import com.webapp.springBoot.entity.UsersApp;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.FilePostsUsersAppRepository;
 import com.webapp.springBoot.repository.PostsUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
