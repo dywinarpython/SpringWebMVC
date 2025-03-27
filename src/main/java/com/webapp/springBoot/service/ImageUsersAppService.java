@@ -3,7 +3,7 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.entity.ImagesUsersApp;
 import com.webapp.springBoot.entity.UsersApp;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.ImageUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.validation.File.UploadFileValidationImage;

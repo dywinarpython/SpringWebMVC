@@ -2,9 +2,6 @@ package com.webapp.springBoot.validation.File;
 
 
 
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
-
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;

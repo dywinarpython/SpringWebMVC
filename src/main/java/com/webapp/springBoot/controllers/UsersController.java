@@ -2,7 +2,7 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.Users.*;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

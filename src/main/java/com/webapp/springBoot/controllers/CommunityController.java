@@ -2,7 +2,7 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.Community.*;
-import com.webapp.springBoot.exception.ValidationErrorWithMethod;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.CommunityService;
 import com.webapp.springBoot.service.ImageCommunityService;
 import io.swagger.v3.oas.annotations.Operation;
