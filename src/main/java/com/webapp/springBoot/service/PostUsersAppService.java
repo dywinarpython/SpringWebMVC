@@ -4,6 +4,7 @@ import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
+import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -92,19 +93,37 @@ public class PostUsersAppService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
+    @Transactional
     public void createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, BindingResult result,
             MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
+        boolean flag = false;
+        if (result.hasErrors()) {
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
         PostsUserApp postsUserApp = new PostsUserApp();
+
+        if(requestUsersPostDTO.getTitle() != null){
+            postsUserApp.setTitle(requestUsersPostDTO.getTitle());
+            flag = true;
+        }
+        if(requestUsersPostDTO.getDescription() != null){
+            postsUserApp.setDescription(requestUsersPostDTO.getDescription());
+            flag = true;
+        }
+        if(multipartFiles!=null) {
+            filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
+            flag = true;
+        }
+        if(!flag){
+            throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста пользователя");
+        }
         postsUserApp.setUsersApp(usersService.findUsersByNickname(requestUsersPostDTO.getNicknameUser()));
         postsUserApp.setTitle(requestUsersPostDTO.getTitle());
         postsUserApp.generateName();
         postsUserApp.setDescription(requestUsersPostDTO.getDescription());
-        if(multipartFiles!=null) {
-            filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
-        }
         postsUsersAppRepository.save(postsUserApp);
     }
     @Transactional

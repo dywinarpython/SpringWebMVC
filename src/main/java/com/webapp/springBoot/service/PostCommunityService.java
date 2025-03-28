@@ -83,7 +83,7 @@ public class PostCommunityService {
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
     @Transactional
-    public void deletePostUsersApp(String namePost) throws IOException {
+    public void deletePostCommunity(String namePost) throws IOException {
         PostsCommunity postsCommunity = findByName(namePost);
         postsCommunity.setCommunity(null);
         filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
@@ -91,23 +91,36 @@ public class PostCommunityService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
-    public void createPostUsersApp(RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
-                                   MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
+    @Transactional
+    public void createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
+                                    MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
+        boolean flag = false;
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         PostsCommunity postsCommunity = new PostsCommunity();
-        postsCommunity.setCommunity(communityService.findCommunityByNickname(requestCommunityPostDTO.getNicknameCommunity()));
-        postsCommunity.setTitle(requestCommunityPostDTO.getTitle());
-        postsCommunity.generateName();
-        postsCommunity.setDescription(requestCommunityPostDTO.getDescription());
+
+        if(requestCommunityPostDTO.getTitle() != null){
+            postsCommunity.setTitle(requestCommunityPostDTO.getTitle());
+            flag = true;
+        }
+        if(requestCommunityPostDTO.getDescription() != null){
+            postsCommunity.setDescription(requestCommunityPostDTO.getDescription());
+            flag = true;
+        }
         if(multipartFiles!=null) {
             filePostsCommunityService.createFIlesForPosts(multipartFiles, postsCommunity);
+            flag = true;
         }
+        if(!flag){
+            throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста сообщества");
+        }
+        postsCommunity.setCommunity(communityService.findCommunityByNickname(requestCommunityPostDTO.getNicknameCommunity()));
+        postsCommunity.generateName();
         postsCommunityRepository.save(postsCommunity);
     }
     @Transactional
-    public void setPostUserApp(SetCommunityPostDTO setCommunityPostDTO, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+    public void setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }

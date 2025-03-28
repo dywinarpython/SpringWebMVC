@@ -80,7 +80,7 @@ public class PostCommunityController {
             @Valid @RequestPart("metadata") RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
             @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!")MultipartFile[] multipartFiles
     ) throws ValidationErrorWithMethod, IOException {
-        postCommunityService.createPostUsersApp(requestCommunityPostDTO, result, multipartFiles);
+        postCommunityService.createPostCommunity(requestCommunityPostDTO, result, multipartFiles);
         return new ResponseEntity<>("Пост добавлен", HttpStatus.CREATED);
     }
 
@@ -96,7 +96,7 @@ public class PostCommunityController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
     public ResponseEntity<String> setCommunityPosts(@Valid @RequestPart("metadata") SetCommunityPostDTO setCommunityPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file) throws ValidationErrorWithMethod, IOException {
-        postCommunityService.setPostUserApp(setCommunityPostDTO,result, file);
+        postCommunityService.setPostCommunnity(setCommunityPostDTO,result, file);
         return ResponseEntity.ok("Сущность поста сообщества изменена");
     }
 
@@ -111,7 +111,7 @@ public class PostCommunityController {
             }
     )
     public ResponseEntity<String> deletePost(@PathVariable String namePost) throws IOException {
-        postCommunityService.deletePostUsersApp(namePost);
+        postCommunityService.deletePostCommunity(namePost);
         return ResponseEntity.ok("Пост удален");
     }
 }

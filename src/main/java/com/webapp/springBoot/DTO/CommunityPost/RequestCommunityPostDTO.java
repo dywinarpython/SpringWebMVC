@@ -12,7 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "Сущность создания постов")
 public class RequestCommunityPostDTO {
-    @NotNull
+    @Schema(description = "nickname")
+    @NotNull(message = "nickname не может быть null")
+    private String nicknameCommunity;
+
     @Schema(description = "Title поста сообщества")
     @Size(max = 30, min = 3)
     private String title;
@@ -21,7 +24,4 @@ public class RequestCommunityPostDTO {
     @Size(max = 280)
     private String description;
 
-    @Schema(description = "nickname")
-    @NotNull
-    private String nicknameCommunity;
 }

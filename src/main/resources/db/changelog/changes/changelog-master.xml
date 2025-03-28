@@ -6,5 +6,6 @@
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-24-03-001-create-table-init-schema.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-24-03-002-changes-description-com-and-usersapp.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-26-03-003-create-security.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-28-03-004-null-title.xml"/>
 </databaseChangeLog>
     

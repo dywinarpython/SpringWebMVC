@@ -23,7 +23,8 @@ public class PostsUserApp {
     @NotNull
     @Column(unique = true)
     private String name;
-    @NotNull
+
+
     @Column(length = 30)
     private String title;
 
