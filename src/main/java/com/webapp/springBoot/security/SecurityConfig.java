@@ -1,8 +1,8 @@
-package com.webapp.springBoot.security.configDSL;
+package com.webapp.springBoot.security;
 
 
-import com.webapp.springBoot.security.ExceptionSecurityAccessDeniedHandler;
-import com.webapp.springBoot.security.ExceptionSecurityAuthenticationEntryPoint;
+import com.webapp.springBoot.security.Exception.ExceptionSecurityAccessDeniedHandler;
+import com.webapp.springBoot.security.Exception.ExceptionSecurityAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +24,7 @@ public class SecurityConfig{
                     httpSecurityExceptionHandlingConfigurer.accessDeniedHandler(new ExceptionSecurityAccessDeniedHandler());
                     httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(new ExceptionSecurityAuthenticationEntryPoint());
                 })
+                .requiresChannel(channelRequestMatcherRegistry -> channelRequestMatcherRegistry.anyRequest().requiresSecure())
                 .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }

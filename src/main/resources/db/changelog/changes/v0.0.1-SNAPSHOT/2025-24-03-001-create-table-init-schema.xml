@@ -146,21 +146,24 @@
             baseColumnNames="image_url_id"
             referencedTableName="images_community"
             referencedColumnNames="id"
-            constraintName="fk_community_images_community"/>
+            constraintName="fk_community_images_community"
+            onDelete="CASCADE"/>
 
         <addForeignKeyConstraint
                 baseTableName="posts_community"
                 baseColumnNames="community_id"
                 referencedTableName="community"
                 referencedColumnNames="id"
-                constraintName="fk_posts_community_community"/>
+                constraintName="fk_posts_community_community"
+                onDelete="CASCADE"/>
 
         <addForeignKeyConstraint
                 baseTableName="posts_community_file"
                 baseColumnNames="post_id"
                 referencedTableName="posts_community"
                 referencedColumnNames="id"
-                constraintName="fk_posts_community_file_posts_community"/>
+                constraintName="fk_posts_community_file_posts_community"
+                onDelete="CASCADE"/>
 
         <!--Сущность usersApp создание-->
         <addForeignKeyConstraint
@@ -168,20 +171,23 @@
                 baseColumnNames="image_url_id"
                 referencedTableName="images_users_app"
                 referencedColumnNames="id"
-                constraintName="fk_users_app_images_users_app"/>
+                constraintName="fk_users_app_images_users_app"
+                onDelete="CASCADE"/>
 
         <addForeignKeyConstraint
                 baseTableName="posts_user_app"
                 baseColumnNames="users_app_id"
                 referencedTableName="users_app"
                 referencedColumnNames="id"
-                constraintName="fk_posts_user_app_users_app"/>
+                constraintName="fk_posts_user_app_users_app"
+                onDelete="CASCADE"/>
 
         <addForeignKeyConstraint
                 baseTableName="posts_user_app_file"
                 baseColumnNames="post_id"
                 referencedTableName="posts_user_app"
                 referencedColumnNames="id"
-                constraintName="fk_posts_user_app_file_posts_user_app"/>
+                constraintName="fk_posts_user_app_file_posts_user_app"
+                onDelete="CASCADE"/>
     </changeSet>
 </databaseChangeLog>

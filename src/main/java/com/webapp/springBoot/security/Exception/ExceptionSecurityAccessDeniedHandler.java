@@ -1,4 +1,4 @@
-package com.webapp.springBoot.security;
+package com.webapp.springBoot.security.Exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
