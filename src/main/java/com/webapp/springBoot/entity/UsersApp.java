@@ -8,8 +8,14 @@ import jakarta.validation.constraints.NotNull;
 
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
+import javax.management.relation.Role;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @Setter
@@ -29,13 +35,27 @@ public class UsersApp {
     @Column(length = 20)
     private String surname;
 
+
     @NotNull
     private int age;
-
 
     @NotNull
     @Column(length = 20, unique = true)
     private String nickname;
+
+    @NotNull
+    @Column(length = 60)
+    private String password;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name ="user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private final Set<Roles> roles = new HashSet<>();
+
+
 
     @JsonIgnore
     @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL)
@@ -44,7 +64,7 @@ public class UsersApp {
     @OneToOne(cascade = CascadeType.ALL)
     private ImagesUsersApp imageUrl;
 
-    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<PostsUserApp> postUserAppList;
 
     public void setPostUserAppList(PostsUserApp postsUserApp) {
@@ -55,14 +75,18 @@ public class UsersApp {
         return postUserAppList;
     }
 
-    public UsersApp(String name, String surname, int age, String nickname) {
+    public UsersApp(String name, String surname, int age, String nickname, String password) {
         this.name = name;
         this.surname = surname;
         this.age = age;
         this.nickname = nickname;
+        this.password = password;
 
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
     public String getName() {
         return name;
     }
@@ -85,5 +109,15 @@ public class UsersApp {
 
     public ImagesUsersApp getImageUrl() {
         return imageUrl;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public Set<Roles> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Roles roles) {
+        this.roles.add(roles);
     }
 }

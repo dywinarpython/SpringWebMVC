@@ -3,13 +3,16 @@ package com.webapp.springBoot.service;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.entity.Community;
+import com.webapp.springBoot.entity.Roles;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.UsersAppRepository;
+import com.webapp.springBoot.security.SecurityUsersService;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,17 +31,25 @@ public class UsersService {
     private ImageUsersAppService imageUsersAppService;
     @Autowired
     private ImageCommunityService imageCommunityService;
+    @Autowired
+    private SecurityUsersService securityUsersService;
+
+    @Autowired
+    private RolesService rolesService;
 
     public void saveUser(UserRequestDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
-
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        userRepository.save(new UsersApp(
-                aPiResponceUserDTO.getName(),
-                aPiResponceUserDTO.getSurname(),
-                aPiResponceUserDTO.getAge(),
-                aPiResponceUserDTO.getNickname()));
+        Roles roles = rolesService.getRolesByName("USER");
+        UsersApp usersApp = new UsersApp();
+        usersApp.setName(aPiResponceUserDTO.getName());
+        usersApp.setSurname(aPiResponceUserDTO.getSurname());
+        usersApp.setAge(aPiResponceUserDTO.getAge());
+        usersApp.setNickname(aPiResponceUserDTO.getNickname());
+        usersApp.setPassword(securityUsersService.passwordEncode(aPiResponceUserDTO.getPassword()));
+        usersApp.setRoles(roles);
+        userRepository.save(usersApp);
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ Users ----------------------------->
@@ -96,7 +107,7 @@ public class UsersService {
     public void deleteUserByNickname(String nickname) throws IOException {
         Optional<UsersApp> users = userRepository.findByNickname(nickname);
         if (users.isEmpty()) {
-            throw new NoSuchElementException("Nickname пользователя не найден");
+            throw new UsernameNotFoundException("Nickname пользователя не найден");
         }
         UsersApp usersApp = users.get();
         imageUsersAppService.deleteImageUsersApp(usersApp);
@@ -120,7 +131,7 @@ public class UsersService {
     public UsersApp findUsersByNickname(String nickname) {
         Optional<UsersApp> optionalUsers = userRepository.findByNickname(nickname);
         if (optionalUsers.isEmpty()) {
-            throw new NoSuchElementException("Пользователей с таким nickname нет");
+            throw new UsernameNotFoundException("Пользователей с таким nickname нет");
         }
         return optionalUsers.get();
     }

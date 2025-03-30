@@ -10,23 +10,12 @@ import io.swagger.v3.oas.annotations.security.*;
                 title = "API приложения",
                 description = "API управления приложением, пользователем и многим другим!"
         ),
-        security = @SecurityRequirement(name = "oauth2")
+        security = @SecurityRequirement(name = "basic")
 )
 @SecurityScheme(
-        name = "oauth2",
-        type = SecuritySchemeType.OAUTH2,
-        scheme = "bearer",
-        bearerFormat = "JWT",
-        flows = @OAuthFlows(
-                authorizationCode = @OAuthFlow(
-                        authorizationUrl = "http://localhost:8080/realms/loop/protocol/openid-connect/auth",
-                        tokenUrl = "http://localhost:8080/realms/loop/protocol/openid-connect/token",
-                        scopes = {
-                                @OAuthScope(name = "openid", description = "OpenID Scope"),
-                                @OAuthScope(name = "profile", description = "User profile")
-                        }
-                )
-        )
+        name = "basic",
+        type = SecuritySchemeType.HTTP,
+        scheme = "basic"
 )
 public class SwaggerDocs {
 }

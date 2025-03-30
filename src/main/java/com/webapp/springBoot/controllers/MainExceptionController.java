@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -27,6 +28,15 @@ public class MainExceptionController {
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<String> handlerNoSuchElementException(NoSuchElementException ex) {
         messageError = "Ошибка нахождения элемента: " + ex.getMessage();
+        logger.error(messageError);
+        return new ResponseEntity<>(
+                messageError,
+                HttpStatus.NOT_FOUND
+        );
+    }
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<String> handlerUsernameNotFoundException(UsernameNotFoundException ex) {
+        messageError = "Ошибка нахождения nickname пользователя: " + ex.getMessage();
         logger.error(messageError);
         return new ResponseEntity<>(
                 messageError,
