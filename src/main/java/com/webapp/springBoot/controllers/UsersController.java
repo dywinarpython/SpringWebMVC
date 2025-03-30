@@ -134,7 +134,7 @@ public class UsersController {
 
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
-    @PostMapping
+    @PostMapping("/registr")
     @Operation(
             summary="Добавление нового пользователя",
             responses = {

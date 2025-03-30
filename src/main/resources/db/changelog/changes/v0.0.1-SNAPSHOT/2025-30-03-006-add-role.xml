@@ -4,10 +4,12 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
-    <changeSet id="2025-26-03-003-create-security" author="Dywinar">
-    <addColumn tableName="users_app">
-        <column name="password" type="varchar(60)"/>
-        <column name="phone_number" type="varchar(10)"/>
-    </addColumn>
+    <changeSet id="2025-30-03-006-add-role.xml" author="Dywinar">
+        <insert tableName="roles">
+            <column name="name" value="USER"></column>
+        </insert>
+        <insert tableName="roles">
+            <column name="name" value="ADMIN"></column>
+        </insert>
     </changeSet>
 </databaseChangeLog>

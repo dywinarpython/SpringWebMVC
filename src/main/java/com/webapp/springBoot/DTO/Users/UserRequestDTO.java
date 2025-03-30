@@ -38,4 +38,13 @@ public class UserRequestDTO {
     @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname сообщества должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")
     private String nickname;
 
+
+
+    @Size(min = 8, max = 12, message = "Пароль должен содержать не менее 8 символов, и не более 12 симолов")
+    @Schema(example = "HIUYvfh@1345")
+    @Pattern(regexp = ".*[a-z].*", message = "Пароль должен содержать хотя бы одну строчную букву")
+    @Pattern(regexp = ".*[A-Z].*", message = "Пароль должен содержать хотя бы одну заглавную букву")
+    @Pattern(regexp = ".*\\d.*", message = "Пароль должен содержать хотя бы одну цифру")
+    @Pattern(regexp = ".*[!@#$%^&*].*", message = "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)")
+    private String password;
 }
