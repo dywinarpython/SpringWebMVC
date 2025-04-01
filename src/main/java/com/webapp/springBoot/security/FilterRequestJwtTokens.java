@@ -2,6 +2,8 @@ package com.webapp.springBoot.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.security.JWTConfig.*;
+import com.webapp.springBoot.security.JWTConfig.Factory.DefaultAccessTokenFactory;
+import com.webapp.springBoot.security.JWTConfig.Factory.DefaultRefreshTokenFactory;
 import com.webapp.springBoot.security.service.CustomUsersDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,7 +23,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -54,10 +57,9 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
         if(this.requestMatcher.matches(request)) {
             if (this.securityContextRepository.containsContext(request)) {
                 SecurityContext context = this.securityContextRepository.loadDeferredContext(request).get();
-                if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {// проверка что токен это не аутентификация
+                if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {// проверка что это не токен а базовая аутентификация
                     RecordToken refreshToken = this.refreshToken.apply(context.getAuthentication());
                     RecordToken accessToken = this.accessToken.apply(refreshToken);
-
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     this.objectMapper.writeValue(response.getWriter(),
@@ -65,7 +67,14 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
                     return;
                 }
             }
-            throw  new AccessDeniedException("Пользователь должен быть аутентифицирован");
+
+            logger.error("Попытка входа без аутентификации");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            Map<String, String> mapError = new HashMap<>();
+            mapError.put("error", "Вы передали некорректные данные для входа");
+            this.objectMapper.writeValue(response.getWriter(), mapError);
         }
         filterChain.doFilter(request, response);
     }

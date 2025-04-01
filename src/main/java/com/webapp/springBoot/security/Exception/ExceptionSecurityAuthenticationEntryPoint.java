@@ -15,15 +15,11 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class ExceptionSecurityAuthenticationEntryPoint implements AuthenticationEntryPoint {
-    private final Logger logger = LoggerFactory.getLogger(ExceptionSecurityAuthenticationEntryPoint.class);
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        StringBuilder stringBuilder = new StringBuilder();
-        StackTraceElement[] stackTraceElements = authException.getStackTrace();
-        Arrays.stream(stackTraceElements).forEach(stackTraceElement -> stringBuilder.append(stackTraceElement).append("\n"));
-        logger.error(stringBuilder.toString());
-        response.getWriter().write(new ObjectMapper().writeValueAsString(Map.of("Ошибка аутентификации", authException.getMessage())));
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write(new ObjectMapper().writeValueAsString(Map.of("Ошибка аутентификации по токену", authException.getMessage())));
     }
 }

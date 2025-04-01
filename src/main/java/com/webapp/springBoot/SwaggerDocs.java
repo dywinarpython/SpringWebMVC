@@ -10,12 +10,12 @@ import io.swagger.v3.oas.annotations.security.*;
                 title = "API приложения",
                 description = "API управления приложением, пользователем и многим другим!"
         ),
-        security = @SecurityRequirement(name = "basic")
+        security = @SecurityRequirement(name = "bearer")
 )
 @SecurityScheme(
-        name = "basic",
+        name = "bearer",
         type = SecuritySchemeType.HTTP,
-        scheme = "basic"
+        scheme = "bearer"
 )
 public class SwaggerDocs {
 }

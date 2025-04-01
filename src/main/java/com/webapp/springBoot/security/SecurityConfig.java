@@ -1,21 +1,19 @@
 package com.webapp.springBoot.security;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.KeyLengthException;
+import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.webapp.springBoot.security.Exception.ExceptionSecurityAccessDeniedHandler;
 import com.webapp.springBoot.security.Exception.ExceptionSecurityAuthenticationEntryPoint;
-import com.webapp.springBoot.security.JWTConfig.AccessTokenJWTStringSeriazble;
-import com.webapp.springBoot.security.JWTConfig.RefreshTokenJWTStringSeriazble;
-import com.webapp.springBoot.security.service.CustomUsersDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStringDeserializer;
+import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
+import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
+import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,8 +25,7 @@ import java.text.ParseException;
 
 @Configuration
 public class SecurityConfig{
-    @Autowired
-    private CustomUsersDetailsService userDetailsService;
+
 
     @Bean
     public ConfigureJWTAuthetication configureJWTAuthetication(
@@ -36,33 +33,32 @@ public class SecurityConfig{
             @Value("${spring.jwt.refresh-token-key}") String refreshToken
     ) throws ParseException, JOSEException {
         return new ConfigureJWTAuthetication()
-                .setAccessTokenStringSeriazble(new AccessTokenJWTStringSeriazble(new MACSigner(OctetSequenceKey.parse(accessToken))))
-                .setRefreshTokenStringSeriazble((new RefreshTokenJWTStringSeriazble(new DirectEncrypter(OctetSequenceKey.parse(refreshToken)))));
+                .setAccessTokenStringSeriazble(new AccessTokenJWTStringSeriazler(new MACSigner(OctetSequenceKey.parse(accessToken))))
+                .setRefreshTokenStringSeriazble((new RefreshTokenJWEStringSeriazler(new DirectEncrypter(OctetSequenceKey.parse(refreshToken)))))
+                .setAccessTokenDesiriazle(new AccessTokenJWTStringDeserializer(new MACVerifier(OctetSequenceKey.parse(accessToken))))
+                .setRefreshTokenDesiriazle(new RefreshTokenJWEStringDeserializer(new DirectDecrypter(OctetSequenceKey.parse(refreshToken))
+                ));
+
     }
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication) throws Exception {
-        http.apply(configureJWTAuthetication);
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication, @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated) throws Exception {
+        String [] noAuthenticatedArray = noAuthinicated.split(", ");
         http
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                 {
-                    authorizationManagerRequestMatcherRegistry.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/check", "/api/user/registr", "/error").permitAll();
+                    authorizationManagerRequestMatcherRegistry.requestMatchers(noAuthenticatedArray).permitAll();
                     authorizationManagerRequestMatcherRegistry.anyRequest().authenticated();})
-                .exceptionHandling(httpSecurityExceptionHandlingConfigurer -> {
-                    httpSecurityExceptionHandlingConfigurer.accessDeniedHandler(new ExceptionSecurityAccessDeniedHandler());
-                    httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(new ExceptionSecurityAuthenticationEntryPoint());
-                })
-                .httpBasic(httpSecurityHttpBasicConfigurer -> {})
                 .requiresChannel(channelRequestMatcherRegistry -> channelRequestMatcherRegistry.anyRequest().requiresSecure())
-                .csrf(AbstractHttpConfigurer::disable);
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(new ExceptionSecurityAuthenticationEntryPoint())
+                       )
+                .formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+        http.apply(configureJWTAuthetication);
         return http.build();
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder =  http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
-        return authenticationManagerBuilder.build();
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
