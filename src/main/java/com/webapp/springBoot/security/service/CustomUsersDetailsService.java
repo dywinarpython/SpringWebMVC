@@ -11,12 +11,13 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 
 import java.util.Optional;
 
 
-@Component
+@Service
 public class CustomUsersDetailsService implements UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomUsersDetailsService.class);
@@ -28,16 +29,17 @@ public class CustomUsersDetailsService implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(username);
-
         if(optionalUsersApp.isEmpty()){
             throw new UsernameNotFoundException("Nickname пользвоателя не найден");
         }
         UsersApp usersApp = optionalUsersApp.get();
         String[] roles = usersApp.getRoles().stream().map(Roles::getName).toArray(String[]::new);
-        return User.builder()
+        UserDetails  userDetails = User.builder()
                 .username(usersApp.getNickname())
                 .password(usersApp.getPassword())
                 .roles(roles)
                 .build();
+        return userDetails;
     }
+
 }

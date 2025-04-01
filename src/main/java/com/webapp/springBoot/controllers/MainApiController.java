@@ -7,8 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,9 +25,9 @@ public class MainApiController{
             }
     )
     @GetMapping("/check")
-    public ResponseEntity<Map<String, String>> checkAPIConnect(@AuthenticationPrincipal Jwt jwt){
+    public ResponseEntity<Map<String, String>> checkAPIConnect(){
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("message", "Подключения устаовленно, вошел пользователь %s".formatted(jwt.getClaim("given_name").toString())));
+                .body(Map.of("message", "Подключения установленно"));
     }
 }

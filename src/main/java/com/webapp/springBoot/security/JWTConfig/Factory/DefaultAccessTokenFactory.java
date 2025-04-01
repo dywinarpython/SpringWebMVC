@@ -1,5 +1,7 @@
-package com.webapp.springBoot.security.JWTConfig;
+package com.webapp.springBoot.security.JWTConfig.Factory;
 
+
+import com.webapp.springBoot.security.JWTConfig.RecordToken;
 
 import java.time.Duration;
 import java.time.Instant;

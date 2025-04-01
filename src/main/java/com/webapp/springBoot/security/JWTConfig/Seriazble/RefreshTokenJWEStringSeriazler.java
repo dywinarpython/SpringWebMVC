@@ -1,15 +1,16 @@
-package com.webapp.springBoot.security.JWTConfig;
+package com.webapp.springBoot.security.JWTConfig.Seriazble;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.function.Function;
 
-public class RefreshTokenJWTStringSeriazble implements Function<RecordToken, String> {
+public class RefreshTokenJWEStringSeriazler implements Function<RecordToken, String> {
 
     private final JWEEncrypter jweEncrypter;
 
@@ -17,13 +18,13 @@ public class RefreshTokenJWTStringSeriazble implements Function<RecordToken, Str
 
     private EncryptionMethod encryptionMethod = EncryptionMethod.A256CBC_HS512;
 
-    private final Logger log = LoggerFactory.getLogger(RefreshTokenJWTStringSeriazble.class);
+    private final Logger log = LoggerFactory.getLogger(RefreshTokenJWEStringSeriazler.class);
 
-    public RefreshTokenJWTStringSeriazble(JWEEncrypter jweEncrypter) {
+    public RefreshTokenJWEStringSeriazler(JWEEncrypter jweEncrypter) {
         this.jweEncrypter = jweEncrypter;
     }
 
-    public RefreshTokenJWTStringSeriazble(JWEEncrypter jweEncrypter, JWEAlgorithm jweAlgorithm, EncryptionMethod encryptionMethod) {
+    public RefreshTokenJWEStringSeriazler(JWEEncrypter jweEncrypter, JWEAlgorithm jweAlgorithm, EncryptionMethod encryptionMethod) {
         this.jweEncrypter = jweEncrypter;
         this.jweAlgorithm = jweAlgorithm;
         this.encryptionMethod = encryptionMethod;
@@ -40,6 +41,7 @@ public class RefreshTokenJWTStringSeriazble implements Function<RecordToken, Str
                 .jwtID(recordToken.id().toString())
                 .subject(recordToken.nickname())
                 .issueTime(Date.from(recordToken.createAt()))
+                .expirationTime(Date.from(recordToken.expiresAt()))
                 .claim("authorities", recordToken.authorities())
                 .build();
         EncryptedJWT encryptedJWT = new EncryptedJWT(jwsHeader, claimsSet);
@@ -48,7 +50,7 @@ public class RefreshTokenJWTStringSeriazble implements Function<RecordToken, Str
             return encryptedJWT.serialize();
         } catch (JOSEException e) {
             log.error(e.getMessage(), e);
-            throw new RuntimeException(e);
+            return null;
         }
     }
 }
