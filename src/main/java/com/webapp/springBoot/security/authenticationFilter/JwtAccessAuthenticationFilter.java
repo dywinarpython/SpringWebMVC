@@ -1,23 +1,24 @@
 package com.webapp.springBoot.security.authenticationFilter;
 
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
-public class RequestBodyFilter extends AuthenticationFilter {
 
-    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/security/login", HttpMethod.POST.name());
+public class JwtAccessAuthenticationFilter extends AuthenticationFilter {
+
+
     @Override
     public AuthenticationSuccessHandler getSuccessHandler() {
         return super.getSuccessHandler();
@@ -28,16 +29,20 @@ public class RequestBodyFilter extends AuthenticationFilter {
         super.setSuccessHandler(successHandler);
     }
 
-    public RequestBodyFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter) {
+    public JwtAccessAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter) {
         super(authenticationManager, authenticationConverter);
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(requestMatcher.matches(request)){
+        String noAuthinicated = "/swagger-ui/**, /v3/api-docs/**, /api/check, /api/user/registr, /api/security/login";
+        Stream<AntPathRequestMatcher> publicMatcher = Arrays.stream(noAuthinicated.split(", "))
+                        .map(AntPathRequestMatcher::new);
+        if(publicMatcher.noneMatch(x -> x.matches(request))){
             super.doFilterInternal(request, response, filterChain);
         } else {
             filterChain.doFilter(request, response);
         }
+
     }
 }

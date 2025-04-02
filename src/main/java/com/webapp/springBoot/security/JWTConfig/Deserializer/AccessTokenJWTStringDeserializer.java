@@ -35,7 +35,7 @@ public class AccessTokenJWTStringDeserializer implements Function<String, Record
                 );
             }
         } catch (ParseException | JOSEException e) {
-            log.error(STR."Некорректный jwt\{e.getMessage()}");
+            log.error(STR."Некорректный jwt, возможно попытка входа по refresh токену \{e.getMessage()}");
         }
         return null;
     }

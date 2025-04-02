@@ -19,10 +19,8 @@ public class DefaultRefreshTokenFactory implements Function<Authentication, Reco
 
         List<String> authorities = new LinkedList<>();
         authorities.add("JWT_REFRESH");
-        authorities.add("JWT_LOGOUT");
         authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .map(aut -> STR."GRANT_\{aut}")
                 .forEach(authorities::add);
         Instant now = Instant.now();
         return new RecordToken(UUID.randomUUID(), authentication.getName(), authorities, now, now.plus(this.tokenTtl));

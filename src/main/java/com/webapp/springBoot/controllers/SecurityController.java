@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.Map;
 
-@RequestMapping("/api")
+@RequestMapping("/api/security")
 @RestController
 @Tag(name = "Безопасность")
 public class SecurityController {
@@ -28,6 +28,18 @@ public class SecurityController {
     )
     @PostMapping("/login")
     public void login(@RequestBody LoginDto loginDto){
+
+    }
+
+    @Operation(
+            responses = {
+                    @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = Map.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Tokens.class)))
+            },
+            description = "Обновление access токена!"
+    )
+    @PostMapping("/refresh")
+    public void refresh(){
 
     }
 
