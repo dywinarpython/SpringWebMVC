@@ -1,8 +1,9 @@
 package com.webapp.springBoot.security.service;
 
-import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,6 +11,9 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Service
 public class TokenAuthenticationUserDetailsService implements AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> {
@@ -25,14 +29,18 @@ public class TokenAuthenticationUserDetailsService implements AuthenticationUser
             String nickname = token.nickname();
             UserDetails userDetails = customUsersDetailsService.loadUserByUsername(nickname);
 
+            List<String> authorites = token.authorities();
+            List<GrantedAuthority> grantedAuthorityCollection = new ArrayList<>();
+            authorites.forEach(authority -> grantedAuthorityCollection.add(new SimpleGrantedAuthority(authority)));
+
             return new TokenUser(
                     userDetails.getUsername(),
                     userDetails.getPassword(),
                     userDetails.isEnabled(),
                     true,
                     token.expiresAt().isAfter(Instant.now()),
-                    true, // РЕАЛИЗОВАТЬ ПРОВЕРКУ БЛОКА
-                    userDetails.getAuthorities(),
+                    true, // РЕАЛИЗОВАТЬ БАНЫ
+                    grantedAuthorityCollection,
                     token);
         }
         throw new UsernameNotFoundException("Токен не передан");

@@ -1,20 +1,20 @@
 package com.webapp.springBoot.security.convertor;
 
+
 import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-
 import java.util.function.Function;
 
 @Slf4j
-public class JWTAuthenticationConverter implements AuthenticationConverter {
+public class JWTRefreshAuthenticationConverter implements AuthenticationConverter {
 
-    private final Function<String, RecordToken> accessTokenDesiriazle;
 
     private final Function<String, RecordToken> refreshTokenDesiriazle;
 
@@ -24,17 +24,15 @@ public class JWTAuthenticationConverter implements AuthenticationConverter {
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
         if(authorization != null && authorization.startsWith("Bearer ")){
             String token = authorization.replace("Bearer ", "");
-            RecordToken accessToken = this.accessTokenDesiriazle.apply(token);
-            if(accessToken != null){
-                return new PreAuthenticatedAuthenticationToken(accessToken, token);
+            RecordToken refreshToken = this.refreshTokenDesiriazle.apply(token);
+            if(refreshToken != null){
+                return new PreAuthenticatedAuthenticationToken(refreshToken, token);
             }
         }
-        log.info("Аутентификация не выполнена: токен отсутствует или недействителен.");
-        return null;
+        log.warn("Аутентификация не выполнена: токен отсутствует или недействителен.");
+        throw new BadCredentialsException("Токен отсутствует или недействителен.");
     }
-
-    public JWTAuthenticationConverter(Function<String, RecordToken> accessTokenDesiriazble, Function<String, RecordToken> refreshTokenDesiriazble) {
-        this.accessTokenDesiriazle = accessTokenDesiriazble;
+    public JWTRefreshAuthenticationConverter(Function<String, RecordToken> refreshTokenDesiriazble) {
         this.refreshTokenDesiriazle = refreshTokenDesiriazble;
     }
 }

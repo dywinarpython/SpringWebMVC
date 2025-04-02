@@ -30,7 +30,7 @@ public class CustomUsersDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(username);
         if(optionalUsersApp.isEmpty()){
-            throw new UsernameNotFoundException("Nickname пользвоателя не найден");
+            throw new UsernameNotFoundException("Nickname пользователя не найден");
         }
         UsersApp usersApp = optionalUsersApp.get();
         String[] roles = usersApp.getRoles().stream().map(Roles::getName).toArray(String[]::new);
