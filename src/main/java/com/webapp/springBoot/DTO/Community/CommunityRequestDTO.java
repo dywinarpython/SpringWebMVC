@@ -27,10 +27,6 @@ public class CommunityRequestDTO {
     @Size(max = 255, min = 10)
     private String description;
 
-    @Size(max = 20, min = 2)
-    @Schema( example = "nickname")
-    private String nicknameUser;
-
     @Schema( example = "nickname")
     @UniqueCommunity(message = "NicknameCommunity должен быть уникальным")
     @Size(min = 2, max = 20,  message = "Длина сообщества nickname от 2 до 10")

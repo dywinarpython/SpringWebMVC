@@ -139,54 +139,54 @@ public class UsersService {
     // <----------------ИЗМЕНЕНИЕ В СУЩНОСТИ Users ----------------------------->
 
     @Transactional
-    public void setUsers(SetUserDTO setUserDTO, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
+    public void setUsers(SetUserDTO setUserDTO, String nickname, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
         boolean flag = false;
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         if(setUserDTO.getSurname() != null){
-            setSurname(setUserDTO);
+            setSurname(setUserDTO, nickname);
             flag = true;
         }
         if (setUserDTO.getName() != null) {
-            setName(setUserDTO);
+            setName(setUserDTO, nickname);
             flag = true;
         }
         if(file != null){
-            setImageUsersApp(setUserDTO, file);
+            setImageUsersApp(nickname, file);
             flag = true;
         }
         if(setUserDTO.getNicknameAfter() != null){
-            setNickname(setUserDTO);
+            setNickname(setUserDTO, nickname);
             flag = true;
         }
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
     }
-    public void setNickname(SetUserDTO apiResponceSetNicknameDTO) {
+    public void setNickname(SetUserDTO apiResponceSetNicknameDTO, String nickname) {
 
-        UsersApp user = findUsersByNickname(apiResponceSetNicknameDTO.getNickname());
+        UsersApp user = findUsersByNickname(nickname);
         user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
         userRepository.save(user);
     }
 
-    public void setName(SetUserDTO setUserDTO){
+    public void setName(SetUserDTO setUserDTO, String nickname){
 
-        UsersApp user = findUsersByNickname(setUserDTO.getNickname());
+        UsersApp user = findUsersByNickname(nickname);
         user.setName(setUserDTO.getName());
         userRepository.save(user);
     }
 
-    public void setSurname(SetUserDTO setUserDTO){
-        UsersApp user = findUsersByNickname(setUserDTO.getNickname());
+    public void setSurname(SetUserDTO setUserDTO, String nickname){
+        UsersApp user = findUsersByNickname(nickname);
         user.setSurname(setUserDTO.getSurname());
         userRepository.save(user);
     }
 
     @Transactional
-    public void setImageUsersApp(SetUserDTO setUserDTO, MultipartFile file) throws IOException, ValidationErrorWithMethod {
-        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(setUserDTO.getNickname()));
+    public void setImageUsersApp(String nickname, MultipartFile file) throws IOException, ValidationErrorWithMethod {
+        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(nickname));
     }
 
 }

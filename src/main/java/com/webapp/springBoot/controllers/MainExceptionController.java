@@ -5,11 +5,13 @@ import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import io.swagger.v3.oas.annotations.Hidden;
 
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +51,14 @@ public class MainExceptionController {
         logger.warn(messageError);
         return new ResponseEntity<>(
                 messageError, HttpStatus.BAD_REQUEST
+        );
+    }
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<String> handlerLockedException(LockedException ex){
+        messageError = ex.getMessage();
+        logger.warn(messageError);
+        return new ResponseEntity<>(
+                messageError, HttpStatus.FORBIDDEN
         );
     }
 

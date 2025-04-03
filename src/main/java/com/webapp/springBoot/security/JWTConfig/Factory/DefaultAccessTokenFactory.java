@@ -6,6 +6,7 @@ import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DefaultAccessTokenFactory implements Function<RecordToken, RecordToken> {
 
@@ -14,7 +15,7 @@ public class DefaultAccessTokenFactory implements Function<RecordToken, RecordTo
     public RecordToken apply(RecordToken recordToken) {
         Instant now = Instant.now();
         return new RecordToken(recordToken.id(),
-                recordToken.nickname(), recordToken.authorities().stream().filter(aut -> aut.startsWith("GRANT_")).map(auth -> auth.replace("GRANT_", "")).toList(), now, now.plus(this.tokenTtl));
+                recordToken.nickname(), recordToken.authorities().stream().filter(auth -> auth.startsWith("ROLE_")).toList(), now, now.plus(this.tokenTtl));
     }
 
     public void setTokenTtl(Duration tokenTtl) {
