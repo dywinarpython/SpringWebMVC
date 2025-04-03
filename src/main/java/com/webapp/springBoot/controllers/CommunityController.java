@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @Tag(name="Управление сообществами")
 @RestController
@@ -90,8 +91,8 @@ public class CommunityController {
             responses = {@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
-        communityService.addNewCommunity(communityDTO,result);
+    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result, Principal principal) throws ValidationErrorWithMethod {
+        communityService.addNewCommunity(communityDTO,principal.getName(), result);
         return new ResponseEntity<>("Сообщество добавлено", HttpStatus.CREATED);
     }
 
@@ -103,8 +104,8 @@ public class CommunityController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestPart("metadata") SetCommunityDTO setCommunityDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file) throws ValidationErrorWithMethod, IOException {
-        communityService.setCommunity(setCommunityDTO,result, file);
+    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestPart("metadata") SetCommunityDTO setCommunityDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file, Principal principal) throws ValidationErrorWithMethod, IOException {
+        communityService.setCommunity(setCommunityDTO, principal.getName(), result,  file);
         return ResponseEntity.ok("Сущность сообещства изменена");
     }
 
@@ -118,8 +119,8 @@ public class CommunityController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname) throws IOException{
-        communityService.deleteCommunityByNickname(nickname);
+    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname, Principal principal) throws IOException{
+        communityService.deleteCommunityByNickname(nickname, principal.getName());
         return ResponseEntity.ok("Сообщество удалено");
     }
 
@@ -131,8 +132,8 @@ public class CommunityController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable String nickname) throws IOException {
-        communityService.deleteImageCommunity(nickname);
+    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable String nickname, Principal principal) throws IOException {
+        communityService.deleteImageCommunity(nickname, principal.getName());
         return ResponseEntity.ok("Изображение сообщества удалено");
     }
 

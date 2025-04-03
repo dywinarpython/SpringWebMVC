@@ -83,8 +83,9 @@ public class PostCommunityService {
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
     @Transactional
-    public void deletePostCommunity(String namePost) throws IOException {
+    public void deletePostCommunity(String namePost, String nicknameUser) throws IOException {
         PostsCommunity postsCommunity = findByName(namePost);
+        communityService.checkCommunityByNicknameUser(postsCommunity.getCommunity(), nicknameUser);
         postsCommunity.setCommunity(null);
         filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
         postsCommunityRepository.delete(postsCommunity);
@@ -92,13 +93,15 @@ public class PostCommunityService {
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
     @Transactional
-    public void createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
+    public void createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, String nicknameUser, BindingResult result,
                                     MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
-        boolean flag = false;
+
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
+        boolean flag = false;
         PostsCommunity postsCommunity = new PostsCommunity();
+        postsCommunity.setCommunity(communityService.checkCommunityByNicknameUser(requestCommunityPostDTO.getNicknameCommunity(), nicknameUser));
 
         if(requestCommunityPostDTO.getTitle() != null){
             postsCommunity.setTitle(requestCommunityPostDTO.getTitle());
@@ -115,18 +118,17 @@ public class PostCommunityService {
         if(!flag){
             throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста сообщества");
         }
-        postsCommunity.setCommunity(communityService.findCommunityByNickname(requestCommunityPostDTO.getNicknameCommunity()));
         postsCommunity.generateName();
         postsCommunityRepository.save(postsCommunity);
     }
     @Transactional
-    public void setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+    public void setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO,String nicknameUser,  BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         boolean flag = false;
         PostsCommunity postsCommunity = findByName(setCommunityPostDTO.getNamePost());
-        filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
+        communityService.checkCommunityByNicknameUser(postsCommunity.getCommunity(), nicknameUser);
         if(setCommunityPostDTO.getTitle() != null) {
             postsCommunity.setTitle(setCommunityPostDTO.getTitle());
             flag = true;
@@ -137,6 +139,7 @@ public class PostCommunityService {
         }
         postsCommunity.setUpdateDate(LocalDateTime.now());
         if(multipartFiles!=null) {
+            filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
             filePostsCommunityService.createFIlesForPosts(multipartFiles, postsCommunity);
             flag = true;
         }

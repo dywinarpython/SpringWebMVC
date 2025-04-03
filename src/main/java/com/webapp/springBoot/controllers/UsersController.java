@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 
 @Tag(name="Управление пользователями")
@@ -108,15 +109,15 @@ public class UsersController {
         return usersService.getUserByNickname(nickname);
     }
 
-    @GetMapping("/communty/{nickname}")
+    @GetMapping("/communty")
     @Operation(
             summary="Получение всех сообществ пользователя, поиск по полю nickname",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityUsersDTO.class))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ListCommunityUsersDTO getCommunityForUserByNickname(@PathVariable String nickname){
-        return usersService.getAllCommunityForUser(nickname);
+    public ListCommunityUsersDTO getCommunityForUserByNickname(Principal principal){
+        return usersService.getAllCommunityForUser(principal.getName());
     }
 
     @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
@@ -159,13 +160,13 @@ public class UsersController {
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUserDTO setUserDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file) throws ValidationErrorWithMethod, IOException {
-        usersService.setUsers(setUserDTO,result, file);
+    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUserDTO setUserDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file, Principal principal) throws ValidationErrorWithMethod, IOException {
+        usersService.setUsers(setUserDTO, principal.getName(),result, file);
         return ResponseEntity.ok("Сущность пользователя изменена");
     }
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-    @DeleteMapping("/{nickname}")
+    @DeleteMapping
     @Operation(
             summary="Удаления пользователя по nickname",
             responses =  {@ApiResponse(
@@ -173,12 +174,12 @@ public class UsersController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) throws IOException {
-        usersService.deleteUserByNickname(nickname);
+    public ResponseEntity<String> deleteUserByNickname(Principal principal) throws IOException {
+        usersService.deleteUserByNickname(principal.getName());
         return ResponseEntity.ok("Пользователь был успешно удален");
     }
 
-    @DeleteMapping("image/{nickname}")
+    @DeleteMapping("/image")
     @Operation(
             summary = "Удаление изображения пользователя по nickname",
             responses =  {@ApiResponse(
@@ -186,8 +187,8 @@ public class UsersController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteImagesUsersApp(@PathVariable String nickname) throws IOException {
-        usersService.deleteImageUsersApp(nickname);
+    public ResponseEntity<String> deleteImagesUsersApp(Principal principal) throws IOException {
+        usersService.deleteImageUsersApp(principal.getName());
         return ResponseEntity.ok("Изображение пользователя удалено");
     }
     }

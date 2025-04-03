@@ -12,10 +12,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Schema(description = "Работа с изменением сущности UsersApp")
 public class SetUserDTO {
-    @NotNull(message = "Nickname пользователя не должен равняться null")
-    @Schema(example = "nickname")
-    private String nickname;
-
     @Unique
     @Size(min = 2, max = 10,  message = "Длина nickname от 2 до 10")
     @Schema(example = "nickname1")

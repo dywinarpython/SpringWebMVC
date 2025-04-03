@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Сущность создания постов")
 public class RequestUsersPostDTO {
 
-    @NotNull(message = "nickname не может быть null")
-    private String nicknameUser;
 
     @Schema(description = "Title поста пользователя")
     @Size(max = 30, min = 3)
