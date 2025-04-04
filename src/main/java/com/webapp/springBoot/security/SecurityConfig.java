@@ -13,15 +13,20 @@ import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringS
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.text.ParseException;
 
 
+@EnableMethodSecurity(securedEnabled = true)
 @Configuration
 public class SecurityConfig{
 
@@ -53,6 +58,7 @@ public class SecurityConfig{
                 .sessionManagement(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.apply(configureJWTAuthetication);
         return http.build();
     }
@@ -61,5 +67,17 @@ public class SecurityConfig{
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true); // Разрешить отправку кук и заголовков авторизации
+        config.addAllowedOrigin("https://localhost:8443"); // Разрешенные домены (можно использовать "*" для всех, но это небезопасно)
+        config.addAllowedHeader("*"); // Разрешенные заголовки
+        config.addAllowedMethod("*"); // Разрешенные HTTP-методы (GET, POST и т.д.)
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам
+        return source;
     }
 }

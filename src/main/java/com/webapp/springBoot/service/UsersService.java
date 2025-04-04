@@ -1,11 +1,13 @@
 package com.webapp.springBoot.service;
 
+import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.Roles;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
+import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.SecurityUsersService;
 import jakarta.transaction.Transactional;
@@ -17,11 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.management.relation.Role;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UsersService {
@@ -33,6 +34,8 @@ public class UsersService {
     private ImageCommunityService imageCommunityService;
     @Autowired
     private SecurityUsersService securityUsersService;
+    @Autowired
+    private RolesRepository rolesRepository;
 
     @Autowired
     private RolesService rolesService;
@@ -118,6 +121,21 @@ public class UsersService {
         imageUsersAppService.deleteImageUsersApp(findUsersByNickname(nickname));
     }
 
+
+    @Transactional
+    public void deleteRolesUsersApp(AddNewRoleUsersAppDTO addNewRoleUsersAppDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        if (addNewRoleUsersAppDTO.getNameRole().contains("ROLE_") || rolesRepository.findByName(addNewRoleUsersAppDTO.getNameRole()).isEmpty()){
+            throw new ValidationErrorWithMethod("Роль передана не корректной");
+        }
+        UsersApp usersApp = findUsersByNickname(addNewRoleUsersAppDTO.getNickname());
+        Set<Roles> roles = usersApp.getRoles().stream().filter(x -> !Objects.equals(x.getName(), addNewRoleUsersAppDTO.getNameRole())).collect(Collectors.toSet());
+        usersApp.setRoles(roles);
+        userRepository.save(usersApp);
+    }
+
     // <----------------ПОИСК В СУЩНОСТИ Users ----------------------------->
     public ListUsersDTO findByNameAndSurname(String name, String surname, int page) {
         List<UserResponceDTO> usersResponceDTOList = new ArrayList<>();
@@ -187,6 +205,16 @@ public class UsersService {
     @Transactional
     public void setImageUsersApp(String nickname, MultipartFile file) throws IOException, ValidationErrorWithMethod {
         imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(nickname));
+    }
+
+
+    public void addRolesUsersApp(AddNewRoleUsersAppDTO addNewRoleUsersAppDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        UsersApp usersApp = findUsersByNickname(addNewRoleUsersAppDTO.getNickname());
+        usersApp.setRoles(rolesService.getRolesByName(addNewRoleUsersAppDTO.getNameRole()));
+        userRepository.save(usersApp);
     }
 
 }

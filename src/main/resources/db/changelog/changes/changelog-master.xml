@@ -9,5 +9,6 @@
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-28-03-004-null-title.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-30-03-005-create-table-role.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-30-03-006-add-role.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-04-04-007-create-table-ban.xml"/>
 </databaseChangeLog>
     

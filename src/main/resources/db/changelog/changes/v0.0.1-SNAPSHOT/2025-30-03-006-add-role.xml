@@ -4,12 +4,15 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
-    <changeSet id="2025-30-03-006-add-role.xml" author="Dywinar">
+    <changeSet id="2025-30-03-006-add-role" author="Dywinar">
         <insert tableName="roles">
             <column name="name" value="USER"/>
         </insert>
         <insert tableName="roles">
             <column name="name" value="ADMIN"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="name" value="MENEGER"/>
         </insert>
     </changeSet>
 </databaseChangeLog>

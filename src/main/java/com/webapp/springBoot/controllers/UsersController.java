@@ -165,6 +165,8 @@ public class UsersController {
         return ResponseEntity.ok("Сущность пользователя изменена");
     }
 
+
+
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
     @DeleteMapping
     @Operation(
@@ -191,6 +193,8 @@ public class UsersController {
         usersService.deleteImageUsersApp(principal.getName());
         return ResponseEntity.ok("Изображение пользователя удалено");
     }
+
+
     }
 
 

@@ -53,7 +53,7 @@ public class UsersApp {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private final Set<Roles> roles = new HashSet<>();
+    private Set<Roles> roles = new HashSet<>();
 
 
 
@@ -64,8 +64,16 @@ public class UsersApp {
     @OneToOne(cascade = CascadeType.ALL)
     private ImagesUsersApp imageUrl;
 
-    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    public BanUsersApp getBanUsersApp() {
+        return banUsersApp;
+    }
+
+    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
     private List<PostsUserApp> postUserAppList;
+
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private BanUsersApp banUsersApp;
 
     public void setPostUserAppList(PostsUserApp postsUserApp) {
         postUserAppList.add(postsUserApp);
@@ -119,5 +127,8 @@ public class UsersApp {
 
     public void setRoles(Roles roles) {
         this.roles.add(roles);
+    }
+    public void setRoles(Set<Roles> roles) {
+        this.roles = roles;
     }
 }

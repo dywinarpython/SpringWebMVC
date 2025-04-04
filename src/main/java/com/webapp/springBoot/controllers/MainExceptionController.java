@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -59,6 +60,23 @@ public class MainExceptionController {
         logger.warn(messageError);
         return new ResponseEntity<>(
                 messageError, HttpStatus.FORBIDDEN
+        );
+    }
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<String> handlerAuthorizationDeniedException(AuthorizationDeniedException ex){
+        messageError = ex.getMessage();
+        logger.warn(messageError);
+        return new ResponseEntity<>(
+                messageError, HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handlerException(Exception ex){
+        messageError = ex.getMessage();
+        logger.error(messageError, ex);
+        return new ResponseEntity<>(
+                messageError, HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 
