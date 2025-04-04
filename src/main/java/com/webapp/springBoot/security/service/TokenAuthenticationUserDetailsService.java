@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -39,7 +38,7 @@ public class TokenAuthenticationUserDetailsService implements AuthenticationUser
                     userDetails.isEnabled(),
                     true,
                     token.expiresAt().isAfter(Instant.now()),
-                    true, // РЕАЛИЗОВАТЬ БАНЫ
+                    userDetails.isAccountNonLocked(),
                     grantedAuthorityCollection,
                     token);
         }

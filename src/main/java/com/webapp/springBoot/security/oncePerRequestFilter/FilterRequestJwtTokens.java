@@ -56,7 +56,6 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
             if (this.securityContextRepository.containsContext(request)) {
                 SecurityContext context = this.securityContextRepository.loadDeferredContext(request).get();
                 if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {
-                    System.out.println(context.getAuthentication().getPrincipal());
                     RecordToken refreshToken = this.refreshToken.apply(context.getAuthentication());
                     RecordToken accessToken = this.accessToken.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="2025-04-04-007-create-table-ban" author="Dywinar">
+        <addColumn tableName="users_app">
+            <column name="ban_users_app_id" type="bigint"><constraints nullable="true"/> </column>
+        </addColumn>
+        <createTable tableName="ban_users_app">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="time_ban" type="bigint"/>
+            <column name="ban_for_ever" type="boolean"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="users_app" baseColumnNames="ban_users_app_id" referencedTableName="ban_users_app"
+                                 referencedColumnNames="id" constraintName="fk_users_app_ban_users_app"/>
+    </changeSet>
+</databaseChangeLog>
