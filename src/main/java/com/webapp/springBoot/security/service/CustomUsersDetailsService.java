@@ -45,6 +45,8 @@ public class CustomUsersDetailsService implements UserDetailsService {
         BanUsersApp banUsersApp = usersApp.getBanUsersApp();
         if(banUsersApp == null){
             ban = false;
+        } else if (banUsersApp.isBanForEver()) {
+            ban = true;
         } else{
             ban = !(Instant.now().isAfter(Instant.ofEpochMilli(banUsersApp.getTimeBan())));
             if(!ban){
