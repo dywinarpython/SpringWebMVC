@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @Schema(description = "Сущность сохраненения банов пользователя")
 @Entity(name = "ban_users_app")
+@ToString
 public class BanUsersApp {
 
     @Id

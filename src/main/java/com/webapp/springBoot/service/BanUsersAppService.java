@@ -7,13 +7,14 @@ import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.BanUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 
-import javax.security.auth.login.CredentialException;
 import java.time.Instant;
+import java.util.Objects;
 
 @Service
 public class BanUsersAppService {
@@ -27,7 +28,9 @@ public class BanUsersAppService {
     @Autowired
     private UsersAppRepository usersAppRepository;
 
-    public void createBanUsers(BanUsersDTO banUsersDTO, BindingResult result) throws ValidationErrorWithMethod {
+
+    @Transactional
+    public void setBanUsers(BanUsersDTO banUsersDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
@@ -35,8 +38,17 @@ public class BanUsersAppService {
         if(usersApp.getRoles().stream().anyMatch(x -> x.getName().contains("ADMIN"))){
             throw new LockedException("У вас нет прав блокировать админа!");
         }
-        BanUsersApp banUsersApp = new BanUsersApp();
-        banUsersApp.setTimeBan(Instant.now().plusMillis(banUsersDTO.getTime()).toEpochMilli());
+
+        BanUsersApp banUsersAppNull = usersApp.getBanUsersApp();
+        BanUsersApp banUsersApp = Objects.requireNonNullElseGet(banUsersAppNull, BanUsersApp::new);
+        if(banUsersDTO.getBanForEver() != null){
+            banUsersApp.setBanForEver(banUsersDTO.getBanForEver());
+        } else if (banUsersDTO.getTime() != null) {
+            System.out.println(banUsersDTO.getTime());
+            banUsersApp.setTimeBan(Instant.now().plusMillis(banUsersDTO.getTime()).toEpochMilli());
+        } else{
+            throw new ValidationErrorWithMethod("Не переданы необходимые значения для бана!");
+        }
         usersApp.setBanUsersApp(banUsersApp);
         usersAppRepository.save(usersApp);
     }

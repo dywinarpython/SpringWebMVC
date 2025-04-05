@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 
-@Tag(name = "Администрирование пользователей!")
+@Tag(name = "Администрирование пользователей")
 @Secured("ROLE_ADMIN")
 @RequestMapping("/api/admin")
 @RestController
@@ -46,7 +46,7 @@ public class AdminController {
 
     @PatchMapping("user/role")
     @Operation(
-            summary = "Изменение прав пользователя",
+            summary = "Добавление прав пользователя",
             responses = {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
@@ -69,5 +69,4 @@ public class AdminController {
         usersService.deleteRolesUsersApp(addNewRoleUsersAppDTO, result);
         return ResponseEntity.ok("Права пользователя изменены");
     }
-
 }

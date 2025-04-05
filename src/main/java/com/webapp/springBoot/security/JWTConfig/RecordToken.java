@@ -1,6 +1,5 @@
 package com.webapp.springBoot.security.JWTConfig;
 
-import com.webapp.springBoot.entity.Roles;
 
 import java.time.Instant;
 import java.util.List;

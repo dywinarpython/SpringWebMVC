@@ -33,7 +33,7 @@ public class MenegerController {
     )
     @PostMapping("/ban")
     public ResponseEntity<String> banUsersByNickname(@RequestBody BanUsersDTO banUsersDTO, BindingResult bindingResult) throws ValidationErrorWithMethod {
-        banUsersAppService.createBanUsers(banUsersDTO, bindingResult);
-        return ResponseEntity.ok("Бан пользователю выдан");
+        banUsersAppService.setBanUsers(banUsersDTO, bindingResult);
+        return ResponseEntity.ok("Права пользователя изменены");
     }
 }

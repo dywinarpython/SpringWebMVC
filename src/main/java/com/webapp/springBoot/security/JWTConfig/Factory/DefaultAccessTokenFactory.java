@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class DefaultAccessTokenFactory implements Function<RecordToken, RecordToken> {
 
-    private Duration tokenTtl = Duration.ofMinutes(5);
+    private Duration tokenTtl = Duration.ofMinutes(60);
     @Override
     public RecordToken apply(RecordToken recordToken) {
         Instant now = Instant.now();

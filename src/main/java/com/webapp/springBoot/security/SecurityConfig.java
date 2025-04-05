@@ -10,6 +10,8 @@ import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStrin
 import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,9 +21,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.text.ParseException;
 
@@ -45,8 +49,9 @@ public class SecurityConfig{
 
     }
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication, @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication, @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated, @Autowired CorsConfigurationSource cors) throws Exception {
         String [] noAuthenticatedArray = noAuthinicated.split(", ");
+        CorsFilter corsFilter = new CorsFilter(cors);
         http
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                 {
@@ -57,8 +62,8 @@ public class SecurityConfig{
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable);
+        http.addFilterBefore(corsFilter, SecurityContextHolderFilter.class);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.apply(configureJWTAuthetication);
         return http.build();
     }
@@ -69,6 +74,7 @@ public class SecurityConfig{
         return new BCryptPasswordEncoder();
     }
 
+    @Primary
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -80,4 +86,5 @@ public class SecurityConfig{
         source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам
         return source;
     }
+
 }
