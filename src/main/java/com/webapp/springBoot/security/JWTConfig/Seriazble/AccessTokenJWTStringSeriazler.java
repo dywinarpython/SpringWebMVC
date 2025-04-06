@@ -23,7 +23,6 @@ public class AccessTokenJWTStringSeriazler implements Function<RecordToken, Stri
 
     public AccessTokenJWTStringSeriazler(JWSSigner jwsSigner) {
         this.jwsSigner = jwsSigner;
-        this.jwsAlgorithm = jwsAlgorithm;
     }
     @Override
     public String apply(RecordToken recordToken){
