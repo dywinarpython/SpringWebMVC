@@ -48,6 +48,16 @@ public class PostUsersController {
         return postUsersAppService.getPostsByNickname(nickname);
     }
 
+    @GetMapping
+    @Operation(summary = "Получение постов пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "400", description = "Ошибка валидации")
+            })
+    public ResponceListUsersPostDTO getPostByNicknameUsersApp(Principal principal){
+        return postUsersAppService.getPostsByNickname(principal.getName());
+    }
+
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
     @Operation(summary = "Получение файла поста",
             responses = {

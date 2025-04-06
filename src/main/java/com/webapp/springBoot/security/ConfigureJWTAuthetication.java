@@ -57,7 +57,6 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
         AuthenticationFailureHandler authenticationFailureHandler = (request, response, exception) -> {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
-            String errorMessage = exception.getMessage();
             if (exception instanceof LockedException) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             }

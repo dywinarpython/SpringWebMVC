@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Optional;
 
 
@@ -54,13 +53,12 @@ public class CustomUsersDetailsService implements UserDetailsService {
                 banUsersAppRepository.delete(banUsersApp);
             }
         }
-        UserDetails  userDetails = User.builder()
+        return User.builder()
                 .username(usersApp.getNickname())
                 .password(usersApp.getPassword())
                 .roles(roles)
                 .accountLocked(ban)
                 .build();
-        return userDetails;
     }
 
 }
