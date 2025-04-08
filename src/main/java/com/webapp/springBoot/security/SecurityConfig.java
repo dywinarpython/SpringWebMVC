@@ -80,8 +80,8 @@ public class SecurityConfig{
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true); // Разрешить отправку кук и заголовков авторизации
-        config.addAllowedOrigin("https://localhost:8443"); // Разрешенные домены (можно использовать "*" для всех, но это небезопасно)
-        config.addAllowedHeader("*"); // Разрешенные заголовки
+        config.addAllowedOrigin("http://localhost:3000"); // Разрешенные домены (можно использовать "*" для всех, но это небезопасно)
+        config.addAllowedHeader("*");// Разрешенные заголовки
         config.addAllowedMethod("*"); // Разрешенные HTTP-методы (GET, POST и т.д.)
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам

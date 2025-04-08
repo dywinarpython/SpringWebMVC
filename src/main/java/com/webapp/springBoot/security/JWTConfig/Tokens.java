@@ -1,4 +1,4 @@
 package com.webapp.springBoot.security.JWTConfig;
 
-public record Tokens(String accessToken,String refreshToken) {
+public record Tokens(String accessToken) {
 }
