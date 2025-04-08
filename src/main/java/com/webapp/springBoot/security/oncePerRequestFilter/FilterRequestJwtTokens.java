@@ -8,6 +8,7 @@ import com.webapp.springBoot.security.service.CustomUsersDetailsService;
 import com.webapp.springBoot.security.service.TokenUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
@@ -60,8 +61,13 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
                     RecordToken accessToken = this.accessToken.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    Cookie cookie = new Cookie("__Host_authinticatedToken", this.refreshTokenStringSeriazble.apply(refreshToken));
+                    cookie.isHttpOnly();
+                    cookie.setSecure(true);
+                    cookie.setPath("api/security/refresh");
+                    response.addCookie(cookie);
                     this.objectMapper.writeValue(response.getWriter(),
-                            new Tokens(this.accessTokenStringSeriazble.apply(accessToken),this.refreshTokenStringSeriazble.apply(refreshToken)));
+                            new Tokens(this.accessTokenStringSeriazble.apply(accessToken)));
                     return;
                 }
             }

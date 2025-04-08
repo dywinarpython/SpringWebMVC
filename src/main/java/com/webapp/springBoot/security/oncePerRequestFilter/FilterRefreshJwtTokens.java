@@ -65,7 +65,7 @@ public class FilterRefreshJwtTokens extends OncePerRequestFilter {
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                         this.objectMapper.writeValue(response.getWriter(),
-                                new Tokens(this.accessTokenStringSeriazble.apply(accessToken),null));
+                                new Tokens(this.accessTokenStringSeriazble.apply(accessToken)));
                         return;
                     } else {
                         throw new BadCredentialsException("Refresh токен не дейстивителен повторите вход!");
