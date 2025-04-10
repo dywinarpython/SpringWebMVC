@@ -47,7 +47,6 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
     public void init(HttpSecurity builder) throws Exception {
         super.init(builder);
     }
-
     @Override
     public void configure(HttpSecurity builder) {
 
@@ -63,7 +62,6 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
             else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
-            System.out.println(exception.getClass());
             new ObjectMapper().writeValue(response.getWriter(), Map.of("Ошибка аутентификации пользователя", exception.getMessage()));
         };
 

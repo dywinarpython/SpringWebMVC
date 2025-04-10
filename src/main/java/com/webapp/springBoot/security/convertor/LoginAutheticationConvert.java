@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.DTO.Users.LoginDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -32,6 +33,6 @@ public class LoginAutheticationConvert implements AuthenticationConverter {
             log.error(e.getMessage());
         }
         log.warn("Не переданы данные для входа!");
-        return null;
+        throw  new BadCredentialsException("Не переданы данные для входа!");
     }
 }

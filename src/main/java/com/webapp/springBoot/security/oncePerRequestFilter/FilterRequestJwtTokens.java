@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.security.JWTConfig.*;
 import com.webapp.springBoot.security.JWTConfig.Factory.DefaultAccessTokenFactory;
 import com.webapp.springBoot.security.JWTConfig.Factory.DefaultRefreshTokenFactory;
-import com.webapp.springBoot.security.service.CustomUsersDetailsService;
-import com.webapp.springBoot.security.service.TokenUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -55,6 +53,7 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
             throws ServletException, IOException {
         if(this.requestMatcher.matches(request)) {
             if (this.securityContextRepository.containsContext(request)) {
+                System.out.println();
                 SecurityContext context = this.securityContextRepository.loadDeferredContext(request).get();
                 if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {
                     RecordToken refreshToken = this.refreshToken.apply(context.getAuthentication());
@@ -62,9 +61,9 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     Cookie cookie = new Cookie("__Host_authinticatedToken", this.refreshTokenStringSeriazble.apply(refreshToken));
-                    cookie.isHttpOnly();
+                    cookie.setHttpOnly(true);
                     cookie.setSecure(true);
-                    cookie.setPath("api/security/refresh");
+                    cookie.setMaxAge(7 * 24 * 60 * 60);
                     response.addCookie(cookie);
                     this.objectMapper.writeValue(response.getWriter(),
                             new Tokens(this.accessTokenStringSeriazble.apply(accessToken)));
