@@ -47,6 +47,10 @@ public class UsersApp {
     @Column(length = 60)
     private String password;
 
+    @NotNull
+    @Column(length = 12)
+    private String phoneNumber;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name ="user_roles",

@@ -1,5 +1,6 @@
 package com.webapp.springBoot.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
@@ -10,6 +11,9 @@ import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStrin
 import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +23,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -28,12 +34,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.io.IOException;
 import java.text.ParseException;
+import java.util.Map;
 
 
 @EnableMethodSecurity(securedEnabled = true)
 @Configuration
 public class SecurityConfig{
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Bean
@@ -58,9 +68,15 @@ public class SecurityConfig{
                 {
                     authorizationManagerRequestMatcherRegistry.requestMatchers(noAuthenticatedArray).permitAll();
                     authorizationManagerRequestMatcherRegistry.anyRequest().authenticated();})
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new AuthenticationEntryPoint() {
+                    @Override
+                    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    }
+                }))
                 .requiresChannel(channelRequestMatcherRegistry -> channelRequestMatcherRegistry.anyRequest().requiresSecure())
-                .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(AbstractHttpConfigurer::disable);
         http.addFilterBefore(corsFilter, SecurityContextHolderFilter.class);
@@ -79,10 +95,10 @@ public class SecurityConfig{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true); // Разрешить отправку кук и заголовков авторизации
-        config.addAllowedOrigin("http://localhost:3000"); // Разрешенные домены (можно использовать "*" для всех, но это небезопасно)
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedHeader("*");// Разрешенные заголовки
-        config.addAllowedMethod("*"); // Разрешенные HTTP-методы (GET, POST и т.д.)
+        config.addAllowedMethod("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам
         return source;

@@ -52,6 +52,7 @@ public class UsersService {
         usersApp.setNickname(aPiResponceUserDTO.getNickname());
         usersApp.setPassword(securityUsersService.passwordEncode(aPiResponceUserDTO.getPassword()));
         usersApp.setRoles(roles);
+        usersApp.setPhoneNumber(aPiResponceUserDTO.getPhone());
         userRepository.save(usersApp);
     }
 
