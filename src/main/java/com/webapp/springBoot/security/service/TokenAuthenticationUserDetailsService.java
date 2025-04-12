@@ -29,9 +29,9 @@ public class TokenAuthenticationUserDetailsService implements AuthenticationUser
             String nickname = token.nickname();
             UserDetails userDetails = customUsersDetailsService.loadUserByUsername(nickname);
 
-            List<String> authorites = token.authorities();
+            List<String> authorities = token.authorities();
             List<GrantedAuthority> grantedAuthorityCollection = new ArrayList<>();
-            authorites.forEach(authority -> grantedAuthorityCollection.add(new SimpleGrantedAuthority(authority)));
+            authorities.forEach(authority -> grantedAuthorityCollection.add(new SimpleGrantedAuthority(authority)));
 
             return new TokenUser(
                     userDetails.getUsername(),

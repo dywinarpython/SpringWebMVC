@@ -15,12 +15,13 @@ import com.webapp.springBoot.security.service.TokenAuthenticationUserDetailsServ
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.header.HeaderWriterFilter;
 
@@ -29,8 +30,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
+@Configuration
 @Slf4j
 public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJWTAuthetication, HttpSecurity> {
+    private  @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated;
     private Function<RecordToken, String> refreshTokenStringSeriazble = Objects::toString;
 
     private Function<RecordToken, String> accessTokenStringSeriazble = Objects::toString;
@@ -47,6 +50,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
     public void init(HttpSecurity builder) throws Exception {
         super.init(builder);
     }
+
     @Override
     public void configure(HttpSecurity builder) {
 
@@ -62,7 +66,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
             else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
-            new ObjectMapper().writeValue(response.getWriter(), Map.of("Ошибка аутентификации пользователя", exception.getMessage()));
+            new ObjectMapper().writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
         };
 
 
@@ -80,10 +84,11 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
 
 
         // <------------------Фильтр аутентификации по access JWT---------------->
+
         JwtAccessAuthenticationFilter jwtAccessAuthenticationFilter = new JwtAccessAuthenticationFilter(
                 builder.getSharedObject(AuthenticationManager.class),
-                new JWTAccessAuthenticationConverter(this.accessTokenDesiriazle)
-        );
+                new JWTAccessAuthenticationConverter(this.accessTokenDesiriazle),
+                noAuthinicated);
 
 
         jwtAccessAuthenticationFilter.setSuccessHandler(((request, response, authentication) -> {

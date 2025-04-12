@@ -30,7 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name="Управление постами пользователей")
 @RestController
-@RequestMapping("api/user/post")
+@RequestMapping("v1/api/user/post")
 public class PostUsersController {
 
         @Autowired

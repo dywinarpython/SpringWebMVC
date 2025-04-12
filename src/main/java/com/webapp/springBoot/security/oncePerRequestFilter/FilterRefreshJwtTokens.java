@@ -36,7 +36,7 @@ import java.util.function.Function;
 @Getter
 public class FilterRefreshJwtTokens extends OncePerRequestFilter {
 
-    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/security/refresh", HttpMethod.POST.name());
+    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/v1/api/security/refresh", HttpMethod.POST.name());
 
     private  final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 

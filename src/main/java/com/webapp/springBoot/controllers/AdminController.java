@@ -21,7 +21,7 @@ import java.io.IOException;
 
 @Tag(name = "Администрирование пользователей")
 @Secured("ROLE_ADMIN")
-@RequestMapping("/api/admin")
+@RequestMapping("v1/api/admin")
 @RestController
 public class AdminController {
 
