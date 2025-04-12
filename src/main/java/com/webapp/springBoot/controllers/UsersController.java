@@ -28,7 +28,7 @@ import java.security.Principal;
 
 @Tag(name="Управление пользователями")
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("v1/api/user")
 public class UsersController {
     @Autowired
     private UsersService usersService;

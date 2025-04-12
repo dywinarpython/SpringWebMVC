@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 public class JwtRefreshAuthenticationFilter extends AuthenticationFilter {
 
 
-    private final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/security/refresh", HttpMethod.POST.name());
+    private final RequestMatcher requestMatcher = new AntPathRequestMatcher("/v1/api/security/refresh", HttpMethod.POST.name());
     @Override
     public AuthenticationSuccessHandler getSuccessHandler() {
         return super.getSuccessHandler();

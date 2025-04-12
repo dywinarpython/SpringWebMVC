@@ -30,7 +30,7 @@ import java.util.function.Function;
 @Getter
 public class FilterRequestJwtTokens extends OncePerRequestFilter {
 
-    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/security/login", HttpMethod.POST.name());
+    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/v1/api/security/login", HttpMethod.POST.name());
 
     private  final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 
@@ -55,13 +55,14 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
             if (this.securityContextRepository.containsContext(request)) {
                 System.out.println();
                 SecurityContext context = this.securityContextRepository.loadDeferredContext(request).get();
-                if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {
+                if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken authenticationToken)) {
                     RecordToken refreshToken = this.refreshToken.apply(context.getAuthentication());
                     RecordToken accessToken = this.accessToken.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     Cookie cookie = new Cookie("__Host_authinticatedToken", this.refreshTokenStringSeriazble.apply(refreshToken));
                     cookie.setHttpOnly(true);
+                    cookie.setPath("/");
                     cookie.setSecure(true);
                     cookie.setMaxAge(7 * 24 * 60 * 60);
                     response.addCookie(cookie);

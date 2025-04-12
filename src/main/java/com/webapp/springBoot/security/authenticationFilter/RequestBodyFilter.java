@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class RequestBodyFilter extends AuthenticationFilter {
 
-    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/api/security/login", HttpMethod.POST.name());
+    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/v1/api/security/login", HttpMethod.POST.name());
     @Override
     public AuthenticationSuccessHandler getSuccessHandler() {
         return super.getSuccessHandler();

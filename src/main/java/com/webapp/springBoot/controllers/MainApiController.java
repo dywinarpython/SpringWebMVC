@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Tag(name = "Главный контроллер")
 @RestController
-@RequestMapping("/api")
+@RequestMapping("v1/api")
 public class MainApiController{
     @Operation(
             summary = "Проверка подключения к Api",

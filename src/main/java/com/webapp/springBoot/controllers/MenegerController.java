@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @Secured(value = {"ROLE_ADMIN", "ROLE_MENEGER"})
 @Tag(name = "Управление доступом пользователей")
 @RestController
-@RequestMapping("api/meneger")
+@RequestMapping("v1/api/meneger")
 public class MenegerController {
 
     @Autowired

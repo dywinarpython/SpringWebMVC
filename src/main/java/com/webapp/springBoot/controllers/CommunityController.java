@@ -28,7 +28,7 @@ import java.security.Principal;
 
 @Tag(name="Управление сообществами")
 @RestController
-@RequestMapping("api/community")
+@RequestMapping("v1/api/community")
 public class CommunityController {
     @Autowired
     private CommunityService communityService;

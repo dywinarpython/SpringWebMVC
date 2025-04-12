@@ -29,7 +29,7 @@ import java.security.Principal;
 
 @Tag(name="Управление постами сообществ")
 @RestController
-@RequestMapping("api/community/post")
+@RequestMapping("v1/api/community/post")
 public class PostCommunityController {
 
         @Autowired

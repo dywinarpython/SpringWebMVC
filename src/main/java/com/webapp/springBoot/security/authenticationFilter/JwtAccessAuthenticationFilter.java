@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.AuthenticationFilter;
@@ -18,7 +19,7 @@ import java.util.stream.Stream;
 
 public class JwtAccessAuthenticationFilter extends AuthenticationFilter {
 
-
+    private String noAuthinicated;
     @Override
     public AuthenticationSuccessHandler getSuccessHandler() {
         return super.getSuccessHandler();
@@ -29,14 +30,15 @@ public class JwtAccessAuthenticationFilter extends AuthenticationFilter {
         super.setSuccessHandler(successHandler);
     }
 
-    public JwtAccessAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter) {
+    @Autowired
+    public JwtAccessAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter, String noAuthinicated) {
         super(authenticationManager, authenticationConverter);
+        this.noAuthinicated = noAuthinicated;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String noAuthinicated = "/swagger-ui/**, /v3/api-docs/**, /api/check, /api/user/registr, /api/security/login";
-        Stream<AntPathRequestMatcher> publicMatcher = Arrays.stream(noAuthinicated.split(", "))
+        Stream<AntPathRequestMatcher> publicMatcher = Arrays.stream(this.noAuthinicated.split(", "))
                         .map(AntPathRequestMatcher::new);
         if(publicMatcher.noneMatch(x -> x.matches(request))){
             super.doFilterInternal(request, response, filterChain);
