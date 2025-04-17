@@ -31,15 +31,13 @@ public class CustomUsersDetailsService implements UserDetailsService {
     @Autowired
     private BanUsersAppRepository banUsersAppRepository;
 
-    @Override
-    @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(username);
+    private UsersApp getUserApp(Optional<UsersApp> optionalUsersApp){
         if(optionalUsersApp.isEmpty()){
-            throw new UsernameNotFoundException("Nickname пользователя не найден");
+            throw new UsernameNotFoundException("Пользователь не найден");
         }
-        UsersApp usersApp = optionalUsersApp.get();
-        String[] roles = usersApp.getRoles().stream().map(Roles::getName).toArray(String[]::new);
+        return optionalUsersApp.get();
+    }
+    private boolean checkBan(UsersApp usersApp){
         boolean ban;
         BanUsersApp banUsersApp = usersApp.getBanUsersApp();
         if(banUsersApp == null){
@@ -53,9 +51,35 @@ public class CustomUsersDetailsService implements UserDetailsService {
                 banUsersAppRepository.delete(banUsersApp);
             }
         }
+        return ban;
+    }
+    private String[] getRoles(UsersApp usersApp){
+        return usersApp.getRoles().stream().map(Roles::getName).toArray(String[]::new);
+    }
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(username);
+        UsersApp usersApp = getUserApp(optionalUsersApp);
+        String[] roles = getRoles(usersApp);
+        boolean ban = checkBan(usersApp);
         return User.builder()
                 .username(usersApp.getNickname())
                 .password(usersApp.getPassword())
+                .roles(roles)
+                .accountLocked(ban)
+                .build();
+    }
+
+    @Transactional
+    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException{
+        Optional<UsersApp> optionalUsersApp = usersAppRepository.findByEmail(email);
+        UsersApp usersApp = getUserApp(optionalUsersApp);
+        String[] roles = getRoles(usersApp);
+        boolean ban = checkBan(usersApp);
+        return User.builder()
+                .username(usersApp.getNickname())
+                .password("N/A")
                 .roles(roles)
                 .accountLocked(ban)
                 .build();

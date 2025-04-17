@@ -36,6 +36,7 @@ public class UsersController {
     private ImageUsersAppService imageUsersAppService;
 
 
+
     // <------------------------ GET ЗАПРОСЫ -------------------------->
     @GetMapping("/name")
     @Operation(
@@ -146,6 +147,18 @@ public class UsersController {
         usersService.saveUser(users, result);
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
+
+//    @PostMapping("/registr/oauth2")
+//    @Operation(
+//            summary="Добавление нового пользователя",
+//            responses = {
+//                    @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
+//                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
+//            })
+//    public ResponseEntity<String> saveNewUser(@RequestBody TokenUserDto tokenUserDto) throws ValidationErrorWithMethod {
+//        System.out.println(tokenUserDto.getToken());
+//        return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
+//    }
 
 
 

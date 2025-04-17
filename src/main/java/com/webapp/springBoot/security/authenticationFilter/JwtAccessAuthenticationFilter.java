@@ -19,16 +19,12 @@ import java.util.stream.Stream;
 
 public class JwtAccessAuthenticationFilter extends AuthenticationFilter {
 
-    private String noAuthinicated;
+    private final String noAuthinicated;
     @Override
     public AuthenticationSuccessHandler getSuccessHandler() {
         return super.getSuccessHandler();
     }
 
-    @Override
-    public void setSuccessHandler(AuthenticationSuccessHandler successHandler) {
-        super.setSuccessHandler(successHandler);
-    }
 
     @Autowired
     public JwtAccessAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter, String noAuthinicated) {
