@@ -36,7 +36,6 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Map;
 
 
 @EnableMethodSecurity(securedEnabled = true)
@@ -64,6 +63,7 @@ public class SecurityConfig{
         String [] noAuthenticatedArray = noAuthinicated.split(", ");
         CorsFilter corsFilter = new CorsFilter(cors);
         http
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                 {
                     authorizationManagerRequestMatcherRegistry.requestMatchers(noAuthenticatedArray).permitAll();
@@ -77,7 +77,6 @@ public class SecurityConfig{
                 .requiresChannel(channelRequestMatcherRegistry -> channelRequestMatcherRegistry.anyRequest().requiresSecure())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(AbstractHttpConfigurer::disable);
         http.addFilterBefore(corsFilter, SecurityContextHolderFilter.class);
         http.httpBasic(AbstractHttpConfigurer::disable);
@@ -103,5 +102,7 @@ public class SecurityConfig{
         source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам
         return source;
     }
+
+
 
 }

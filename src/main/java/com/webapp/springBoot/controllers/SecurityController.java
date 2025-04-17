@@ -3,6 +3,8 @@ package com.webapp.springBoot.controllers;
 
 import com.webapp.springBoot.DTO.Users.LoginDto;
 import com.webapp.springBoot.security.JWTConfig.Tokens;
+import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
+import com.webapp.springBoot.security.service.TokenUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -43,11 +46,22 @@ public class SecurityController {
 
     }
 
+
     @GetMapping("/checkLog")
     public  ResponseEntity<Map<String, String>> checkLogin(Principal principal){
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("message", "Вход успешен, вошел пользователь: %s".formatted(principal.getName())));
     }
+
+    @PostMapping("/oauth2/google/login")
+    public  ResponseEntity<Map<String, String>> checkLoginOAuth2(@AuthenticationPrincipal TokenUser principal){
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("message", "Вход успешен, вошел пользователь: %s".formatted(principal.getGoogleUserInfo().getName())));
+        }
+
+
+
 
 }

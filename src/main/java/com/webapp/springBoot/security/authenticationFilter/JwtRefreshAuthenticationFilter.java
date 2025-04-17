@@ -27,10 +27,6 @@ public class JwtRefreshAuthenticationFilter extends AuthenticationFilter {
         return super.getSuccessHandler();
     }
 
-    @Override
-    public void setSuccessHandler(AuthenticationSuccessHandler successHandler) {
-        super.setSuccessHandler(successHandler);
-    }
 
     public JwtRefreshAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter) {
         super(authenticationManager, authenticationConverter);

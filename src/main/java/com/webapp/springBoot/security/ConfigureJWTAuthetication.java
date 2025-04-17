@@ -2,8 +2,11 @@ package com.webapp.springBoot.security;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webapp.springBoot.security.OAuth2.OAuth2FunctionConvertor;
 import com.webapp.springBoot.security.authenticationFilter.JwtAccessAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.JwtRefreshAuthenticationFilter;
+import com.webapp.springBoot.security.authenticationFilter.OAuth2AuthenticationFilter;
+import com.webapp.springBoot.security.convertor.AuthinticatedTokenOAuth2Converter;
 import com.webapp.springBoot.security.convertor.JWTRefreshAuthenticationConverter;
 import com.webapp.springBoot.security.oncePerRequestFilter.FilterRefreshJwtTokens;
 import com.webapp.springBoot.security.oncePerRequestFilter.FilterRequestJwtTokens;
@@ -33,6 +36,9 @@ import java.util.function.Function;
 @Configuration
 @Slf4j
 public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJWTAuthetication, HttpSecurity> {
+
+    @Autowired
+    private AuthinticatedTokenOAuth2Converter authinticatedTokenOAuth2Converter;
     private  @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated;
     private Function<RecordToken, String> refreshTokenStringSeriazble = Objects::toString;
 
@@ -41,6 +47,8 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
     private Function<String, RecordToken> accessTokenDesiriazle;
 
     private Function<String, RecordToken> refreshTokenDesiriazle;
+
+    private OAuth2FunctionConvertor oAuth2FunctionConvertor;
 
     @Autowired
     private TokenAuthenticationUserDetailsService tokenAuthenticationUserDetailsService;
@@ -68,6 +76,16 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
             }
             new ObjectMapper().writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
         };
+
+
+        // <------------------Фильтр аутентификации по OAuth2 code and codeVetify---------------->
+        OAuth2AuthenticationFilter oAuth2AuthenticationFilter = new OAuth2AuthenticationFilter(
+                builder.getSharedObject(AuthenticationManager.class),
+                authinticatedTokenOAuth2Converter
+        );
+        oAuth2AuthenticationFilter.setSuccessHandler(((request, response, authentication) -> {
+        }));
+        oAuth2AuthenticationFilter.setFailureHandler(authenticationFailureHandler);
 
 
 
@@ -118,6 +136,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
 
         builder.addFilterAfter(filterRequestJwtTokens, RequestBodyFilter.class)
                 .addFilterAfter(jwtRefreshAuthenticationFilter, HeaderWriterFilter.class)
+                .addFilterAfter(oAuth2AuthenticationFilter, HeaderWriterFilter.class)
                 .addFilterAfter(filterRefreshJwtTokens, JwtRefreshAuthenticationFilter.class )
                 .addFilterBefore(requestBodyFilter, FilterRequestJwtTokens.class)
                 .addFilterBefore(jwtAccessAuthenticationFilter, RequestBodyFilter.class)
