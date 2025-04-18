@@ -2,6 +2,8 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
+import com.webapp.springBoot.DTO.OAuth2.OAuth2RecordDTO;
+import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.Roles;
@@ -9,6 +11,8 @@ import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
+import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
+import com.webapp.springBoot.security.OAuth2.OAuth2FunctionConvertor;
 import com.webapp.springBoot.security.SecurityUsersService;
 import jakarta.transaction.Transactional;
 
@@ -40,6 +44,9 @@ public class UsersService {
     @Autowired
     private RolesService rolesService;
 
+    @Autowired
+    private OAuth2FunctionConvertor oAuth2FunctionConvertor;
+
     public void saveUser(UserRequestDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
@@ -53,6 +60,21 @@ public class UsersService {
         usersApp.setPassword(securityUsersService.passwordEncode(aPiResponceUserDTO.getPassword()));
         usersApp.setRoles(roles);
         usersApp.setPhoneNumber(aPiResponceUserDTO.getPhone());
+        userRepository.save(usersApp);
+    }
+    public void saveUser(UserRequestOAuth2DTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if (result.hasErrors()) {
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        GoogleUserInfo googleUserInfo = oAuth2FunctionConvertor.apply(new OAuth2RecordDTO(aPiResponceUserDTO.getCode(), null));
+        Roles roles = rolesService.getRolesByName("USER");
+        UsersApp usersApp = new UsersApp();
+        usersApp.setName(aPiResponceUserDTO.getName());
+        usersApp.setSurname(aPiResponceUserDTO.getSurname());
+        usersApp.setAge(aPiResponceUserDTO.getAge());
+        usersApp.setNickname(aPiResponceUserDTO.getNickname());
+        usersApp.setEmail(googleUserInfo.getEmail());
+        usersApp.setRoles(roles);
         userRepository.save(usersApp);
     }
 

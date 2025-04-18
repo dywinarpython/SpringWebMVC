@@ -29,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -46,18 +47,10 @@ public class SecurityConfig{
 
 
     @Bean
-    public ConfigureJWTAuthetication configureJWTAuthetication(
-            @Value("${spring.jwt.access-token-key}") String accessToken,
-            @Value("${spring.jwt.refresh-token-key}") String refreshToken
-    ) throws ParseException, JOSEException {
-        return new ConfigureJWTAuthetication()
-                .setAccessTokenStringSeriazble(new AccessTokenJWTStringSeriazler(new MACSigner(OctetSequenceKey.parse(accessToken))))
-                .setRefreshTokenStringSeriazble((new RefreshTokenJWEStringSeriazler(new DirectEncrypter(OctetSequenceKey.parse(refreshToken)))))
-                .setAccessTokenDesiriazle(new AccessTokenJWTStringDeserializer(new MACVerifier(OctetSequenceKey.parse(accessToken))))
-                .setRefreshTokenDesiriazle(new RefreshTokenJWEStringDeserializer(new DirectDecrypter(OctetSequenceKey.parse(refreshToken))
-                ));
-
+    public ConfigureJWTAuthetication configureJWTAuthetication() throws ParseException, JOSEException {
+        return new ConfigureJWTAuthetication();
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication, @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated, @Autowired CorsConfigurationSource cors) throws Exception {
         String [] noAuthenticatedArray = noAuthinicated.split(", ");
@@ -101,6 +94,10 @@ public class SecurityConfig{
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам
         return source;
+    }
+    @Bean
+    public RestTemplate restTemplate(){
+        return new RestTemplate();
     }
 
 

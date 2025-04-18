@@ -1,6 +1,7 @@
 package com.webapp.springBoot.controllers;
 
 
+import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.ImageUsersAppService;
@@ -148,17 +149,17 @@ public class UsersController {
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 
-//    @PostMapping("/registr/oauth2")
-//    @Operation(
-//            summary="Добавление нового пользователя",
-//            responses = {
-//                    @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
-//                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
-//            })
-//    public ResponseEntity<String> saveNewUser(@RequestBody TokenUserDto tokenUserDto) throws ValidationErrorWithMethod {
-//        System.out.println(tokenUserDto.getToken());
-//        return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
-//    }
+    @PostMapping("/registr/oauth2")
+    @Operation(
+            summary="Добавление нового пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
+            })
+    public ResponseEntity<String> saveNewUserOuAth2(@RequestBody UserRequestOAuth2DTO users, BindingResult result) throws ValidationErrorWithMethod {
+        usersService.saveUser(users, result);
+        return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
+    }
 
 
 

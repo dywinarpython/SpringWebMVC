@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="2025-13-04-009-create-registr-by-email.xml" author="Dywinar">
+        <addColumn tableName="users_app">
+            <column name="email" type="varchar(255)">
+                <constraints unique="true"/>
+            </column>
+        </addColumn>
+        <addNotNullConstraint tableName="users_app" columnName="phone_number"/>
+    </changeSet>
+</databaseChangeLog>

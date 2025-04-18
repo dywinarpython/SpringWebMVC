@@ -2,6 +2,10 @@ package com.webapp.springBoot.security;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStringDeserializer;
+import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
+import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
+import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
 import com.webapp.springBoot.security.OAuth2.OAuth2FunctionConvertor;
 import com.webapp.springBoot.security.authenticationFilter.JwtAccessAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.JwtRefreshAuthenticationFilter;
@@ -12,7 +16,6 @@ import com.webapp.springBoot.security.oncePerRequestFilter.FilterRefreshJwtToken
 import com.webapp.springBoot.security.oncePerRequestFilter.FilterRequestJwtTokens;
 import com.webapp.springBoot.security.authenticationFilter.RequestBodyFilter;
 import com.webapp.springBoot.security.convertor.JWTAccessAuthenticationConverter;
-import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import com.webapp.springBoot.security.convertor.LoginAutheticationConvert;
 import com.webapp.springBoot.security.service.TokenAuthenticationUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,28 +33,52 @@ import org.springframework.security.web.header.HeaderWriterFilter;
 
 
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 @Configuration
 @Slf4j
 public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJWTAuthetication, HttpSecurity> {
 
-    @Autowired
-    private AuthinticatedTokenOAuth2Converter authinticatedTokenOAuth2Converter;
+
     private  @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated;
-    private Function<RecordToken, String> refreshTokenStringSeriazble = Objects::toString;
 
-    private Function<RecordToken, String> accessTokenStringSeriazble = Objects::toString;
 
-    private Function<String, RecordToken> accessTokenDesiriazle;
+    @Autowired
+    private RefreshTokenJWEStringSeriazler refreshTokenStringSeriazble;
 
-    private Function<String, RecordToken> refreshTokenDesiriazle;
+    @Autowired
+    private AccessTokenJWTStringSeriazler accessTokenStringSeriazble;
 
+    @Autowired
+    private AccessTokenJWTStringDeserializer accessTokenDesiriazle;
+
+    @Autowired
+    private RefreshTokenJWEStringDeserializer refreshTokenDesiriazle;
+
+    @Autowired
     private OAuth2FunctionConvertor oAuth2FunctionConvertor;
 
     @Autowired
     private TokenAuthenticationUserDetailsService tokenAuthenticationUserDetailsService;
+
+    @Autowired
+    private AuthinticatedTokenOAuth2Converter authinticatedTokenOAuth2Converter;
+
+    @Autowired
+    private LoginAutheticationConvert loginAutheticationConvert;
+
+    @Autowired
+    private JWTAccessAuthenticationConverter jwtAccessAuthenticationConverter;
+
+    @Autowired
+    private JWTRefreshAuthenticationConverter jwtRefreshAuthenticationConverter;
+
+    // <------------------ Фильтр обновления jwt resfresh токена при входе по resfresh токену---------------->
+    @Autowired
+    private FilterRefreshJwtTokens filterRefreshJwtTokens;
+
+    // <------------------ Фильтр загрузки jwt токена при входе---------------->
+    @Autowired
+    private FilterRequestJwtTokens filterRequestJwtTokens;
 
 
     @Override
@@ -74,6 +101,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
             else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
+            log.error(exception.getMessage());
             new ObjectMapper().writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
         };
 
@@ -92,7 +120,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
         // <------------------Фильтр аутентификации по RequestBody---------------->
         RequestBodyFilter requestBodyFilter = new RequestBodyFilter(
                 builder.getSharedObject(AuthenticationManager.class),
-                new LoginAutheticationConvert()
+                loginAutheticationConvert
         );
         requestBodyFilter.setSuccessHandler(((request, response, authentication) -> {
         }));
@@ -105,7 +133,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
 
         JwtAccessAuthenticationFilter jwtAccessAuthenticationFilter = new JwtAccessAuthenticationFilter(
                 builder.getSharedObject(AuthenticationManager.class),
-                new JWTAccessAuthenticationConverter(this.accessTokenDesiriazle),
+                jwtAccessAuthenticationConverter,
                 noAuthinicated);
 
 
@@ -116,50 +144,25 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
         // <------------------Фильтр аутентификации по refresh JWT---------------->
         JwtRefreshAuthenticationFilter jwtRefreshAuthenticationFilter = new JwtRefreshAuthenticationFilter(
                 builder.getSharedObject(AuthenticationManager.class),
-                new JWTRefreshAuthenticationConverter(this.refreshTokenDesiriazle)
+                jwtRefreshAuthenticationConverter
         );
 
         jwtRefreshAuthenticationFilter.setSuccessHandler(((request, response, authentication) -> {
         }));
         jwtRefreshAuthenticationFilter.setFailureHandler(authenticationFailureHandler);
 
-        // <------------------ Фильтр обновления jwt resfresh токена при входе по resfresh токену---------------->
-        FilterRefreshJwtTokens filterRefreshJwtTokens = new FilterRefreshJwtTokens();
-        filterRefreshJwtTokens.setAccessTokenStringSeriazble(this.accessTokenStringSeriazble);
 
-        // <------------------ Фильтр загрузки jwt токена при входе---------------->
-        FilterRequestJwtTokens filterRequestJwtTokens = new FilterRequestJwtTokens();
-        filterRequestJwtTokens.setRefreshTokenStringSeriazble(this.refreshTokenStringSeriazble);
-        filterRequestJwtTokens.setAccessTokenStringSeriazble(this.accessTokenStringSeriazble);
 
 
 
         builder.addFilterAfter(filterRequestJwtTokens, RequestBodyFilter.class)
                 .addFilterAfter(jwtRefreshAuthenticationFilter, HeaderWriterFilter.class)
-                .addFilterAfter(oAuth2AuthenticationFilter, HeaderWriterFilter.class)
                 .addFilterAfter(filterRefreshJwtTokens, JwtRefreshAuthenticationFilter.class )
+                .addFilterAfter(oAuth2AuthenticationFilter, FilterRefreshJwtTokens.class)
                 .addFilterBefore(requestBodyFilter, FilterRequestJwtTokens.class)
                 .addFilterBefore(jwtAccessAuthenticationFilter, RequestBodyFilter.class)
                 .authenticationProvider(preAuthenticatedAuthenticationProvider);
 
-    }
-    public ConfigureJWTAuthetication setRefreshTokenStringSeriazble(Function<RecordToken, String> refreshTokenStringSeriazble) {
-        this.refreshTokenStringSeriazble = refreshTokenStringSeriazble;
-        return this;
-    }
-
-    public ConfigureJWTAuthetication setAccessTokenStringSeriazble(Function<RecordToken, String> accessTokenStringSeriazble) {
-        this.accessTokenStringSeriazble = accessTokenStringSeriazble;
-        return this;
-    }
-    public ConfigureJWTAuthetication setAccessTokenDesiriazle(Function<String, RecordToken> accessTokenDesiriazle) {
-        this.accessTokenDesiriazle = accessTokenDesiriazle;
-        return this;
-    }
-
-    public ConfigureJWTAuthetication setRefreshTokenDesiriazle(Function<String, RecordToken> refreshTokenDesiriazle) {
-        this.refreshTokenDesiriazle = refreshTokenDesiriazle;
-        return this;
     }
 
 }

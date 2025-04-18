@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.security.JWTConfig.*;
 import com.webapp.springBoot.security.JWTConfig.Factory.DefaultAccessTokenFactory;
 import com.webapp.springBoot.security.JWTConfig.Factory.DefaultRefreshTokenFactory;
+import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
+import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -11,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpMethod;
@@ -20,14 +23,15 @@ import org.springframework.security.web.context.RequestAttributeSecurityContextR
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Function;
 
-@Setter
 @Getter
+@Component
 public class FilterRequestJwtTokens extends OncePerRequestFilter {
 
     private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/v1/api/security/login", HttpMethod.POST.name());
@@ -35,13 +39,17 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
     private  final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 
 
-    private  final Function<Authentication, RecordToken> refreshToken = new DefaultRefreshTokenFactory();
+    @Autowired
+    private  DefaultRefreshTokenFactory refreshToken;
 
-    private  final Function<RecordToken, RecordToken> accessToken = new DefaultAccessTokenFactory();
+    @Autowired
+    private  DefaultAccessTokenFactory accessToken;
 
-    private Function<RecordToken, String> refreshTokenStringSeriazble = Objects::toString;
+    @Autowired
+    private RefreshTokenJWEStringSeriazler refreshTokenStringSeriazble;
 
-    private Function<RecordToken, String> accessTokenStringSeriazble = Objects::toString;
+    @Autowired
+    private AccessTokenJWTStringSeriazler accessTokenStringSeriazble;
 
     private final  ObjectMapper objectMapper = new ObjectMapper();
 

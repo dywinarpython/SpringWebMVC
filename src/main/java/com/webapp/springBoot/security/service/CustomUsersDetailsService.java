@@ -6,6 +6,7 @@ import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.repository.BanUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +18,14 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Optional;
 
 
+@Slf4j
 @Service
 public class CustomUsersDetailsService implements UserDetailsService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CustomUsersDetailsService.class);
 
     @Autowired
     private UsersAppRepository usersAppRepository;
@@ -33,6 +35,7 @@ public class CustomUsersDetailsService implements UserDetailsService {
 
     private UsersApp getUserApp(Optional<UsersApp> optionalUsersApp){
         if(optionalUsersApp.isEmpty()){
+            log.warn("Пользователь не найден", UsernameNotFoundException.class);
             throw new UsernameNotFoundException("Пользователь не найден");
         }
         return optionalUsersApp.get();
@@ -61,12 +64,11 @@ public class CustomUsersDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(username);
         UsersApp usersApp = getUserApp(optionalUsersApp);
-        String[] roles = getRoles(usersApp);
         boolean ban = checkBan(usersApp);
         return User.builder()
                 .username(usersApp.getNickname())
                 .password(usersApp.getPassword())
-                .roles(roles)
+                .roles(getRoles(usersApp))
                 .accountLocked(ban)
                 .build();
     }
