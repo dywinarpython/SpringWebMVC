@@ -32,7 +32,6 @@ public class LoginAutheticationConvert implements AuthenticationConverter {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-        log.warn("Не переданы данные для входа!");
         throw  new BadCredentialsException("Не переданы данные для входа!");
     }
 }
