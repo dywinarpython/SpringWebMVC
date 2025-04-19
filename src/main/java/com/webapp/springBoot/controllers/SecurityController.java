@@ -69,10 +69,8 @@ public class SecurityController {
             description = "Вход по Oauth2"
     )
     @PostMapping("/oauth2/google/login")
-    public  ResponseEntity<Map<String, String>> checkLoginOAuth2(@AuthenticationPrincipal TokenUser principal){
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("message", "Вход успешен, вошел пользователь: %s".formatted(principal.getGoogleUserInfo().getName())));
+    public  void loginOAuth2(@AuthenticationPrincipal TokenUser principal){
+
         }
 
 

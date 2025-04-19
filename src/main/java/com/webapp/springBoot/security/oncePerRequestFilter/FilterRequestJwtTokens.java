@@ -6,6 +6,7 @@ import com.webapp.springBoot.security.JWTConfig.Factory.DefaultAccessTokenFactor
 import com.webapp.springBoot.security.JWTConfig.Factory.DefaultRefreshTokenFactory;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
+import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -34,7 +37,11 @@ import java.util.function.Function;
 @Component
 public class FilterRequestJwtTokens extends OncePerRequestFilter {
 
-    private  final RequestMatcher requestMatcher = new AntPathRequestMatcher("/v1/api/security/login", HttpMethod.POST.name());
+    private  final List<RequestMatcher> requestMatcher =
+            new ArrayList<>(List.of(
+                    new AntPathRequestMatcher("/v1/api/security/login", HttpMethod.POST.name()),
+                    new AntPathRequestMatcher("/v1/api/security/oauth2/google/login", HttpMethod.POST.name())
+            ));
 
     private  final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 
@@ -59,11 +66,12 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-        if(this.requestMatcher.matches(request)) {
+        if(this.requestMatcher.stream().anyMatch(requestMatcher -> requestMatcher.matches(request))) {
             if (this.securityContextRepository.containsContext(request)) {
-                System.out.println();
                 SecurityContext context = this.securityContextRepository.loadDeferredContext(request).get();
-                if (context != null && !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken authenticationToken)) {
+                if (context != null && (
+                        !(context.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) || (context.getAuthentication() instanceof OAuth2AuthenticatedAuthenticationToken)
+                )) {
                     RecordToken refreshToken = this.refreshToken.apply(context.getAuthentication());
                     RecordToken accessToken = this.accessToken.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);

@@ -12,7 +12,7 @@ import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
-import com.webapp.springBoot.security.OAuth2.OAuth2FunctionConvertor;
+import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.security.SecurityUsersService;
 import jakarta.transaction.Transactional;
 
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.management.relation.Role;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +44,7 @@ public class UsersService {
     private RolesService rolesService;
 
     @Autowired
-    private OAuth2FunctionConvertor oAuth2FunctionConvertor;
+    private OAuth2FunctionDeserialization oAuth2FunctionConvertor;
 
     public void saveUser(UserRequestDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()) {

@@ -3,13 +3,10 @@ package com.webapp.springBoot.security.OAuth2;
 
 
 import com.webapp.springBoot.DTO.OAuth2.OAuth2RecordDTO;
-import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,7 +21,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Component
-public class OAuth2FunctionConvertor implements Function<OAuth2RecordDTO, GoogleUserInfo> {
+public class OAuth2FunctionDeserialization implements Function<OAuth2RecordDTO, GoogleUserInfo> {
 
     private final String clientId;
 
@@ -37,7 +34,7 @@ public class OAuth2FunctionConvertor implements Function<OAuth2RecordDTO, Google
     @Autowired
     private RestTemplate restTemplate;
 
-    public OAuth2FunctionConvertor(@Value("${google.clientId}") String clientId, @Value("${google.clientSecret}")String clientSecret, @Value("${google.redirectUri}") String redirectUri) {
+    public OAuth2FunctionDeserialization(@Value("${google.clientId}") String clientId, @Value("${google.clientSecret}")String clientSecret, @Value("${google.redirectUri}") String redirectUri) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUri = redirectUri;

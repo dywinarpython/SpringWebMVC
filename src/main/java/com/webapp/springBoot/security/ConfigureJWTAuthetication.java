@@ -6,7 +6,9 @@ import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStrin
 import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
-import com.webapp.springBoot.security.OAuth2.OAuth2FunctionConvertor;
+import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationProvider;
+import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
+import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.security.authenticationFilter.JwtAccessAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.JwtRefreshAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.OAuth2AuthenticationFilter;
@@ -18,6 +20,7 @@ import com.webapp.springBoot.security.authenticationFilter.RequestBodyFilter;
 import com.webapp.springBoot.security.convertor.JWTAccessAuthenticationConverter;
 import com.webapp.springBoot.security.convertor.LoginAutheticationConvert;
 import com.webapp.springBoot.security.service.TokenAuthenticationUserDetailsService;
+import com.webapp.springBoot.security.service.TokenOAuth2UserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,10 +58,13 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
     private RefreshTokenJWEStringDeserializer refreshTokenDesiriazle;
 
     @Autowired
-    private OAuth2FunctionConvertor oAuth2FunctionConvertor;
+    private OAuth2FunctionDeserialization oAuth2FunctionConvertor;
 
     @Autowired
     private TokenAuthenticationUserDetailsService tokenAuthenticationUserDetailsService;
+
+    @Autowired
+    private TokenOAuth2UserDetailsService tokenOAuth2UserDetailsService;
 
     @Autowired
     private AuthinticatedTokenOAuth2Converter authinticatedTokenOAuth2Converter;
@@ -91,6 +97,9 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
 
         PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider = new PreAuthenticatedAuthenticationProvider();
         preAuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(tokenAuthenticationUserDetailsService);
+
+        OAuth2AuthenticatedAuthenticationProvider oAuth2AuthenticatedAuthenticationProvider = new OAuth2AuthenticatedAuthenticationProvider();
+        oAuth2AuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(tokenOAuth2UserDetailsService);
 
         AuthenticationFailureHandler authenticationFailureHandler = (request, response, exception) -> {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -161,6 +170,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
                 .addFilterAfter(oAuth2AuthenticationFilter, FilterRefreshJwtTokens.class)
                 .addFilterBefore(requestBodyFilter, FilterRequestJwtTokens.class)
                 .addFilterBefore(jwtAccessAuthenticationFilter, RequestBodyFilter.class)
+                .authenticationProvider(oAuth2AuthenticatedAuthenticationProvider)
                 .authenticationProvider(preAuthenticatedAuthenticationProvider);
 
     }
