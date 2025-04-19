@@ -2,18 +2,23 @@ package com.webapp.springBoot.security.convertor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
-import com.webapp.springBoot.security.OAuth2.OAuth2FunctionConvertor;
+import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
+import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.DTO.OAuth2.OAuth2RecordDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 
 @Slf4j
@@ -21,7 +26,7 @@ import java.io.IOException;
 public class AuthinticatedTokenOAuth2Converter implements AuthenticationConverter {
 
     @Autowired
-    private OAuth2FunctionConvertor oAuth2FunctionConvertor;
+    private OAuth2FunctionDeserialization oAuth2FunctionConvertor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -30,8 +35,7 @@ public class AuthinticatedTokenOAuth2Converter implements AuthenticationConverte
             OAuth2RecordDTO oAuth2Record = objectMapper.readValue(request.getReader(), OAuth2RecordDTO.class);
             if(oAuth2Record != null){
                 GoogleUserInfo oAuth2TokenDes = oAuth2FunctionConvertor.apply(oAuth2Record);
-                System.out.println(oAuth2TokenDes);
-                return new PreAuthenticatedAuthenticationToken(oAuth2TokenDes, oAuth2Record.code());
+                return new OAuth2AuthenticatedAuthenticationToken(oAuth2TokenDes, oAuth2Record.code());
             }
         } catch (IOException _) {
             log.error("Ошибка получения данных OAuth2");

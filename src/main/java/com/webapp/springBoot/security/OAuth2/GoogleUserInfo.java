@@ -11,14 +11,4 @@ public class GoogleUserInfo {
     private String name;
 
     private String family_name;
-
-    @Override
-    public String toString() {
-        return "GoogleUserInfo{" +
-                "email='" + email + '\'' +
-                ", email_verified=" + email_verified +
-                ", name='" + name + '\'' +
-                ", family_name='" + family_name + '\'' +
-                '}';
-    }
 }

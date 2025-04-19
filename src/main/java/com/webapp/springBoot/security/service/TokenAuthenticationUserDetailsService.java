@@ -2,6 +2,7 @@ package com.webapp.springBoot.security.service;
 
 import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
+import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -45,19 +46,6 @@ public class TokenAuthenticationUserDetailsService implements AuthenticationUser
                     userDetails.isAccountNonLocked(),
                     userDetails.getAuthorities(),
                     token);
-        }
-        if(authenticationToken.getPrincipal() instanceof GoogleUserInfo googleUserInfo){
-            String email = googleUserInfo.getEmail();
-            UserDetails userDetails = customUsersDetailsService.loadUserByEmail(email);
-            return new TokenUser(
-                    userDetails.getUsername(),
-                    userDetails.getPassword(),
-                    userDetails.isEnabled(),
-                    true,
-                    true,
-                    userDetails.isAccountNonLocked(),
-                    userDetails.getAuthorities(),
-                    googleUserInfo);
         }
         throw new UsernameNotFoundException("Токен не передан");
     }
