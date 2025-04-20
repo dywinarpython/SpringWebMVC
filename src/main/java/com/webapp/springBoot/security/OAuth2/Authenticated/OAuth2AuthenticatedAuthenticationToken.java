@@ -1,9 +1,8 @@
-package com.webapp.springBoot.security.OAuth2;
+package com.webapp.springBoot.security.OAuth2.Authenticated;
 
 import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 

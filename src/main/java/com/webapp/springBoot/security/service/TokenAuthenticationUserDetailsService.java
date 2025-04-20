@@ -1,8 +1,7 @@
 package com.webapp.springBoot.security.service;
 
+import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.security.JWTConfig.RecordToken;
-import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
-import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,9 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class TokenAuthenticationUserDetailsService implements AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> {
@@ -49,5 +47,6 @@ public class TokenAuthenticationUserDetailsService implements AuthenticationUser
         }
         throw new UsernameNotFoundException("Токен не передан");
     }
+
 
 }

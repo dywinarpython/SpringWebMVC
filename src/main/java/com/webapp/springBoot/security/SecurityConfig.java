@@ -43,7 +43,8 @@ import java.text.ParseException;
 @Configuration
 public class SecurityConfig{
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @Bean
@@ -99,6 +100,7 @@ public class SecurityConfig{
     public RestTemplate restTemplate(){
         return new RestTemplate();
     }
+
 
 
 

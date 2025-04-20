@@ -4,8 +4,10 @@ package com.webapp.springBoot.DTO.Users;
 import com.webapp.springBoot.entity.UsersApp;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @Schema(description = "Сущность вывода пользователя")
 public class UserResponceDTO {
 
