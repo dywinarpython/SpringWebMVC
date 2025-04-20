@@ -72,8 +72,4 @@ public class SecurityController {
     public  void loginOAuth2(@AuthenticationPrincipal TokenUser principal){
 
         }
-
-
-
-
 }

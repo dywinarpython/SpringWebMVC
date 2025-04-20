@@ -6,8 +6,9 @@ import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStrin
 import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
-import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationProvider;
-import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
+import com.webapp.springBoot.security.OAuth2.Authenticated.OAuth2AuthenticatedAuthenticationProvider;
+import com.webapp.springBoot.security.OAuth2.Exception.GoogleUserInfoException;
+import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticationFailureHandler;
 import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.security.authenticationFilter.JwtAccessAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.JwtRefreshAuthenticationFilter;
@@ -21,6 +22,7 @@ import com.webapp.springBoot.security.convertor.JWTAccessAuthenticationConverter
 import com.webapp.springBoot.security.convertor.LoginAutheticationConvert;
 import com.webapp.springBoot.security.service.TokenAuthenticationUserDetailsService;
 import com.webapp.springBoot.security.service.TokenOAuth2UserDetailsService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.header.HeaderWriterFilter;
@@ -41,6 +44,8 @@ import java.util.Map;
 @Slf4j
 public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJWTAuthetication, HttpSecurity> {
 
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private  @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated;
 
@@ -86,6 +91,9 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
     @Autowired
     private FilterRequestJwtTokens filterRequestJwtTokens;
 
+    @Autowired
+    private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
 
     @Override
     public void init(HttpSecurity builder) throws Exception {
@@ -97,10 +105,6 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
 
         PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider = new PreAuthenticatedAuthenticationProvider();
         preAuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(tokenAuthenticationUserDetailsService);
-
-        OAuth2AuthenticatedAuthenticationProvider oAuth2AuthenticatedAuthenticationProvider = new OAuth2AuthenticatedAuthenticationProvider();
-        oAuth2AuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(tokenOAuth2UserDetailsService);
-
         AuthenticationFailureHandler authenticationFailureHandler = (request, response, exception) -> {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
@@ -111,9 +115,12 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
             log.error(exception.getMessage());
-            new ObjectMapper().writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
         };
 
+
+        OAuth2AuthenticatedAuthenticationProvider oAuth2AuthenticatedAuthenticationProvider = new OAuth2AuthenticatedAuthenticationProvider();
+        oAuth2AuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(tokenOAuth2UserDetailsService);
 
         // <------------------Фильтр аутентификации по OAuth2 code and codeVetify---------------->
         OAuth2AuthenticationFilter oAuth2AuthenticationFilter = new OAuth2AuthenticationFilter(
@@ -122,7 +129,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
         );
         oAuth2AuthenticationFilter.setSuccessHandler(((request, response, authentication) -> {
         }));
-        oAuth2AuthenticationFilter.setFailureHandler(authenticationFailureHandler);
+        oAuth2AuthenticationFilter.setFailureHandler(oAuth2AuthenticationFailureHandler);
 
 
 

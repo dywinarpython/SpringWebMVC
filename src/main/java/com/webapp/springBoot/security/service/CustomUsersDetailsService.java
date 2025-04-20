@@ -7,8 +7,6 @@ import com.webapp.springBoot.repository.BanUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Optional;
 
 
@@ -74,9 +71,7 @@ public class CustomUsersDetailsService implements UserDetailsService {
     }
 
     @Transactional
-    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException{
-        Optional<UsersApp> optionalUsersApp = usersAppRepository.findByEmail(email);
-        UsersApp usersApp = getUserApp(optionalUsersApp);
+    public UserDetails loadUserByEmail(UsersApp usersApp) throws UsernameNotFoundException{
         String[] roles = getRoles(usersApp);
         boolean ban = checkBan(usersApp);
         return User.builder()
@@ -85,6 +80,11 @@ public class CustomUsersDetailsService implements UserDetailsService {
                 .roles(roles)
                 .accountLocked(ban)
                 .build();
+    }
+
+    public Optional<UsersApp> checkEmailUser(String email){
+        return  usersAppRepository.findByEmail(email);
+
     }
 
 }

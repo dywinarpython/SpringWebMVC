@@ -53,7 +53,6 @@ public class UsersApp {
     private String phoneNumber;
 
     @Column(unique = true)
-    @NotNull
     @Email
     private String email;
 

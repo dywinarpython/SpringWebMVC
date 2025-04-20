@@ -6,17 +6,15 @@ import com.webapp.springBoot.security.JWTConfig.Factory.DefaultAccessTokenFactor
 import com.webapp.springBoot.security.JWTConfig.Factory.DefaultRefreshTokenFactory;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
-import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
+import com.webapp.springBoot.security.OAuth2.Authenticated.OAuth2AuthenticatedAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -30,8 +28,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 @Getter
 @Component
@@ -58,7 +54,8 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
     @Autowired
     private AccessTokenJWTStringSeriazler accessTokenStringSeriazble;
 
-    private final  ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @Override

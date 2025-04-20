@@ -2,7 +2,7 @@ package com.webapp.springBoot.security.convertor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
-import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticatedAuthenticationToken;
+import com.webapp.springBoot.security.OAuth2.Authenticated.OAuth2AuthenticatedAuthenticationToken;
 import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.DTO.OAuth2.OAuth2RecordDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,16 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
 
 @Slf4j
 @Component
@@ -27,7 +21,8 @@ public class AuthinticatedTokenOAuth2Converter implements AuthenticationConverte
 
     @Autowired
     private OAuth2FunctionDeserialization oAuth2FunctionConvertor;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public Authentication convert(HttpServletRequest request) {

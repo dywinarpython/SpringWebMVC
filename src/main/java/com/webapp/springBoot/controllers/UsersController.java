@@ -6,6 +6,7 @@ import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
+import com.webapp.springBoot.util.DeleteCookie;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,11 +14,14 @@ import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.Objects;
 
 
 @Tag(name="Управление пользователями")
@@ -156,8 +162,15 @@ public class UsersController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUserOuAth2(@RequestBody UserRequestOAuth2DTO users, BindingResult result) throws ValidationErrorWithMethod {
-        usersService.saveUser(users, result);
+    public ResponseEntity<String> saveNewUserOuAth2(@Valid @RequestBody UserRequestOAuth2DTO userRequestOAuth2DTO, BindingResult result, HttpServletResponse response, HttpServletRequest reguest) throws ValidationErrorWithMethod {
+        Cookie[] cookies = reguest.getCookies();
+        if(cookies == null){
+            throw new ValidationErrorWithMethod("Не переданны необходимые куки!");
+        }
+        Cookie cookie = Arrays.stream(reguest.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "REG_DRAFT_ID")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
+        String uuid = cookie.getValue();
+        usersService.saveUser(userRequestOAuth2DTO,uuid, result);
+        DeleteCookie.deleteCookie(response, uuid);
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 

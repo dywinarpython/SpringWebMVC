@@ -2,7 +2,6 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
-import com.webapp.springBoot.DTO.OAuth2.OAuth2RecordDTO;
 import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.entity.Community;
@@ -12,11 +11,12 @@ import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
-import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.security.SecurityUsersService;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -43,38 +43,64 @@ public class UsersService {
     @Autowired
     private RolesService rolesService;
 
-    @Autowired
-    private OAuth2FunctionDeserialization oAuth2FunctionConvertor;
 
-    public void saveUser(UserRequestDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    public void saveUser(UserRequestDTO userRequestDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         Roles roles = rolesService.getRolesByName("USER");
         UsersApp usersApp = new UsersApp();
-        usersApp.setName(aPiResponceUserDTO.getName());
-        usersApp.setSurname(aPiResponceUserDTO.getSurname());
-        usersApp.setAge(aPiResponceUserDTO.getAge());
-        usersApp.setNickname(aPiResponceUserDTO.getNickname());
-        usersApp.setPassword(securityUsersService.passwordEncode(aPiResponceUserDTO.getPassword()));
+        usersApp.setName(userRequestDTO.getName());
+        usersApp.setSurname(userRequestDTO.getSurname());
+        usersApp.setAge(userRequestDTO.getAge());
+        usersApp.setNickname(userRequestDTO.getNickname());
+        usersApp.setPassword(securityUsersService.passwordEncode(userRequestDTO.getPassword()));
         usersApp.setRoles(roles);
-        usersApp.setPhoneNumber(aPiResponceUserDTO.getPhone());
+        usersApp.setPhoneNumber(userRequestDTO.getPhone());
         userRepository.save(usersApp);
     }
-    public void saveUser(UserRequestOAuth2DTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public void saveUser(UserRequestOAuth2DTO userRequestOAuth2DTO, String uuid, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        GoogleUserInfo googleUserInfo = oAuth2FunctionConvertor.apply(new OAuth2RecordDTO(aPiResponceUserDTO.getCode(), null));
-        Roles roles = rolesService.getRolesByName("USER");
         UsersApp usersApp = new UsersApp();
-        usersApp.setName(aPiResponceUserDTO.getName());
-        usersApp.setSurname(aPiResponceUserDTO.getSurname());
-        usersApp.setAge(aPiResponceUserDTO.getAge());
-        usersApp.setNickname(aPiResponceUserDTO.getNickname());
-        usersApp.setEmail(googleUserInfo.getEmail());
+        Cache cache = cacheManager.getCache("registr");
+        if (cache == null) {
+            throw new IllegalStateException("Кеш 'registr' не найден!");
+        }
+
+        GoogleUserInfo googleUserInfo = cache.get(uuid, GoogleUserInfo.class);
+        if (googleUserInfo == null) {
+            throw new ValidationErrorWithMethod("Сессия регистрации истекла или недействительна.");
+        }
+
+        if(userRequestOAuth2DTO.getName() == null && googleUserInfo.getName() !=null){
+            usersApp.setName(googleUserInfo.getName());
+        } else if(userRequestOAuth2DTO.getName() != null && googleUserInfo.getName() ==null){
+            usersApp.setName(userRequestOAuth2DTO.getName());
+        } else {
+            throw new ValidationErrorWithMethod("Не передано имя пользователя");
+        }
+
+        if(userRequestOAuth2DTO.getSurname() == null && googleUserInfo.getSurname() != null){
+            usersApp.setSurname(googleUserInfo.getSurname());
+        } else if(userRequestOAuth2DTO.getSurname() != null && googleUserInfo.getSurname() ==null){
+            usersApp.setSurname(userRequestOAuth2DTO.getSurname());
+        } else {
+            throw new ValidationErrorWithMethod("Не передана фамилия пользователя");
+        }
+        usersApp.setAge(userRequestOAuth2DTO.getAge());
+        usersApp.setNickname(userRequestOAuth2DTO.getNickname());
+        usersApp.setPassword(securityUsersService.passwordEncode(userRequestOAuth2DTO.getPassword()));
+        Roles roles = rolesService.getRolesByName("USER");
         usersApp.setRoles(roles);
+        usersApp.setEmail(googleUserInfo.getEmail());
         userRepository.save(usersApp);
+        cache.evict(uuid);
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ Users ----------------------------->

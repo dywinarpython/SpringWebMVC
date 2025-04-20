@@ -44,7 +44,8 @@ public class FilterRefreshJwtTokens extends OncePerRequestFilter {
     @Autowired
     private AccessTokenJWTStringSeriazler accessTokenStringSeriazble;
 
-    private final  ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @Override

@@ -1,4 +1,4 @@
-package com.webapp.springBoot.security.OAuth2;
+package com.webapp.springBoot.security.OAuth2.Authenticated;
 
 
 import lombok.Setter;
