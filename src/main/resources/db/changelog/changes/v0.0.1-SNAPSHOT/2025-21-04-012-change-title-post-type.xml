@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="2025-21-04-012-change-title-post-type.xml" author="Dywinar">
+        <modifyDataType tableName="posts_user_app" columnName="title" newDataType="varchar(60)"/>
+        <modifyDataType tableName="posts_community" columnName="title" newDataType="varchar(60)"/>
+    </changeSet>
+</databaseChangeLog>

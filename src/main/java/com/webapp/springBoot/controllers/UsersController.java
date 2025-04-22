@@ -4,6 +4,7 @@ package com.webapp.springBoot.controllers;
 import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
+import com.webapp.springBoot.security.service.TokenUser;
 import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
 import com.webapp.springBoot.util.DeleteCookie;
@@ -21,8 +22,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +42,8 @@ public class UsersController {
     private UsersService usersService;
     @Autowired
     private ImageUsersAppService imageUsersAppService;
+
+
 
 
 
@@ -150,8 +153,25 @@ public class UsersController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result) throws ValidationErrorWithMethod {
-        usersService.saveUser(users, result);
+    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result, HttpServletResponse response) throws ValidationErrorWithMethod {
+        usersService.saveUserInCache(users, result, response);
+        return new ResponseEntity<>("Пользователь добавлен в кеш", HttpStatus.CREATED);
+    }
+    @PostMapping("/check")
+    @Operation(
+            summary="Проверка кода",
+            responses = {
+                    @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
+            })
+    public ResponseEntity<String> checkNewUser(@Valid @RequestBody VerifyNumberDTO verifyNumberDTO, BindingResult result, HttpServletRequest request) throws ValidationErrorWithMethod {
+        Cookie[] cookies = request.getCookies();
+        if(cookies == null){
+            throw new ValidationErrorWithMethod("Не переданны необходимые куки!");
+        }
+        Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "VERIF_PHONE")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
+        String uuid = cookie.getValue();
+        usersService.saveUser(verifyNumberDTO, uuid, result);
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 
@@ -162,12 +182,12 @@ public class UsersController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUserOuAth2(@Valid @RequestBody UserRequestOAuth2DTO userRequestOAuth2DTO, BindingResult result, HttpServletResponse response, HttpServletRequest reguest) throws ValidationErrorWithMethod {
-        Cookie[] cookies = reguest.getCookies();
+    public ResponseEntity<String> saveNewUserOuAth2(@Valid @RequestBody UserRequestOAuth2DTO userRequestOAuth2DTO, BindingResult result, HttpServletResponse response, HttpServletRequest request) throws ValidationErrorWithMethod {
+        Cookie[] cookies = request.getCookies();
         if(cookies == null){
             throw new ValidationErrorWithMethod("Не переданны необходимые куки!");
         }
-        Cookie cookie = Arrays.stream(reguest.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "REG_DRAFT_ID")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
+        Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "REG_DRAFT_ID")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
         String uuid = cookie.getValue();
         usersService.saveUser(userRequestOAuth2DTO,uuid, result);
         DeleteCookie.deleteCookie(response, uuid);
@@ -177,7 +197,6 @@ public class UsersController {
 
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
-
     @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Изменение сущности пользователи",
@@ -208,7 +227,8 @@ public class UsersController {
         return ResponseEntity.ok("Пользователь был успешно удален");
     }
 
-    @DeleteMapping("/image")
+    @DeleteMapping({"/image", "/image/{nickname}"})
+    @PreAuthorize("(#nickname == null) or hasAnyRole('ROLE_MANAGER')")
     @Operation(
             summary = "Удаление изображения пользователя по nickname",
             responses =  {@ApiResponse(
@@ -216,8 +236,9 @@ public class UsersController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteImagesUsersApp(Principal principal) throws IOException {
-        usersService.deleteImageUsersApp(principal.getName());
+    public ResponseEntity<String> deleteImagesUsersApp(@PathVariable(required = false) String nickname, Principal principal) throws IOException {
+        nickname = nickname == null? principal.getName() : nickname;
+        usersService.deleteImageUsersApp(nickname);
         return ResponseEntity.ok("Изображение пользователя удалено");
     }
 

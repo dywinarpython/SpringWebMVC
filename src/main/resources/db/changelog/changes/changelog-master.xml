@@ -12,5 +12,8 @@
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-04-04-007-create-table-ban.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-10-04-008-create-registr-by-iphone.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-13-04-009-create-registr-by-email.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-010-rename-role.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-011-add-time-credentionals.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-012-change-title-post-type.xml"/>
 </databaseChangeLog>
     

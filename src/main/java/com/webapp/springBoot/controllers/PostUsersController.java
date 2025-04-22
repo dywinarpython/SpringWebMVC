@@ -23,6 +23,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -114,7 +115,8 @@ public class PostUsersController {
 
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-    @DeleteMapping("/{namePost}")
+    @PreAuthorize("(#nickname == null) or hasAnyRole('ROLE_MANAGER')")
+    @DeleteMapping({"/{namePost}", "/{nickname}/{namePost}"})
     @Operation(
             summary = "Удаление поста пользователя",
             responses = {
@@ -122,8 +124,9 @@ public class PostUsersController {
                     @ApiResponse(responseCode = "404", description = "Пост не найден")
             }
     )
-    public ResponseEntity<String> deletePost(@PathVariable String namePost, Principal principal) throws IOException {
-        postUsersAppService.deletePostUsersApp(namePost, principal.getName());
+    public ResponseEntity<String> deletePost(@PathVariable(required = false) String nickname, @PathVariable String namePost, Principal principal) throws IOException {
+        nickname = nickname == null? principal.getName(): nickname;
+        postUsersAppService.deletePostUsersApp(namePost, nickname);
         return ResponseEntity.ok("Пост удален");
     }
 }

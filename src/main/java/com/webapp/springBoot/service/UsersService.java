@@ -4,14 +4,14 @@ import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
-import com.webapp.springBoot.entity.Community;
-import com.webapp.springBoot.entity.Roles;
-import com.webapp.springBoot.entity.UsersApp;
+import com.webapp.springBoot.entity.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
 import com.webapp.springBoot.security.SecurityUsersService;
+import com.webapp.springBoot.util.VerifyPhoneService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,17 +39,20 @@ public class UsersService {
     private SecurityUsersService securityUsersService;
     @Autowired
     private RolesRepository rolesRepository;
-
     @Autowired
     private RolesService rolesService;
+    @Autowired
+    private FilePostsUsersAppService filePostsUsersAppService;
+    @Autowired
+    private VerifyPhoneService verifyPhone;
 
 
 
     @Autowired
     private CacheManager cacheManager;
-
-    public void saveUser(UserRequestDTO userRequestDTO, BindingResult result) throws ValidationErrorWithMethod {
-        if (result.hasErrors()) {
+    // <-----------------------Сохранения сущности пользователя в кеш-------------------->
+    public void saveUserInCache(UserRequestDTO userRequestDTO, BindingResult result, HttpServletResponse response) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         Roles roles = rolesService.getRolesByName("USER");
@@ -61,8 +64,30 @@ public class UsersService {
         usersApp.setPassword(securityUsersService.passwordEncode(userRequestDTO.getPassword()));
         usersApp.setRoles(roles);
         usersApp.setPhoneNumber(userRequestDTO.getPhone());
-        userRepository.save(usersApp);
+        verifyPhone.sendConfirmationCode(userRequestDTO.getPhone(), usersApp, response);
     }
+
+
+    // <-----------------------Сохранения сущности пользователя в  UsersApp-------------------->
+    public void saveUser(VerifyNumberDTO verifyNumberDTO, String uuid, BindingResult result) throws ValidationErrorWithMethod {
+        if (result.hasErrors()) {
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        Cache cache = cacheManager.getCache("VERIF_PHONE");
+        if(cache == null){
+            throw new ValidationErrorWithMethod("Сессия регистрации истекла или недействительна.");
+        }
+        if(!Objects.equals(cache.get(uuid, String.class), verifyNumberDTO.getCode())){
+            throw new ValidationErrorWithMethod("Коды не совпадают!");
+        }
+        cache = cacheManager.getCache("USERS_APP");
+        if(cache == null){
+            throw new ValidationErrorWithMethod("Сессия регистрации истекла или недействительна.");
+        }
+        UsersApp usersApp = cache.get(uuid, UsersApp.class);
+        assert usersApp != null;
+        userRepository.save(usersApp);
+        }
     public void saveUser(UserRequestOAuth2DTO userRequestOAuth2DTO, String uuid, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
@@ -70,7 +95,7 @@ public class UsersService {
         UsersApp usersApp = new UsersApp();
         Cache cache = cacheManager.getCache("registr");
         if (cache == null) {
-            throw new IllegalStateException("Кеш 'registr' не найден!");
+            throw new IllegalStateException("Сессия регистрации истекла или недействительна.");
         }
 
         GoogleUserInfo googleUserInfo = cache.get(uuid, GoogleUserInfo.class);
@@ -85,7 +110,6 @@ public class UsersService {
         } else {
             throw new ValidationErrorWithMethod("Не передано имя пользователя");
         }
-
         if(userRequestOAuth2DTO.getSurname() == null && googleUserInfo.getSurname() != null){
             usersApp.setSurname(googleUserInfo.getSurname());
         } else if(userRequestOAuth2DTO.getSurname() != null && googleUserInfo.getSurname() ==null){
@@ -162,6 +186,9 @@ public class UsersService {
         }
         UsersApp usersApp = users.get();
         imageUsersAppService.deleteImageUsersApp(usersApp);
+        for (PostsUserApp postsUserApp : usersApp.getPostsUserAppList()){
+            filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
+        }
         userRepository.delete(usersApp);
     }
     @Transactional
@@ -264,5 +291,7 @@ public class UsersService {
         usersApp.setRoles(rolesService.getRolesByName(addNewRoleUsersAppDTO.getNameRole()));
         userRepository.save(usersApp);
     }
+
+
 
 }

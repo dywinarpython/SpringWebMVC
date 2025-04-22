@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -31,11 +32,9 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
-            if (exception instanceof LockedException) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-
-            }
-            else if(exception instanceof GoogleUserInfoException googleUserInfoException){
+        switch (exception) {
+            case LockedException lockedException -> response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            case GoogleUserInfoException googleUserInfoException -> {
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
                 GoogleUserInfo googleUserInfo = googleUserInfoException.getGoogleUserInfo();
                 String uuid = UUID.randomUUID().toString();
@@ -44,13 +43,14 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
                 cookie.setSecure(true);
                 cookie.setPath("/");
                 cookie.setMaxAge(60 * 30); // жить 30 минут
+
                 response.addCookie(cookie);
                 Objects.requireNonNull(cacheManager.getCache("registr")).put(uuid, googleUserInfo.checkFiledNull());
                 objectMapper.writeValue(response.getWriter(), Map.of("fields", googleUserInfo.getNullFiled()));
                 return;
-            } else{
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
+            default -> response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
             log.error(exception.getMessage());
             objectMapper.writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
     }

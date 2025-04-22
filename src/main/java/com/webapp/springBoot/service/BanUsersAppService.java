@@ -44,7 +44,6 @@ public class BanUsersAppService {
         if(banUsersDTO.getBanForEver() != null){
             banUsersApp.setBanForEver(banUsersDTO.getBanForEver());
         } else if (banUsersDTO.getTime() != null) {
-            System.out.println(banUsersDTO.getTime());
             banUsersApp.setTimeBan(Instant.now().plusMillis(banUsersDTO.getTime()).toEpochMilli());
         } else{
             throw new ValidationErrorWithMethod("Не переданы необходимые значения для бана!");

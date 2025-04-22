@@ -15,11 +15,11 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-@Secured(value = {"ROLE_ADMIN", "ROLE_MENEGER"})
+@Secured(value = "ROLE_MANAGER")
 @Tag(name = "Управление доступом пользователей")
 @RestController
-@RequestMapping("v1/api/meneger")
-public class MenegerController {
+@RequestMapping("v1/api/manager")
+public class ManagerController {
 
     @Autowired
     private BanUsersAppService banUsersAppService;

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
@@ -28,22 +29,28 @@ public class UsersApp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Getter
     @NotNull
     @Column(length = 15)
     private String name;
 
+    @Getter
     @NotNull
     @Column(length = 20)
     private String surname;
 
 
+    @Getter
     @NotNull
     private int age;
 
+    @Getter
     @NotNull
     @Column(length = 20, unique = true)
     private String nickname;
 
+    @Getter
+    @Setter
     @NotNull
     @Column(length = 60)
     private String password;
@@ -56,6 +63,7 @@ public class UsersApp {
     @Email
     private String email;
 
+    @Getter
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name ="user_roles",
@@ -66,21 +74,20 @@ public class UsersApp {
 
 
 
+    @Getter
     @JsonIgnore
     @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL)
     private List<Community> community;
 
+    @Getter
     @OneToOne(cascade = CascadeType.ALL)
     private ImagesUsersApp imageUrl;
-
-    public BanUsersApp getBanUsersApp() {
-        return banUsersApp;
-    }
 
     @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
     private List<PostsUserApp> postUserAppList;
 
 
+    @Getter
     @OneToOne(cascade = CascadeType.ALL)
     private BanUsersApp banUsersApp;
 
@@ -99,39 +106,6 @@ public class UsersApp {
         this.nickname = nickname;
         this.password = password;
 
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-    public String getName() {
-        return name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public List<Community> getCommunity() {
-        return community;
-    }
-
-    public ImagesUsersApp getImageUrl() {
-        return imageUrl;
-    }
-    public String getPassword() {
-        return password;
-    }
-    public Set<Roles> getRoles() {
-        return roles;
     }
 
     public void setRoles(Roles roles) {
