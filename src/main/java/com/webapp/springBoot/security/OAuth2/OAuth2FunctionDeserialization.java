@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -44,7 +45,7 @@ public class OAuth2FunctionDeserialization implements Function<OAuth2RecordDTO, 
     public GoogleUserInfo apply(OAuth2RecordDTO oAuth2Record) {
         try {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("code", URLDecoder.decode(oAuth2Record.code(), StandardCharsets.UTF_8));
+            params.add("code", oAuth2Record.code());
             params.add("client_id", clientId);
             params.add("client_secret", clientSecret);
             params.add("redirect_uri", redirectUri);
@@ -63,7 +64,7 @@ public class OAuth2FunctionDeserialization implements Function<OAuth2RecordDTO, 
             return responseInfo.getBody();
         } catch (HttpClientErrorException e){
             log.error(e.getMessage());
-            throw new ErrorResponseException(HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new BadCredentialsException("Ошибка входа, повторите вход с помощью Google чуть позже!");
         }
     }
 

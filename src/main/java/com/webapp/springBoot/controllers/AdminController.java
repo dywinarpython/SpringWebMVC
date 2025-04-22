@@ -59,7 +59,7 @@ public class AdminController {
 
     @DeleteMapping("user/role")
     @Operation(
-            summary = "Изменение прав пользователя, удаление прав",
+            summary = "Удаление прав",
             responses = {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -110,21 +111,23 @@ public class CommunityController {
     }
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-
-    @DeleteMapping("/{nickname}")
+    @PreAuthorize("(#nicknameUser == null) or hasAnyRole('ROLE_MANAGER')")
+    @DeleteMapping({"/{nicknameUser}/{nicknameCommunity}", "/{nicknameCommunity}"})
     @Operation(
-            summary = "Удаление сообщество по nickname",
+            summary = "Удаление сообщества по nickname",
             responses =  {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname, Principal principal) throws IOException{
-        communityService.deleteCommunityByNickname(nickname, principal.getName());
+    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable(required = false) String nicknameUser, @PathVariable String nicknameCommunity, Principal principal) throws IOException{
+        nicknameUser = nicknameUser == null? principal.getName() : nicknameUser;
+        communityService.deleteCommunityByNickname(nicknameCommunity, nicknameUser);
         return ResponseEntity.ok("Сообщество удалено");
     }
 
-    @DeleteMapping("image/{nickname}")
+    @PreAuthorize("(#nicknameUser == null) or hasAnyRole('ROLE_MANAGER')")
+    @DeleteMapping({"/image/{nicknameUser}/{nicknameCommunity}", "/image/{nicknameCommunity}"})
     @Operation(
             summary = "Удаление изображения сообщества по nickname",
             responses =  {@ApiResponse(
@@ -132,8 +135,9 @@ public class CommunityController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable String nickname, Principal principal) throws IOException {
-        communityService.deleteImageCommunity(nickname, principal.getName());
+    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable(required = false) String nicknameUser, @PathVariable String nicknameCommunity, Principal principal) throws IOException {
+        nicknameUser = nicknameUser == null? principal.getName() : nicknameUser;;
+        communityService.deleteImageCommunity(nicknameCommunity, nicknameUser);
         return ResponseEntity.ok("Изображение сообщества удалено");
     }
 

@@ -3,6 +3,7 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Community.*;
 import com.webapp.springBoot.entity.Community;
+import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
@@ -33,6 +34,9 @@ public class CommunityService {
 
     @Autowired
     private ImageCommunityService imageCommunityService;
+
+    @Autowired
+    private FilePostsCommunityService filePostsCommunityService;
 
 
 
@@ -116,6 +120,9 @@ public class CommunityService {
         Community community = checkCommunityByNicknameUser(nickname, nicknameUser);
             community.getUserOwner().setCommunity(null);
             imageCommunityService.deleteImageCommunity(community);
+            for (PostsCommunity postsCommunity : community.getPostsCommunityList()){
+                filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
+            }
             communityRepository.delete(community);
     }
 

@@ -31,7 +31,7 @@ public class TokenOAuth2UserDetailsService implements AuthenticationUserDetailsS
                         userDetails.isEnabled(),
                         true,
                         true,
-                        userDetails.isAccountNonLocked() && !googleUserInfo.getEmail_verified(),
+                        userDetails.isAccountNonLocked() && googleUserInfo.getEmail_verified(),
                         userDetails.getAuthorities(),
                         googleUserInfo);
             }

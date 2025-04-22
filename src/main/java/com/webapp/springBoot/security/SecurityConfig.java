@@ -2,15 +2,6 @@ package com.webapp.springBoot.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.crypto.DirectDecrypter;
-import com.nimbusds.jose.crypto.DirectEncrypter;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStringDeserializer;
-import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
-import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
-import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,6 +10,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -74,7 +69,8 @@ public class SecurityConfig{
                 .logout(AbstractHttpConfigurer::disable);
         http.addFilterBefore(corsFilter, SecurityContextHolderFilter.class);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.apply(configureJWTAuthetication);
+        http.with(configureJWTAuthetication, configureJWTAutheticationLambda -> {});
+
         return http.build();
     }
 
@@ -90,10 +86,10 @@ public class SecurityConfig{
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://localhost:3000");
-        config.addAllowedHeader("*");// Разрешенные заголовки
+        config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // Применить ко всем endpoint'ам
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
     @Bean
@@ -101,7 +97,20 @@ public class SecurityConfig{
         return new RestTemplate();
     }
 
+    @Bean
+    public RoleHierarchy roleHierarchy(){
+        return RoleHierarchyImpl.fromHierarchy(
+                """
+                ROLE_ADMIN > ROLE_MANAGER > ROLE_USER
+                """
+        );
+    }
 
-
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+        expressionHandler.setRoleHierarchy(roleHierarchy);
+        return expressionHandler;
+    }
 
 }

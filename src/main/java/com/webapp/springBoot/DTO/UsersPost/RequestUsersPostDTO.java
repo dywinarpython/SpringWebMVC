@@ -16,7 +16,7 @@ public class RequestUsersPostDTO {
 
 
     @Schema(description = "Title поста пользователя")
-    @Size(max = 30, min = 3)
+    @Size(max = 60, min = 3)
     private String title;
 
     @Schema(description = "Description поста пользователя")

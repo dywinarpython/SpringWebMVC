@@ -174,9 +174,9 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
         builder.addFilterAfter(filterRequestJwtTokens, RequestBodyFilter.class)
                 .addFilterAfter(jwtRefreshAuthenticationFilter, HeaderWriterFilter.class)
                 .addFilterAfter(filterRefreshJwtTokens, JwtRefreshAuthenticationFilter.class )
-                .addFilterAfter(oAuth2AuthenticationFilter, FilterRefreshJwtTokens.class)
-                .addFilterBefore(requestBodyFilter, FilterRequestJwtTokens.class)
                 .addFilterBefore(jwtAccessAuthenticationFilter, RequestBodyFilter.class)
+                .addFilterBefore(oAuth2AuthenticationFilter, RequestBodyFilter.class)
+                .addFilterBefore(requestBodyFilter, FilterRequestJwtTokens.class)
                 .authenticationProvider(oAuth2AuthenticatedAuthenticationProvider)
                 .authenticationProvider(preAuthenticatedAuthenticationProvider);
 

@@ -1,7 +1,8 @@
-package com.webapp.springBoot.service;
+package com.webapp.springBoot.util;
 
 
 
+import com.twilio.Twilio;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Service
-public class StorageService {
+public class PostService {
 
     @Value("${upload.pathCommunity}")
     private String pathCommunity;
@@ -32,6 +33,12 @@ public class StorageService {
     @Value("${upload.pathUser.image}")
     private String pathUserImage;
 
+    @Value("${twillio.sid}")
+    private String accountSid;
+
+    @Value("${twillio.authToken}")
+    private String authToken;
+
     @PostConstruct
     public void init() throws IOException {
         Path communityPath = Path.of(pathCommunity);
@@ -46,5 +53,10 @@ public class StorageService {
         Files.createDirectories(communityVideoPath);
         Files.createDirectories(communityImagePath);
         Files.createDirectories(userImagePath);
+    }
+
+    @PostConstruct
+    public void initTwilio(){
+        Twilio.init(accountSid, authToken);
     }
 }

@@ -25,7 +25,7 @@ public class PostsUserApp {
     private String name;
 
 
-    @Column(length = 30)
+    @Column(length = 60)
     private String title;
 
 
@@ -37,14 +37,11 @@ public class PostsUserApp {
 
     private LocalDateTime updateDate;
 
+    @Setter
     @NotNull
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn
     private UsersApp usersApp;
-
-    public void setUsersApp(UsersApp usersApp) {
-        this.usersApp = usersApp;
-    }
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id")
