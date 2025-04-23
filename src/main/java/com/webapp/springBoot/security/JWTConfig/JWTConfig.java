@@ -8,8 +8,6 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.webapp.springBoot.security.JWTConfig.Deserializer.AccessTokenJWTStringDeserializer;
 import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStringDeserializer;
-import com.webapp.springBoot.security.JWTConfig.Factory.DefaultAccessTokenFactory;
-import com.webapp.springBoot.security.JWTConfig.Factory.DefaultRefreshTokenFactory;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
 import org.springframework.beans.factory.annotation.Value;

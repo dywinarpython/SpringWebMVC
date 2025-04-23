@@ -4,11 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
-    <changeSet id="2025-13-04-009-create-registr-by-email.xml" author="Dywinar">
-        <addColumn tableName="users_app">
-            <column name="email" type="varchar(255)">
-                <constraints unique="true"/>
-            </column>
-        </addColumn>
+    <changeSet id="2025-21-04-013-add-unique-number.xml" author="Dywinar">
+        <addUniqueConstraint tableName="users_app" columnNames="phone_number"/>
     </changeSet>
 </databaseChangeLog>

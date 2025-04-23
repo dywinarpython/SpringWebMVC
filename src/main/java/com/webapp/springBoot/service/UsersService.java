@@ -51,9 +51,12 @@ public class UsersService {
     @Autowired
     private CacheManager cacheManager;
     // <-----------------------Сохранения сущности пользователя в кеш-------------------->
-    public void saveUserInCache(UserRequestDTO userRequestDTO, BindingResult result, HttpServletResponse response) throws ValidationErrorWithMethod {
+    public void saveUserInCache(UserRequestDTO userRequestDTO, BindingResult result, HttpServletResponse response) throws Exception {
         if(result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        if(userRepository.findByPhoneNumber(userRequestDTO.getPhone()).isPresent()){
+            throw new ValidationErrorWithMethod("На один аккаунт один номер телефона");
         }
         Roles roles = rolesService.getRolesByName("USER");
         UsersApp usersApp = new UsersApp();

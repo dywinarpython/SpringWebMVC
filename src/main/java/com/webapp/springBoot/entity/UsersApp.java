@@ -56,7 +56,7 @@ public class UsersApp {
     private String password;
 
 
-    @Column(length = 12)
+    @Column(length = 12, unique = true)
     private String phoneNumber;
 
     @Column(unique = true)

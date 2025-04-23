@@ -15,5 +15,6 @@
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-010-rename-role.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-011-add-time-credentionals.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-012-change-title-post-type.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-013-add-unique-number.xml"/>
 </databaseChangeLog>
     
