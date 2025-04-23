@@ -153,7 +153,7 @@ public class UsersController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result, HttpServletResponse response) throws ValidationErrorWithMethod {
+    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result, HttpServletResponse response) throws Exception {
         usersService.saveUserInCache(users, result, response);
         return new ResponseEntity<>("Пользователь добавлен в кеш", HttpStatus.CREATED);
     }

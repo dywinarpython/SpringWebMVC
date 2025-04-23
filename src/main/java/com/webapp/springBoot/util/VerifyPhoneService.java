@@ -1,18 +1,23 @@
 package com.webapp.springBoot.util;
 
 import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 import com.webapp.springBoot.entity.UsersApp;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class VerifyPhoneService {
 
@@ -29,16 +34,19 @@ public class VerifyPhoneService {
     @Autowired
     private CacheManager cacheManager;
 
-    public String sendConfirmationCode(String toNumber, UsersApp usersApp, HttpServletResponse response) {
+    public void sendConfirmationCode(String toNumber, UsersApp usersApp, HttpServletResponse response) throws Exception {
         String generateValue = generateSixDigitNumber();
-        String text = "Ваш код подтверждения: " + generateValue;
-        System.out.println(text);
-        // Сделать оабработку исключений
-//        Message.creator(
-//                new PhoneNumber(toNumber),
-//                new PhoneNumber(fromNumber),
-//                text
-//        ).create();
+        String text = STR."Ваш код подтверждения: \{generateValue}";
+        try {
+            Message.creator(
+                    new PhoneNumber(STR."+7\{toNumber}"),
+                    new PhoneNumber(fromNumber),
+                    text
+            ).create();
+        }catch (Exception e){
+            log.error("Ошика отправки кода на номер телефона {}", e.getMessage());
+            throw new Exception("На данный момент подтверждение по номеру телефона не доступно");
+        }
         String uuid = UUID.randomUUID().toString();
         Cookie cookie = new Cookie("VERIF_PHONE", uuid);
         cookie.setHttpOnly(true);
@@ -48,7 +56,6 @@ public class VerifyPhoneService {
         response.addCookie(cookie);
         Objects.requireNonNull(cacheManager.getCache("VERIF_PHONE")).put(uuid, generateValue);
         Objects.requireNonNull(cacheManager.getCache("USERS_APP")).put(uuid, usersApp);
-        return uuid;
     }
 
     private String generateSixDigitNumber() {

@@ -19,7 +19,7 @@ public class AccessTokenJWTStringSeriazler implements Function<RecordToken, Stri
     private final JWSSigner jwsSigner;
 
 
-    private JWSAlgorithm jwsAlgorithm = JWSAlgorithm.HS256;
+    private final JWSAlgorithm jwsAlgorithm = JWSAlgorithm.HS256;
 
     public AccessTokenJWTStringSeriazler(JWSSigner jwsSigner) {
         this.jwsSigner = jwsSigner;
