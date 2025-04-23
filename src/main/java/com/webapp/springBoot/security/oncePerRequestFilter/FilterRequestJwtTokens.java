@@ -16,6 +16,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,12 +75,14 @@ public class FilterRequestJwtTokens extends OncePerRequestFilter {
                     RecordToken accessToken = this.accessToken.apply(refreshToken);
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    Cookie cookie = new Cookie("__Host_authinticatedToken", this.refreshTokenStringSeriazble.apply(refreshToken));
-                    cookie.setHttpOnly(true);
-                    cookie.setPath("/");
-                    cookie.setSecure(true);
-                    cookie.setMaxAge(7 * 24 * 60 * 60);
-                    response.addCookie(cookie);
+                    ResponseCookie cookie = ResponseCookie.from("__Host_authinticatedToken", refreshTokenStringSeriazble.apply(refreshToken))
+                            .httpOnly(true)
+                            .path("/")
+                            .secure(true)
+                            .maxAge(Duration.ofDays(7))
+                            .sameSite("Strict")
+                            .build();
+                    response.addHeader("Set-Cookie", cookie.toString());
                     this.objectMapper.writeValue(response.getWriter(),
                             new Tokens(this.accessTokenStringSeriazble.apply(accessToken)));
                     return;
