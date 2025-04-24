@@ -2,6 +2,7 @@ package com.webapp.springBoot.security.OAuth2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.security.OAuth2.Exception.GoogleUserInfoException;
+import jakarta.persistence.Cacheable;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -42,10 +42,9 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
                 cookie.setHttpOnly(true);
                 cookie.setSecure(true);
                 cookie.setPath("/");
-                cookie.setMaxAge(60 * 30); // жить 30 минут
-
+                cookie.setMaxAge(60 * 15); // жить 15 минут
                 response.addCookie(cookie);
-                Objects.requireNonNull(cacheManager.getCache("registr")).put(uuid, googleUserInfo.checkFiledNull());
+                Objects.requireNonNull(cacheManager.getCache("REGISTER_OAUTH2")).put(uuid, googleUserInfo.checkFiledNull());
                 objectMapper.writeValue(response.getWriter(), Map.of("fields", googleUserInfo.getNullFiled()));
                 return;
             }
@@ -54,4 +53,5 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             log.error(exception.getMessage());
             objectMapper.writeValue(response.getWriter(), Map.of("error", exception.getMessage()));
     }
+
 }

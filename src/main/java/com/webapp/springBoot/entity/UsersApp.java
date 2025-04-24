@@ -1,6 +1,7 @@
 package com.webapp.springBoot.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -10,11 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
-import javax.management.relation.Role;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +60,7 @@ public class UsersApp {
     @Email
     private String email;
 
+    @Setter
     @Getter
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -108,10 +106,7 @@ public class UsersApp {
 
     }
 
-    public void setRoles(Roles roles) {
+    public void rolesAdd(Roles roles) {
         this.roles.add(roles);
-    }
-    public void setRoles(Set<Roles> roles) {
-        this.roles = roles;
     }
 }

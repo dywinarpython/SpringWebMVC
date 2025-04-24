@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConf
 import org.springframework.cache.annotation.EnableCaching;
 
 
-@EnableCaching
 @SpringBootApplication(exclude = {ErrorMvcAutoConfiguration.class})
 public class Application{
 

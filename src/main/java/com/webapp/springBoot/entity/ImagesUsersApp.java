@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
@@ -17,13 +19,17 @@ public class ImagesUsersApp {
     private Long id;
 
 
+    @Getter
     @NotNull
     private String nameImage;
 
+    @Getter
+    @Setter
     @NotNull
     private String imageUrl;
 
-    @JsonIgnore
+
+    @Getter
     @OneToOne(mappedBy = "imageUrl")
     private UsersApp usersApp;
 
@@ -31,19 +37,4 @@ public class ImagesUsersApp {
         nameImage = UUID.randomUUID().toString();
     }
 
-    public String getNameImage() {
-        return nameImage;
-    }
-
-    public String getImageUrl(){
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public UsersApp getUsersApp() {
-        return usersApp;
-    }
 }

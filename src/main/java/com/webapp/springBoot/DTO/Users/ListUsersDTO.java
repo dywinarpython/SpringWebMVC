@@ -13,6 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Лист сущностей пользователей")
-public class ListUsersDTO {
+public class ListUsersDTO{
     private List<UserResponceDTO> userList;
 }

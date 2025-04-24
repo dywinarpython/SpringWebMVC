@@ -83,7 +83,7 @@ public class PostService {
             usersApp.setSurname("Коцюбинский");
             usersApp.setAge(21);
             usersApp.setPassword(securityUsersService.passwordEncode("Dywinar1@"));
-            usersApp.setRoles(rolesRepository.findByName("ADMIN").orElseThrow(() -> new RuntimeException("Ошибка добавления суперпользователя")));
+            usersApp.rolesAdd(rolesRepository.findByName("ADMIN").orElseThrow(() -> new RuntimeException("Ошибка добавления суперпользователя")));
             usersAppRepository.save(usersApp);
         }
 

@@ -45,7 +45,7 @@ public class OAuth2FunctionDeserialization implements Function<OAuth2RecordDTO, 
     public GoogleUserInfo apply(OAuth2RecordDTO oAuth2Record) {
         try {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("code", oAuth2Record.code());
+            params.add("code", URLDecoder.decode(oAuth2Record.code(), StandardCharsets.UTF_8));
             params.add("client_id", clientId);
             params.add("client_secret", clientSecret);
             params.add("redirect_uri", redirectUri);

@@ -9,7 +9,6 @@ import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringS
 import com.webapp.springBoot.security.OAuth2.Authenticated.OAuth2AuthenticatedAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
