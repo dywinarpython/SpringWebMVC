@@ -1,24 +1,31 @@
 package com.webapp.springBoot.service;
 
+import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
+import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
-import com.webapp.springBoot.entity.Community;
-import com.webapp.springBoot.entity.UsersApp;
+import com.webapp.springBoot.entity.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
+import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
+import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
+import com.webapp.springBoot.security.SecurityUsersService;
+import com.webapp.springBoot.util.VerifyPhoneService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UsersService {
@@ -28,17 +35,99 @@ public class UsersService {
     private ImageUsersAppService imageUsersAppService;
     @Autowired
     private ImageCommunityService imageCommunityService;
+    @Autowired
+    private SecurityUsersService securityUsersService;
+    @Autowired
+    private RolesRepository rolesRepository;
+    @Autowired
+    private RolesService rolesService;
+    @Autowired
+    private FilePostsUsersAppService filePostsUsersAppService;
+    @Autowired
+    private VerifyPhoneService verifyPhone;
 
-    public void saveUser(UserRequestDTO aPiResponceUserDTO, BindingResult result) throws ValidationErrorWithMethod {
 
+
+    @Autowired
+    private CacheManager cacheManager;
+    // <-----------------------Сохранения сущности пользователя в кеш-------------------->
+    public void saveUserInCache(UserRequestDTO userRequestDTO, BindingResult result, HttpServletResponse response) throws Exception {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        if(userRepository.findByPhoneNumber(userRequestDTO.getPhone()).isPresent()){
+            throw new ValidationErrorWithMethod("На один аккаунт один номер телефона");
+        }
+        Roles roles = rolesService.getRolesByName("USER");
+        UsersApp usersApp = new UsersApp();
+        usersApp.setName(userRequestDTO.getName());
+        usersApp.setSurname(userRequestDTO.getSurname());
+        usersApp.setAge(userRequestDTO.getAge());
+        usersApp.setNickname(userRequestDTO.getNickname());
+        usersApp.setPassword(securityUsersService.passwordEncode(userRequestDTO.getPassword()));
+        usersApp.setRoles(roles);
+        usersApp.setPhoneNumber(userRequestDTO.getPhone());
+        verifyPhone.sendConfirmationCode(userRequestDTO.getPhone(), usersApp, response);
+    }
+
+
+    // <-----------------------Сохранения сущности пользователя в  UsersApp-------------------->
+    public void saveUser(VerifyNumberDTO verifyNumberDTO, String uuid, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        userRepository.save(new UsersApp(
-                aPiResponceUserDTO.getName(),
-                aPiResponceUserDTO.getSurname(),
-                aPiResponceUserDTO.getAge(),
-                aPiResponceUserDTO.getNickname()));
+        Cache cache = cacheManager.getCache("VERIF_PHONE");
+        if(cache == null){
+            throw new ValidationErrorWithMethod("Сессия регистрации истекла или недействительна.");
+        }
+        if(!Objects.equals(cache.get(uuid, String.class), verifyNumberDTO.getCode())){
+            throw new ValidationErrorWithMethod("Коды не совпадают!");
+        }
+        cache = cacheManager.getCache("USERS_APP");
+        if(cache == null){
+            throw new ValidationErrorWithMethod("Сессия регистрации истекла или недействительна.");
+        }
+        UsersApp usersApp = cache.get(uuid, UsersApp.class);
+        assert usersApp != null;
+        userRepository.save(usersApp);
+        }
+    public void saveUser(UserRequestOAuth2DTO userRequestOAuth2DTO, String uuid, BindingResult result) throws ValidationErrorWithMethod {
+        if (result.hasErrors()) {
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        UsersApp usersApp = new UsersApp();
+        Cache cache = cacheManager.getCache("registr");
+        if (cache == null) {
+            throw new IllegalStateException("Сессия регистрации истекла или недействительна.");
+        }
+
+        GoogleUserInfo googleUserInfo = cache.get(uuid, GoogleUserInfo.class);
+        if (googleUserInfo == null) {
+            throw new ValidationErrorWithMethod("Сессия регистрации истекла или недействительна.");
+        }
+
+        if(userRequestOAuth2DTO.getName() == null && googleUserInfo.getName() !=null){
+            usersApp.setName(googleUserInfo.getName());
+        } else if(userRequestOAuth2DTO.getName() != null && googleUserInfo.getName() ==null){
+            usersApp.setName(userRequestOAuth2DTO.getName());
+        } else {
+            throw new ValidationErrorWithMethod("Не передано имя пользователя");
+        }
+        if(userRequestOAuth2DTO.getSurname() == null && googleUserInfo.getSurname() != null){
+            usersApp.setSurname(googleUserInfo.getSurname());
+        } else if(userRequestOAuth2DTO.getSurname() != null && googleUserInfo.getSurname() ==null){
+            usersApp.setSurname(userRequestOAuth2DTO.getSurname());
+        } else {
+            throw new ValidationErrorWithMethod("Не передана фамилия пользователя");
+        }
+        usersApp.setAge(userRequestOAuth2DTO.getAge());
+        usersApp.setNickname(userRequestOAuth2DTO.getNickname());
+        usersApp.setPassword(securityUsersService.passwordEncode(userRequestOAuth2DTO.getPassword()));
+        Roles roles = rolesService.getRolesByName("USER");
+        usersApp.setRoles(roles);
+        usersApp.setEmail(googleUserInfo.getEmail());
+        userRepository.save(usersApp);
+        cache.evict(uuid);
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ Users ----------------------------->
@@ -96,15 +185,33 @@ public class UsersService {
     public void deleteUserByNickname(String nickname) throws IOException {
         Optional<UsersApp> users = userRepository.findByNickname(nickname);
         if (users.isEmpty()) {
-            throw new NoSuchElementException("Nickname пользователя не найден");
+            throw new UsernameNotFoundException("Nickname пользователя не найден");
         }
         UsersApp usersApp = users.get();
         imageUsersAppService.deleteImageUsersApp(usersApp);
+        for (PostsUserApp postsUserApp : usersApp.getPostsUserAppList()){
+            filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
+        }
         userRepository.delete(usersApp);
     }
     @Transactional
     public void deleteImageUsersApp(String nickname) throws IOException {
         imageUsersAppService.deleteImageUsersApp(findUsersByNickname(nickname));
+    }
+
+
+    @Transactional
+    public void deleteRolesUsersApp(AddNewRoleUsersAppDTO addNewRoleUsersAppDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        if (addNewRoleUsersAppDTO.getNameRole().contains("ROLE_") || rolesRepository.findByName(addNewRoleUsersAppDTO.getNameRole()).isEmpty()){
+            throw new ValidationErrorWithMethod("Роль передана не корректной");
+        }
+        UsersApp usersApp = findUsersByNickname(addNewRoleUsersAppDTO.getNickname());
+        Set<Roles> roles = usersApp.getRoles().stream().filter(x -> !Objects.equals(x.getName(), addNewRoleUsersAppDTO.getNameRole())).collect(Collectors.toSet());
+        usersApp.setRoles(roles);
+        userRepository.save(usersApp);
     }
 
     // <----------------ПОИСК В СУЩНОСТИ Users ----------------------------->
@@ -120,7 +227,7 @@ public class UsersService {
     public UsersApp findUsersByNickname(String nickname) {
         Optional<UsersApp> optionalUsers = userRepository.findByNickname(nickname);
         if (optionalUsers.isEmpty()) {
-            throw new NoSuchElementException("Пользователей с таким nickname нет");
+            throw new UsernameNotFoundException("Пользователей с таким nickname нет");
         }
         return optionalUsers.get();
     }
@@ -128,54 +235,66 @@ public class UsersService {
     // <----------------ИЗМЕНЕНИЕ В СУЩНОСТИ Users ----------------------------->
 
     @Transactional
-    public void setUsers(SetUserDTO setUserDTO, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
+    public void setUsers(SetUserDTO setUserDTO, String nickname, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
         boolean flag = false;
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         if(setUserDTO.getSurname() != null){
-            setSurname(setUserDTO);
+            setSurname(setUserDTO, nickname);
             flag = true;
         }
         if (setUserDTO.getName() != null) {
-            setName(setUserDTO);
+            setName(setUserDTO, nickname);
             flag = true;
         }
         if(file != null){
-            setImageUsersApp(setUserDTO, file);
+            setImageUsersApp(nickname, file);
             flag = true;
         }
         if(setUserDTO.getNicknameAfter() != null){
-            setNickname(setUserDTO);
+            setNickname(setUserDTO, nickname);
             flag = true;
         }
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
     }
-    public void setNickname(SetUserDTO apiResponceSetNicknameDTO) {
+    public void setNickname(SetUserDTO apiResponceSetNicknameDTO, String nickname) {
 
-        UsersApp user = findUsersByNickname(apiResponceSetNicknameDTO.getNickname());
+        UsersApp user = findUsersByNickname(nickname);
         user.setNickname(apiResponceSetNicknameDTO.getNicknameAfter());
         userRepository.save(user);
     }
 
-    public void setName(SetUserDTO setUserDTO){
+    public void setName(SetUserDTO setUserDTO, String nickname){
 
-        UsersApp user = findUsersByNickname(setUserDTO.getNickname());
+        UsersApp user = findUsersByNickname(nickname);
         user.setName(setUserDTO.getName());
         userRepository.save(user);
     }
 
-    public void setSurname(SetUserDTO setUserDTO){
-        UsersApp user = findUsersByNickname(setUserDTO.getNickname());
+    public void setSurname(SetUserDTO setUserDTO, String nickname){
+        UsersApp user = findUsersByNickname(nickname);
         user.setSurname(setUserDTO.getSurname());
         userRepository.save(user);
     }
 
     @Transactional
-    public void setImageUsersApp(SetUserDTO setUserDTO, MultipartFile file) throws IOException, ValidationErrorWithMethod {
-        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(setUserDTO.getNickname()));
+    public void setImageUsersApp(String nickname, MultipartFile file) throws IOException, ValidationErrorWithMethod {
+        imageUsersAppService.setImagesUsersApp(file, findUsersByNickname(nickname));
     }
+
+
+    public void addRolesUsersApp(AddNewRoleUsersAppDTO addNewRoleUsersAppDTO, BindingResult result) throws ValidationErrorWithMethod {
+        if(result.hasErrors()){
+            throw new ValidationErrorWithMethod(result.getAllErrors());
+        }
+        UsersApp usersApp = findUsersByNickname(addNewRoleUsersAppDTO.getNickname());
+        usersApp.setRoles(rolesService.getRolesByName(addNewRoleUsersAppDTO.getNameRole()));
+        userRepository.save(usersApp);
+    }
+
+
 
 }

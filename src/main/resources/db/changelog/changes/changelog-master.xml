@@ -7,5 +7,14 @@
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-24-03-002-changes-description-com-and-usersapp.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-26-03-003-create-security.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-28-03-004-null-title.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-30-03-005-create-table-role.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-30-03-006-add-role.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-04-04-007-create-table-ban.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-10-04-008-create-registr-by-iphone.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-13-04-009-create-registr-by-email.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-010-rename-role.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-011-add-time-credentionals.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-012-change-title-post-type.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-013-add-unique-number.xml"/>
 </databaseChangeLog>
     

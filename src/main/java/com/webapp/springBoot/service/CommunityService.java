@@ -3,12 +3,14 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Community.*;
 import com.webapp.springBoot.entity.Community;
+import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,17 +35,33 @@ public class CommunityService {
     @Autowired
     private ImageCommunityService imageCommunityService;
 
+    @Autowired
+    private FilePostsCommunityService filePostsCommunityService;
 
 
 
+    // <----------------ПРОВЕРКА ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
+    public Community checkCommunityByNicknameUser(String nickname, String nicknameUser){
+        Community community = findCommunityByNickname(nickname);
+        if(community.getUserOwner().equals(usersService.findUsersByNickname(nicknameUser))){
+            return community;
+        } else {
+            throw new LockedException("Пользователь не имеет право управлять данным сообществом");
+        }
+    }
+    public void checkCommunityByNicknameUser(Community community, String nicknameUser){
+        if(!community.getUserOwner().equals(usersService.findUsersByNickname(nicknameUser))){
+            throw new LockedException("Пользователь не имеет право управлять данным сообществом");
+        }
+    }
 
-
+    // <----------------СОЗДАНИЯ ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
     @Transactional
-    public void addNewCommunity(CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
+    public void addNewCommunity(CommunityRequestDTO communityDTO,String nickameUser, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        UsersApp userApp = usersService.findUsersByNickname(communityDTO.getNicknameUser());
+        UsersApp userApp = usersService.findUsersByNickname(nickameUser);
         if(userApp.getCommunity().size() < 3) {
             Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity());
             communityRepository.save(community);
@@ -98,15 +116,19 @@ public class CommunityService {
 
     // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
     @Transactional
-    public void deleteCommunityByNickname(String nickname) throws IOException{
-        Community community = findCommunityByNickname(nickname);
-        community.getUserOwner().setCommunity(null);
-        imageCommunityService.deleteImageCommunity(community);
-        communityRepository.delete(community);
+    public void deleteCommunityByNickname(String nickname, String nicknameUser) throws IOException{
+        Community community = checkCommunityByNicknameUser(nickname, nicknameUser);
+            community.getUserOwner().setCommunity(null);
+            imageCommunityService.deleteImageCommunity(community);
+            for (PostsCommunity postsCommunity : community.getPostsCommunityList()){
+                filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
+            }
+            communityRepository.delete(community);
     }
+
     @Transactional
-    public void deleteImageCommunity(String nickname) throws IOException {
-        imageCommunityService.deleteImageCommunity(findCommunityByNickname(nickname));
+    public void deleteImageCommunity(String nickname, String nicknameUser) throws IOException {
+        imageCommunityService.deleteImageCommunity(checkCommunityByNicknameUser(nickname, nicknameUser));
     }
     // <----------------ПОИСК В СУЩНОСТИ  Community ----------------------------->
     public Community findCommunityByNickname(String nickname){
@@ -119,25 +141,25 @@ public class CommunityService {
 
     // <----------------ИЗМЕНЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
     @Transactional
-    public void setCommunity(SetCommunityDTO setCommunityDTO, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
+    public void setCommunity(SetCommunityDTO setCommunityDTO,String nicknameUser, BindingResult result, MultipartFile file) throws ValidationErrorWithMethod, IOException {
         boolean flag = false;
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         if(setCommunityDTO.getDescription() != null){
-            setDescription(setCommunityDTO);
+            setDescription(setCommunityDTO, nicknameUser);
             flag = true;
         }
         if (setCommunityDTO.getName() != null) {
-            setName(setCommunityDTO);
+            setName(setCommunityDTO, nicknameUser);
             flag = true;
         }
         if(file != null){
-            setImage(setCommunityDTO, file);
+            setImage(setCommunityDTO,nicknameUser, file);
             flag = true;
         }
         if(setCommunityDTO.getNicknameAfter() != null){
-            setNickname(setCommunityDTO);
+            setNickname(setCommunityDTO, nicknameUser);
             flag = true;
         }
         if(!flag){
@@ -145,23 +167,23 @@ public class CommunityService {
         }
     }
 
-    public void setDescription(SetCommunityDTO setCommunityDTO)  {
-        Community community = findCommunityByNickname(setCommunityDTO.getNickname());
+    public void setDescription(SetCommunityDTO setCommunityDTO, String nicknameUser)  {
+        Community community = checkCommunityByNicknameUser(setCommunityDTO.getNickname(),nicknameUser);
         community.setDescription(setCommunityDTO.getDescription());
         communityRepository.save(community);
     }
-    public void setNickname(SetCommunityDTO setNicknameCommunity) {
-        Community community = findCommunityByNickname(setNicknameCommunity.getNickname());
+    public void setNickname(SetCommunityDTO setNicknameCommunity, String nicknameUser) {
+        Community community = checkCommunityByNicknameUser(setNicknameCommunity.getNickname(), nicknameUser);
         community.setNickname(setNicknameCommunity.getNicknameAfter());
         communityRepository.save(community);
     }
-    public void setName(SetCommunityDTO setNameCommunityDTO){
-        Community community = findCommunityByNickname(setNameCommunityDTO.getNickname());
+    public void setName(SetCommunityDTO setNameCommunityDTO, String nicknameUser){
+        Community community = checkCommunityByNicknameUser(setNameCommunityDTO.getNickname(), nicknameUser);
         community.setName(setNameCommunityDTO.getName());
         communityRepository.save(community);
     }
     @Transactional
-    public void setImage(SetCommunityDTO setCommunityDTO, MultipartFile file) throws IOException, ValidationErrorWithMethod {
-        imageCommunityService.setImagesCommunity(file, findCommunityByNickname(setCommunityDTO.getNickname()));
+    public void setImage(SetCommunityDTO setCommunityDTO,String nicknameUser, MultipartFile file) throws IOException, ValidationErrorWithMethod {
+        imageCommunityService.setImagesCommunity(file, checkCommunityByNicknameUser(setCommunityDTO.getNickname(), nicknameUser));
     }
 }

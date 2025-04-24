@@ -1,10 +1,13 @@
 package com.webapp.springBoot.controllers;
 
 
+import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
+import com.webapp.springBoot.security.service.TokenUser;
 import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
+import com.webapp.springBoot.util.DeleteCookie;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,27 +15,36 @@ import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.Objects;
 
 
 @Tag(name="Управление пользователями")
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("v1/api/user")
 public class UsersController {
     @Autowired
     private UsersService usersService;
     @Autowired
     private ImageUsersAppService imageUsersAppService;
+
+
+
 
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
@@ -108,15 +120,15 @@ public class UsersController {
         return usersService.getUserByNickname(nickname);
     }
 
-    @GetMapping("/communty/{nickname}")
+    @GetMapping("/communty")
     @Operation(
             summary="Получение всех сообществ пользователя, поиск по полю nickname",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityUsersDTO.class))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ListCommunityUsersDTO getCommunityForUserByNickname(@PathVariable String nickname){
-        return usersService.getAllCommunityForUser(nickname);
+    public ListCommunityUsersDTO getCommunityForUserByNickname(Principal principal){
+        return usersService.getAllCommunityForUser(principal.getName());
     }
 
     @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
@@ -134,22 +146,57 @@ public class UsersController {
 
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->
-    @PostMapping
+    @PostMapping("/registr")
     @Operation(
             summary="Добавление нового пользователя",
             responses = {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result) throws ValidationErrorWithMethod {
-        usersService.saveUser(users, result);
+    public ResponseEntity<String> saveNewUser(@Valid @RequestBody UserRequestDTO users, BindingResult result, HttpServletResponse response) throws Exception {
+        usersService.saveUserInCache(users, result, response);
+        return new ResponseEntity<>("Пользователь добавлен в кеш", HttpStatus.CREATED);
+    }
+    @PostMapping("/check")
+    @Operation(
+            summary="Проверка кода",
+            responses = {
+                    @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
+            })
+    public ResponseEntity<String> checkNewUser(@Valid @RequestBody VerifyNumberDTO verifyNumberDTO, BindingResult result, HttpServletRequest request) throws ValidationErrorWithMethod {
+        Cookie[] cookies = request.getCookies();
+        if(cookies == null){
+            throw new ValidationErrorWithMethod("Не переданны необходимые куки!");
+        }
+        Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "VERIF_PHONE")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
+        String uuid = cookie.getValue();
+        usersService.saveUser(verifyNumberDTO, uuid, result);
+        return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
+    }
+
+    @PostMapping("/registr/oauth2")
+    @Operation(
+            summary="Добавление нового пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
+            })
+    public ResponseEntity<String> saveNewUserOuAth2(@Valid @RequestBody UserRequestOAuth2DTO userRequestOAuth2DTO, BindingResult result, HttpServletResponse response, HttpServletRequest request) throws ValidationErrorWithMethod {
+        Cookie[] cookies = request.getCookies();
+        if(cookies == null){
+            throw new ValidationErrorWithMethod("Не переданны необходимые куки!");
+        }
+        Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "REG_DRAFT_ID")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
+        String uuid = cookie.getValue();
+        usersService.saveUser(userRequestOAuth2DTO,uuid, result);
+        DeleteCookie.deleteCookie(response, uuid);
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 
 
 
     // <------------------------ PATCH ЗАПРОСЫ -------------------------->
-
     @PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Изменение сущности пользователи",
@@ -159,13 +206,15 @@ public class UsersController {
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUserDTO setUserDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file) throws ValidationErrorWithMethod, IOException {
-        usersService.setUsers(setUserDTO,result, file);
+    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUserDTO setUserDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file, Principal principal) throws ValidationErrorWithMethod, IOException {
+        usersService.setUsers(setUserDTO, principal.getName(),result, file);
         return ResponseEntity.ok("Сущность пользователя изменена");
     }
 
+
+
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-    @DeleteMapping("/{nickname}")
+    @DeleteMapping
     @Operation(
             summary="Удаления пользователя по nickname",
             responses =  {@ApiResponse(
@@ -173,12 +222,13 @@ public class UsersController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteUserByNickname(@PathVariable String nickname) throws IOException {
-        usersService.deleteUserByNickname(nickname);
+    public ResponseEntity<String> deleteUserByNickname(Principal principal) throws IOException {
+        usersService.deleteUserByNickname(principal.getName());
         return ResponseEntity.ok("Пользователь был успешно удален");
     }
 
-    @DeleteMapping("image/{nickname}")
+    @DeleteMapping({"/image", "/image/{nickname}"})
+    @PreAuthorize("(#nickname == null) or hasAnyRole('ROLE_MANAGER')")
     @Operation(
             summary = "Удаление изображения пользователя по nickname",
             responses =  {@ApiResponse(
@@ -186,10 +236,13 @@ public class UsersController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteImagesUsersApp(@PathVariable String nickname) throws IOException {
+    public ResponseEntity<String> deleteImagesUsersApp(@PathVariable(required = false) String nickname, Principal principal) throws IOException {
+        nickname = nickname == null? principal.getName() : nickname;
         usersService.deleteImageUsersApp(nickname);
         return ResponseEntity.ok("Изображение пользователя удалено");
     }
+
+
     }
 
 

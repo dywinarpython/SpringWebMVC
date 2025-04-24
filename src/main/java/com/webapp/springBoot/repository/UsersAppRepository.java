@@ -14,4 +14,6 @@ public interface UsersAppRepository extends JpaRepository<UsersApp, Long>{
     List<UsersApp> findByNameContainingIgnoreCaseAndSurnameContainingIgnoreCase(String name, String surname,  Pageable pageable);
     Optional<UsersApp> findByNickname(String nickname);
     List<UsersApp> findByOrderByNameAscSurnameAsc(Pageable pageable);
+    Optional<UsersApp> findByEmail(String email);
+    Optional<UsersApp> findByPhoneNumber(String phoneNumber);
 }

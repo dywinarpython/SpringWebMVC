@@ -4,7 +4,6 @@ import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponceUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
-import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -18,6 +17,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +45,21 @@ public class PostUsersAppService {
 
     @Autowired
     private PostsUsersAppRepository postsUsersAppRepository;
+
+    // <------------------------ ПРОВЕРКА В СУЩНОСТИ PostUsersAppService-------------------------->
+    public void checkPostUserByNicknameUser(UsersApp usersApp, String nicknameUser){
+        if(!usersApp.equals(usersService.findUsersByNickname(nicknameUser))){
+            throw new LockedException("Пользователь не имеет право управлять данным постом");
+        }
+    }
+    public PostsUserApp checkPostUserByNicknameUser(String postName, String nicknameUser){
+        PostsUserApp postsUserApp = findByName(postName);
+        if(postsUserApp.getUsersApp().equals(usersService.findUsersByNickname(nicknameUser))){
+            return postsUserApp;
+        } else {
+            throw new LockedException("Пользователь не имеет право управлять данным постом");
+        }
+    }
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Transactional
@@ -85,8 +100,9 @@ public class PostUsersAppService {
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Transactional
-    public void deletePostUsersApp(String namePost) throws IOException {
+    public void deletePostUsersApp(String namePost, String nicknameUser) throws IOException {
         PostsUserApp postsUserApp = findByName(namePost);
+        checkPostUserByNicknameUser(postsUserApp.getUsersApp(), nicknameUser);
         postsUserApp.setUsersApp(null);
         filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         postsUsersAppRepository.delete(postsUserApp);
@@ -94,7 +110,7 @@ public class PostUsersAppService {
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Transactional
-    public void createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, BindingResult result,
+    public void createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, String nicknameUser, BindingResult result,
             MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
@@ -104,7 +120,7 @@ public class PostUsersAppService {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         PostsUserApp postsUserApp = new PostsUserApp();
-
+        postsUserApp.setUsersApp(usersService.findUsersByNickname(nicknameUser));
         if(requestUsersPostDTO.getTitle() != null){
             postsUserApp.setTitle(requestUsersPostDTO.getTitle());
             flag = true;
@@ -120,20 +136,18 @@ public class PostUsersAppService {
         if(!flag){
             throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста пользователя");
         }
-        postsUserApp.setUsersApp(usersService.findUsersByNickname(requestUsersPostDTO.getNicknameUser()));
         postsUserApp.setTitle(requestUsersPostDTO.getTitle());
         postsUserApp.generateName();
         postsUserApp.setDescription(requestUsersPostDTO.getDescription());
         postsUsersAppRepository.save(postsUserApp);
     }
     @Transactional
-    public void setPostUserApp(SetUsersPostDTO setUsersPostDTO, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+    public void setPostUserApp(SetUsersPostDTO setUsersPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
         boolean flag = false;
-        PostsUserApp postsUserApp = findByName(setUsersPostDTO.getNamePost());
-        filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
+        PostsUserApp postsUserApp = checkPostUserByNicknameUser(setUsersPostDTO.getNamePost(), nicknameUser);
         if(setUsersPostDTO.getTitle() != null) {
             postsUserApp.setTitle(setUsersPostDTO.getTitle());
             flag = true;
@@ -144,6 +158,7 @@ public class PostUsersAppService {
         }
         postsUserApp.setUpdateDate(LocalDateTime.now());
         if(multipartFiles!=null) {
+            filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
             filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
             flag = true;
         }

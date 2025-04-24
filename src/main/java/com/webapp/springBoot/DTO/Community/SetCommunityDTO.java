@@ -7,9 +7,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Schema(description ="Работа с изменением сущности Community")
 public class SetCommunityDTO {
         @NotNull(message = "Nickname сообщества не должен равняться null")

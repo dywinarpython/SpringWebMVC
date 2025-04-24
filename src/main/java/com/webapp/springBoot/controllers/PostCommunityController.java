@@ -19,16 +19,18 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 
 @Tag(name="Управление постами сообществ")
 @RestController
-@RequestMapping("api/community/post")
+@RequestMapping("v1/api/community/post")
 public class PostCommunityController {
 
         @Autowired
@@ -78,9 +80,9 @@ public class PostCommunityController {
     )
     public ResponseEntity<String> addNewPost(
             @Valid @RequestPart("metadata") RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
-            @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!")MultipartFile[] multipartFiles
+            @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!")MultipartFile[] multipartFiles, Principal principal
     ) throws ValidationErrorWithMethod, IOException {
-        postCommunityService.createPostCommunity(requestCommunityPostDTO, result, multipartFiles);
+        postCommunityService.createPostCommunity(requestCommunityPostDTO, principal.getName(), result, multipartFiles);
         return new ResponseEntity<>("Пост добавлен", HttpStatus.CREATED);
     }
 
@@ -95,14 +97,15 @@ public class PostCommunityController {
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setCommunityPosts(@Valid @RequestPart("metadata") SetCommunityPostDTO setCommunityPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file) throws ValidationErrorWithMethod, IOException {
-        postCommunityService.setPostCommunnity(setCommunityPostDTO,result, file);
+    public ResponseEntity<String> setCommunityPosts(@Valid @RequestPart("metadata") SetCommunityPostDTO setCommunityPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file, Principal principal) throws ValidationErrorWithMethod, IOException {
+        postCommunityService.setPostCommunnity(setCommunityPostDTO, principal.getName(), result, file);
         return ResponseEntity.ok("Сущность поста сообщества изменена");
     }
 
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-    @DeleteMapping("/{namePost}")
+    @PreAuthorize("#nickname == null or hasAnyRole('ROLE_MANAGER')")
+    @DeleteMapping({"/{namePost}", "/{nickname}/{namePost}"})
     @Operation(
             summary = "Удаление поста сообщества",
             responses = {
@@ -110,8 +113,9 @@ public class PostCommunityController {
                     @ApiResponse(responseCode = "404", description = "Пост не найден")
             }
     )
-    public ResponseEntity<String> deletePost(@PathVariable String namePost) throws IOException {
-        postCommunityService.deletePostCommunity(namePost);
+    public ResponseEntity<String> deletePost(@PathVariable(required = false) String nickname, @PathVariable String namePost, Principal principal) throws IOException {
+        nickname = nickname == null? principal.getName() : nickname;
+        postCommunityService.deletePostCommunity(namePost, nickname);
         return ResponseEntity.ok("Пост удален");
     }
 }

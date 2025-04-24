@@ -19,15 +19,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @Tag(name="Управление сообществами")
 @RestController
-@RequestMapping("api/community")
+@RequestMapping("v1/api/community")
 public class CommunityController {
     @Autowired
     private CommunityService communityService;
@@ -90,8 +92,8 @@ public class CommunityController {
             responses = {@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result) throws ValidationErrorWithMethod {
-        communityService.addNewCommunity(communityDTO,result);
+    public ResponseEntity<String> addNewCommunity(@Valid @RequestBody CommunityRequestDTO communityDTO, BindingResult result, Principal principal) throws ValidationErrorWithMethod {
+        communityService.addNewCommunity(communityDTO,principal.getName(), result);
         return new ResponseEntity<>("Сообщество добавлено", HttpStatus.CREATED);
     }
 
@@ -103,27 +105,29 @@ public class CommunityController {
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestPart("metadata") SetCommunityDTO setCommunityDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file) throws ValidationErrorWithMethod, IOException {
-        communityService.setCommunity(setCommunityDTO,result, file);
+    public ResponseEntity<String> setNicknameCommunity(@Valid @RequestPart("metadata") SetCommunityDTO setCommunityDTO, BindingResult result, @RequestPart(value = "image", required = false) @Schema(description = "Формат только png!") MultipartFile file, Principal principal) throws ValidationErrorWithMethod, IOException {
+        communityService.setCommunity(setCommunityDTO, principal.getName(), result,  file);
         return ResponseEntity.ok("Сущность сообещства изменена");
     }
 
     // <------------------------ DELETE ЗАПРОСЫ -------------------------->
-
-    @DeleteMapping("/{nickname}")
+    @PreAuthorize("(#nicknameUser == null) or hasAnyRole('ROLE_MANAGER')")
+    @DeleteMapping({"/{nicknameUser}/{nicknameCommunity}", "/{nicknameCommunity}"})
     @Operation(
-            summary = "Удаление сообщество по nickname",
+            summary = "Удаление сообщества по nickname",
             responses =  {@ApiResponse(
                     responseCode = "200", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable String nickname) throws IOException{
-        communityService.deleteCommunityByNickname(nickname);
+    public ResponseEntity<String> deleteCommunityByNickname(@PathVariable(required = false) String nicknameUser, @PathVariable String nicknameCommunity, Principal principal) throws IOException{
+        nicknameUser = nicknameUser == null? principal.getName() : nicknameUser;
+        communityService.deleteCommunityByNickname(nicknameCommunity, nicknameUser);
         return ResponseEntity.ok("Сообщество удалено");
     }
 
-    @DeleteMapping("image/{nickname}")
+    @PreAuthorize("(#nicknameUser == null) or hasAnyRole('ROLE_MANAGER')")
+    @DeleteMapping({"/image/{nicknameUser}/{nicknameCommunity}", "/image/{nicknameCommunity}"})
     @Operation(
             summary = "Удаление изображения сообщества по nickname",
             responses =  {@ApiResponse(
@@ -131,8 +135,9 @@ public class CommunityController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable String nickname) throws IOException {
-        communityService.deleteImageCommunity(nickname);
+    public ResponseEntity<String> deleteImageCommunityByNickname(@PathVariable(required = false) String nicknameUser, @PathVariable String nicknameCommunity, Principal principal) throws IOException {
+        nicknameUser = nicknameUser == null? principal.getName() : nicknameUser;;
+        communityService.deleteImageCommunity(nicknameCommunity, nicknameUser);
         return ResponseEntity.ok("Изображение сообщества удалено");
     }
 
