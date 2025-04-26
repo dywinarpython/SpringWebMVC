@@ -2,8 +2,10 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
+import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.PostUsersAppService;
 
@@ -42,27 +44,37 @@ public class PostUsersController {
     @GetMapping("/{nickname}")
     @Operation(summary = "Получение постов по nickname пользователя",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponceListUsersPostDTO getPostByNicknameUsersApp(@PathVariable String nickname){
+    public ResponseListUsersPostDTO getPostByNicknameUsersApp(@PathVariable String nickname){
         return postUsersAppService.getPostsByNickname(nickname);
     }
 
     @GetMapping
     @Operation(summary = "Получение постов пользователя",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponceListUsersPostDTO getPostByNicknameUsersApp(Principal principal){
+    public ResponseListUsersPostDTO getPostByNicknameUsersApp(Principal principal){
         return postUsersAppService.getPostsByNickname(principal.getName());
+    }
+
+    @GetMapping("/name")
+    @Operation(summary = "Получение поста пользователя по имени",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "400", description = "Ошибка валидации")
+            })
+    public ResponseUsersPostDTO getPostByName(@RequestParam String namePost){
+        return postUsersAppService.getPost(namePost);
     }
 
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
     @Operation(summary = "Получение файла поста",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
                     @ApiResponse(responseCode = "404", description = "ФАйл не найден")
             }
     )

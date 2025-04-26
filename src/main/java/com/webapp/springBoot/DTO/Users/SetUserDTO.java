@@ -17,7 +17,7 @@ public class SetUserDTO {
     @Unique
     @Size(min = 2, max = 10,  message = "Длина nickname от 2 до 10")
     @Schema(example = "nickname1")
-    @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname сообщества должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")
+    @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname пользователя должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")
     private String nicknameAfter;
 
     @Schema( example = "Иванов")

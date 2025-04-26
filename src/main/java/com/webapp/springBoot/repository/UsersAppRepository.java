@@ -1,6 +1,7 @@
 package com.webapp.springBoot.repository;
 
 import com.webapp.springBoot.entity.UsersApp;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

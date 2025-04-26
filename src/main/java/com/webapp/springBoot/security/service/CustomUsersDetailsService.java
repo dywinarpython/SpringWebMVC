@@ -1,13 +1,14 @@
 package com.webapp.springBoot.security.service;
 
 import com.webapp.springBoot.entity.BanUsersApp;
-import com.webapp.springBoot.entity.Roles;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.repository.BanUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -53,31 +55,33 @@ public class CustomUsersDetailsService implements UserDetailsService {
         }
         return ban;
     }
-    private String[] getRoles(UsersApp usersApp){
-        return usersApp.getRoles().stream().map(Roles::getName).toArray(String[]::new);
+    private List<SimpleGrantedAuthority> getAuthorities(UsersApp usersApp){
+        return usersApp.getRoles().stream().map(roles -> new SimpleGrantedAuthority(STR."ROLE_\{roles.getName()}")).toList();
     }
+
+    @Cacheable(value = "SECURITY", key="#nickname")
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(username);
+    public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
+        Optional<UsersApp> optionalUsersApp = usersAppRepository.findByNickname(nickname);
         UsersApp usersApp = getUserApp(optionalUsersApp);
         boolean ban = checkBan(usersApp);
         return User.builder()
                 .username(usersApp.getNickname())
                 .password(usersApp.getPassword())
-                .roles(getRoles(usersApp))
+                .authorities(getAuthorities(usersApp))
                 .accountLocked(ban)
                 .build();
     }
 
+    @Cacheable(value = "SECURITY", key="usersApp.getNickname()")
     @Transactional
     public UserDetails loadUserByEmail(UsersApp usersApp) throws UsernameNotFoundException{
-        String[] roles = getRoles(usersApp);
         boolean ban = checkBan(usersApp);
         return User.builder()
                 .username(usersApp.getNickname())
                 .password("N/A")
-                .roles(roles)
+                .authorities(getAuthorities(usersApp))
                 .accountLocked(ban)
                 .build();
     }

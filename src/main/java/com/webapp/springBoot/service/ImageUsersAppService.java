@@ -48,8 +48,6 @@ public class ImageUsersAppService {
         return imagesUsersAppOptional.getNameImage();
     }
 
-
-
     // <----------------УДАЛЕНИЕ ДАННЫХ В СУЩНОСТИ  ImageUsersApp ----------------------------->
     public void deleteImageUsersApp(UsersApp usersApp) throws IOException {
         ImagesUsersApp imagesUsersApp = usersApp.getImageUrl();

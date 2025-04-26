@@ -17,7 +17,7 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-public class AuthinticatedTokenOAuth2Converter implements AuthenticationConverter {
+public class AuthenticatedTokenOAuth2Converter implements AuthenticationConverter {
 
     @Autowired
     private OAuth2FunctionDeserialization oAuth2FunctionConvertor;

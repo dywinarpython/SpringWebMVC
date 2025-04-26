@@ -16,6 +16,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,6 +38,7 @@ public class SecurityController {
             },
             description = "Вход"
     )
+
     @PostMapping("/login")
     public void login(@RequestBody LoginDto loginDto){
 
@@ -80,7 +82,6 @@ public class SecurityController {
     public  void loginOAuth2(){
 
         }
-
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletRequest reguest, HttpServletResponse response) throws ValidationErrorWithMethod {
         DeleteCookie.deleteCookie(response, "__Host_authinticatedToken");

@@ -1,15 +1,18 @@
 package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponceUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.PostsUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -26,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,13 +66,14 @@ public class PostUsersAppService {
     }
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
-    @Transactional
-    public ResponceListUsersPostDTO getPostsByNickname(String nickname){
+    @Cacheable(value = "USER_POST_LIST", key = "#nickname")
+    @Transactional(readOnly = true)
+    public ResponseListUsersPostDTO getPostsByNickname(String nickname){
         UsersApp usersApp = usersService.findUsersByNickname(nickname);
         List<PostsUserApp> postsUserAppList = usersApp.getPostsUserAppList();
-        List<ResponceUsersPostDTO> usersPostDTOList = new ArrayList<>();
+        List<ResponseUsersPostDTO> usersPostDTOList = new ArrayList<>();
         postsUserAppList.forEach(postsUserApp ->
-                usersPostDTOList.add(new ResponceUsersPostDTO(
+                usersPostDTOList.add(new ResponseUsersPostDTO(
                         postsUserApp.getTitle(),
                         postsUserApp.getDescription(),
                         nickname,
@@ -76,7 +81,7 @@ public class PostUsersAppService {
                         filePostsUsersAppService.getFileName(postsUserApp)
                 ))
                 );
-        return new ResponceListUsersPostDTO(usersPostDTOList);
+        return new ResponseListUsersPostDTO(usersPostDTOList);
     }
 
     public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
@@ -88,6 +93,11 @@ public class PostUsersAppService {
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(resource);
     }
+     @Cacheable(value = "USER_POST", key = "#namePost")
+     public ResponseUsersPostDTO getPost(String namePost){
+        PostsUserApp postsUserApp = findByName(namePost);
+        return new ResponseUsersPostDTO(postsUserApp, postsUserApp.getUsersApp().getNickname(), filePostsUsersAppService.getFileName(postsUserApp));
+     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostUsersAppService-------------------------->
     public PostsUserApp findByName(String name) {
@@ -99,6 +109,7 @@ public class PostUsersAppService {
     }
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
+    @CacheEvict(value = "USER_POST", key = "#namePost")
     @Transactional
     public void deletePostUsersApp(String namePost, String nicknameUser) throws IOException {
         PostsUserApp postsUserApp = findByName(namePost);
@@ -109,16 +120,14 @@ public class PostUsersAppService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
+    @CachePut(value = "USER_POST" , key = "#result.getNamePost()")
     @Transactional
-    public void createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, String nicknameUser, BindingResult result,
-            MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
-        if (result.hasErrors()) {
-            throw new ValidationErrorWithMethod(result.getAllErrors());
+    public ResponseUsersPostDTO createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, String nicknameUser, BindingResult bindingResult,
+                                                   MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
+        if (bindingResult.hasErrors()) {
+            throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
         }
         boolean flag = false;
-        if (result.hasErrors()) {
-            throw new ValidationErrorWithMethod(result.getAllErrors());
-        }
         PostsUserApp postsUserApp = new PostsUserApp();
         postsUserApp.setUsersApp(usersService.findUsersByNickname(nicknameUser));
         if(requestUsersPostDTO.getTitle() != null){
@@ -139,10 +148,11 @@ public class PostUsersAppService {
         postsUserApp.setTitle(requestUsersPostDTO.getTitle());
         postsUserApp.generateName();
         postsUserApp.setDescription(requestUsersPostDTO.getDescription());
-        postsUsersAppRepository.save(postsUserApp);
+        return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, filePostsUsersAppService.getFileName(postsUserApp));
     }
+    @CachePut(value = "USER_POST" , key = "#result.getNamePost()")
     @Transactional
-    public void setPostUserApp(SetUsersPostDTO setUsersPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+    public ResponseUsersPostDTO setPostUserApp(SetUsersPostDTO setUsersPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
@@ -165,6 +175,6 @@ public class PostUsersAppService {
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
-        postsUsersAppRepository.save(postsUserApp);
+        return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, filePostsUsersAppService.getFileName(postsUserApp));
     }
 }

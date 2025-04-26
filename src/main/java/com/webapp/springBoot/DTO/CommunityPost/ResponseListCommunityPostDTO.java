@@ -1,4 +1,4 @@
-package com.webapp.springBoot.DTO.UsersPost;
+package com.webapp.springBoot.DTO.CommunityPost;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Сущность создания постов")
-public class ResponceListUsersPostDTO {
-    private List<ResponceUsersPostDTO> usersPosts;
+public class ResponseListCommunityPostDTO {
+    private List<ResponseCommunityPostDTO> usersPosts;
 }

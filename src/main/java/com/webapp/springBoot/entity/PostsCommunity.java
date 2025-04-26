@@ -45,7 +45,7 @@ public class PostsCommunity {
         this.community = community;
     }
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "post_id")
     private List<PostsCommunityFile> files;
 

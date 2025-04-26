@@ -4,7 +4,6 @@ package com.webapp.springBoot.controllers;
 import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
-import com.webapp.springBoot.security.service.TokenUser;
 import com.webapp.springBoot.service.ImageUsersAppService;
 import com.webapp.springBoot.service.UsersService;
 import com.webapp.springBoot.util.DeleteCookie;
@@ -59,20 +58,6 @@ public class UsersController {
     public ListUsersDTO getUserByName(@RequestParam String name, @RequestParam(value = "page", defaultValue = "0", required = false) int page){
         return usersService.getUserByName(name, page);
     }
-
-    @GetMapping
-    @Operation(
-            summary="Вывод пользователей по 10 штук",
-            responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListUsersDTO.class)))
-            }
-    )
-    public ListUsersDTO getUsers(@RequestParam(value = "page", defaultValue = "0", required = false) int page, HttpServletRequest request){
-        return usersService.getUsers(page);
-    }
-
-
-
 
     @GetMapping("/age")
     @Operation(
@@ -164,14 +149,15 @@ public class UsersController {
                     @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation = String.class))),
                     @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ResponseEntity<String> checkNewUser(@Valid @RequestBody VerifyNumberDTO verifyNumberDTO, BindingResult result, HttpServletRequest request) throws ValidationErrorWithMethod {
+    public ResponseEntity<String> checkNewUser(@Valid @RequestBody VerifyNumberDTO verifyNumberDTO, BindingResult result, HttpServletRequest request, HttpServletResponse response) throws ValidationErrorWithMethod {
         Cookie[] cookies = request.getCookies();
         if(cookies == null){
             throw new ValidationErrorWithMethod("Не переданны необходимые куки!");
         }
-        Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "VERIF_PHONE")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
+        Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "VERIFY_PHONE")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
         String uuid = cookie.getValue();
         usersService.saveUser(verifyNumberDTO, uuid, result);
+        DeleteCookie.deleteCookie(response, cookie.getName());
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 
@@ -190,7 +176,7 @@ public class UsersController {
         Cookie cookie = Arrays.stream(request.getCookies()).filter(cookieFilter -> Objects.equals(cookieFilter.getName(), "REG_DRAFT_ID")).findFirst().orElseThrow(() -> new ValidationErrorWithMethod("Не переданны необходимые куки!"));
         String uuid = cookie.getValue();
         usersService.saveUser(userRequestOAuth2DTO,uuid, result);
-        DeleteCookie.deleteCookie(response, uuid);
+        DeleteCookie.deleteCookie(response, cookie.getName());
         return new ResponseEntity<>("Пользователь добавлен", HttpStatus.CREATED);
     }
 

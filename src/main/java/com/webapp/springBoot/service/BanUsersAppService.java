@@ -9,6 +9,7 @@ import com.webapp.springBoot.repository.BanUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -29,6 +30,7 @@ public class BanUsersAppService {
     private UsersAppRepository usersAppRepository;
 
 
+    @CacheEvict(value = "SECURITY", key="#banUsersDTO.getNickname()")
     @Transactional
     public void setBanUsers(BanUsersDTO banUsersDTO, BindingResult result) throws ValidationErrorWithMethod {
         if (result.hasErrors()){

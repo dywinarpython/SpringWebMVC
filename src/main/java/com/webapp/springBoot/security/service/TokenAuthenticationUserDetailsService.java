@@ -24,12 +24,6 @@ public class TokenAuthenticationUserDetailsService implements AuthenticationUser
     private  CustomUsersDetailsService customUsersDetailsService;
 
 
-    private List<GrantedAuthority> factroryGrantedAuthority(List<String> authorities){
-        List<GrantedAuthority> grantedAuthorityCollection = new ArrayList<>();
-        authorities.forEach(authority -> grantedAuthorityCollection.add(new SimpleGrantedAuthority(authority)));
-        return grantedAuthorityCollection;
-    }
-
     @Override
     public UserDetails loadUserDetails(PreAuthenticatedAuthenticationToken authenticationToken) throws UsernameNotFoundException {
         if(authenticationToken.getPrincipal() instanceof RecordToken token){

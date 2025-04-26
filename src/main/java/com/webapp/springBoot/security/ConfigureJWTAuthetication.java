@@ -7,13 +7,12 @@ import com.webapp.springBoot.security.JWTConfig.Deserializer.RefreshTokenJWEStri
 import com.webapp.springBoot.security.JWTConfig.Seriazble.AccessTokenJWTStringSeriazler;
 import com.webapp.springBoot.security.JWTConfig.Seriazble.RefreshTokenJWEStringSeriazler;
 import com.webapp.springBoot.security.OAuth2.Authenticated.OAuth2AuthenticatedAuthenticationProvider;
-import com.webapp.springBoot.security.OAuth2.Exception.GoogleUserInfoException;
 import com.webapp.springBoot.security.OAuth2.OAuth2AuthenticationFailureHandler;
 import com.webapp.springBoot.security.OAuth2.OAuth2FunctionDeserialization;
 import com.webapp.springBoot.security.authenticationFilter.JwtAccessAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.JwtRefreshAuthenticationFilter;
 import com.webapp.springBoot.security.authenticationFilter.OAuth2AuthenticationFilter;
-import com.webapp.springBoot.security.convertor.AuthinticatedTokenOAuth2Converter;
+import com.webapp.springBoot.security.convertor.AuthenticatedTokenOAuth2Converter;
 import com.webapp.springBoot.security.convertor.JWTRefreshAuthenticationConverter;
 import com.webapp.springBoot.security.oncePerRequestFilter.FilterRefreshJwtTokens;
 import com.webapp.springBoot.security.oncePerRequestFilter.FilterRequestJwtTokens;
@@ -22,7 +21,6 @@ import com.webapp.springBoot.security.convertor.JWTAccessAuthenticationConverter
 import com.webapp.springBoot.security.convertor.LoginAutheticationConvert;
 import com.webapp.springBoot.security.service.TokenAuthenticationUserDetailsService;
 import com.webapp.springBoot.security.service.TokenOAuth2UserDetailsService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.header.HeaderWriterFilter;
@@ -72,7 +69,7 @@ public class ConfigureJWTAuthetication extends AbstractHttpConfigurer<ConfigureJ
     private TokenOAuth2UserDetailsService tokenOAuth2UserDetailsService;
 
     @Autowired
-    private AuthinticatedTokenOAuth2Converter authinticatedTokenOAuth2Converter;
+    private AuthenticatedTokenOAuth2Converter authinticatedTokenOAuth2Converter;
 
     @Autowired
     private LoginAutheticationConvert loginAutheticationConvert;

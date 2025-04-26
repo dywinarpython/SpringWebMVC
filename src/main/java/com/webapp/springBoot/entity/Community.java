@@ -4,6 +4,7 @@ package com.webapp.springBoot.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
@@ -21,20 +22,24 @@ public class Community {
     private Long id;
 
 
+    @Getter
     @NotNull
     @Column(length = 20)
     private String name;
 
+    @Getter
     @NotNull
     @Column(length = 20, unique = true)
     private String nickname;
 
+    @Getter
     @NotNull
     private String description;
 
 
     private Long countUser;
 
+    @Getter
     @NotNull
     @ManyToOne
     @JoinColumn(referencedColumnName = "id")
@@ -45,6 +50,7 @@ public class Community {
     @JoinColumn(referencedColumnName = "id")
     private ImagesCommunity imageUrl;
 
+    @Getter
     @OneToMany(mappedBy = "community", cascade = CascadeType.ALL)
     private List<PostsCommunity> postsCommunityList;
 
@@ -56,28 +62,8 @@ public class Community {
         return postsCommunityList;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
     public Long getCountUser() {
         return countUser;
-    }
-
-    public UsersApp getUserOwner() {
-        return userOwner;
-    }
-
-    public List<PostsCommunity> getPostsCommunityList() {
-        return postsCommunityList;
     }
 
     public ImagesCommunity getImageUrlId() {

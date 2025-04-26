@@ -2,9 +2,11 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.CommunityPost.RequestCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponceListCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
 import com.webapp.springBoot.DTO.CommunityPost.SetCommunityPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponceListUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.PostCommunityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,22 +43,32 @@ public class PostCommunityController {
     @GetMapping("/{nickname}")
     @Operation(summary = "Получение постов по nickname сообщества",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponceListCommunityPostDTO getPostByNicknameCommunityPosts(@PathVariable String nickname){
+    public ResponseListCommunityPostDTO getPostByNicknameCommunityPosts(@PathVariable String nickname){
         return postCommunityService.getPostsByNickname(nickname);
     }
 
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
     @Operation(summary = "Получение файла поста",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponceListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
                     @ApiResponse(responseCode = "404", description = "ФАйл не найден")
             }
     )
     public ResponseEntity<Resource> getFilePost(@PathVariable String nameFile) throws IOException {
         return postCommunityService.getFilePost(nameFile);
+    }
+
+    @GetMapping("/name")
+    @Operation(summary = "Получение поста сообщества по имени",
+            responses = {
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseCommunityPostDTO.class))),
+                    @ApiResponse(responseCode = "400", description = "Ошибка валидации")
+            })
+    public ResponseCommunityPostDTO getPostByName(@RequestParam String namePost){
+        return postCommunityService.getPost(namePost);
     }
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->

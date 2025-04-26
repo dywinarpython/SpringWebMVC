@@ -7,6 +7,7 @@ import com.webapp.springBoot.security.JWTConfig.RecordToken;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.text.ParseException;
 import java.util.UUID;
@@ -20,7 +21,6 @@ public class AccessTokenJWTStringDeserializer implements Function<String, Record
     public AccessTokenJWTStringDeserializer(JWSVerifier jwsVerifier) {
         this.jwsVerifier = jwsVerifier;
     }
-
     @Override
     public RecordToken apply(String s) {
         try {

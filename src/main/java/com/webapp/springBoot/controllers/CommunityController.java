@@ -47,7 +47,7 @@ public class CommunityController {
             }
     )
     public ListCommunityDTO getCommunity(@RequestParam(value = "page", defaultValue = "0", required = false) int page){
-        return new ListCommunityDTO(communityService.getСommunity(page));
+        return communityService.getСommunity(page);
     }
 
     @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
@@ -71,7 +71,7 @@ public class CommunityController {
             }
     )
     public ListCommunityDTO getCommunityByName(@RequestParam String name, @RequestParam(value = "page", defaultValue = "0", required = false) int page){
-        return new ListCommunityDTO(communityService.findByNameLike(name, page));
+        return communityService.findByNameLike(name, page);
     }
 
     @GetMapping(value = "/{nickname}")

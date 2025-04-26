@@ -1,16 +1,21 @@
 package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.CommunityPost.RequestCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponceCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponceListCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
 import com.webapp.springBoot.DTO.CommunityPost.SetCommunityPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.PostsCommunity;
+import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.PostsCommunityRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -45,13 +50,14 @@ public class PostCommunityService {
     private PostsCommunityRepository postsCommunityRepository;
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
-    @Transactional
-    public ResponceListCommunityPostDTO getPostsByNickname(String nickname){
+    @Cacheable(value = "COMMUNITY_POST_LIST", key = "#nickname")
+    @Transactional(readOnly = true)
+    public ResponseListCommunityPostDTO getPostsByNickname(String nickname){
         Community community = communityService.findCommunityByNickname(nickname);
         List<PostsCommunity> postsCommunityList = community.getPostsCommunityList();
-        List<ResponceCommunityPostDTO> responceCommunityPostDTO = new ArrayList<>();
+        List<ResponseCommunityPostDTO> responseCommunityPostDTO = new ArrayList<>();
         postsCommunityList.forEach(postsCommunity ->
-                        responceCommunityPostDTO.add(new ResponceCommunityPostDTO(
+                        responseCommunityPostDTO.add(new ResponseCommunityPostDTO(
                                 postsCommunity.getTitle(),
                                 postsCommunity.getDescription(),
                                 nickname,
@@ -59,7 +65,7 @@ public class PostCommunityService {
                                 filePostsCommunityService.getFileName(postsCommunity)
                 ))
                 );
-        return new ResponceListCommunityPostDTO(responceCommunityPostDTO);
+        return new ResponseListCommunityPostDTO(responseCommunityPostDTO);
     }
 
     public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
@@ -70,6 +76,11 @@ public class PostCommunityService {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(resource);
+    }
+    @Cacheable(value = "COMMUNITY_POST", key = "#namePost")
+    public ResponseCommunityPostDTO getPost(String namePost){
+        PostsCommunity postsCommunity = findByName(namePost);
+        return new ResponseCommunityPostDTO(postsCommunity, postsCommunity.getCommunity().getNickname(), filePostsCommunityService.getFileName(postsCommunity));
     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostCommunityService-------------------------->
@@ -82,6 +93,7 @@ public class PostCommunityService {
     }
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
+    @CacheEvict(value = "COMMUNITY_POST", key = "#namePost")
     @Transactional
     public void deletePostCommunity(String namePost, String nicknameUser) throws IOException {
         PostsCommunity postsCommunity = findByName(namePost);
@@ -92,12 +104,13 @@ public class PostCommunityService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
+    @CachePut(value = "COMMUNITY_POST" , key = "#result.getNamePost()")
     @Transactional
-    public void createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, String nicknameUser, BindingResult result,
-                                    MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
+    public ResponseCommunityPostDTO createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, String nicknameUser, BindingResult bindingResult,
+                                                        MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
 
-        if (result.hasErrors()) {
-            throw new ValidationErrorWithMethod(result.getAllErrors());
+        if (bindingResult.hasErrors()) {
+            throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
         }
         boolean flag = false;
         PostsCommunity postsCommunity = new PostsCommunity();
@@ -119,12 +132,13 @@ public class PostCommunityService {
             throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста сообщества");
         }
         postsCommunity.generateName();
-        postsCommunityRepository.save(postsCommunity);
+        return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity),requestCommunityPostDTO.getNicknameCommunity(), filePostsCommunityService.getFileName(postsCommunity));
     }
+    @CachePut(value = "COMMUNITY_POST" , key = "#result.getNamePost()")
     @Transactional
-    public void setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO,String nicknameUser,  BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
-        if (result.hasErrors()) {
-            throw new ValidationErrorWithMethod(result.getAllErrors());
+    public ResponseCommunityPostDTO setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO,String nicknameUser,  BindingResult bindingResult, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+        if (bindingResult.hasErrors()) {
+            throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
         }
         boolean flag = false;
         PostsCommunity postsCommunity = findByName(setCommunityPostDTO.getNamePost());
@@ -146,6 +160,7 @@ public class PostCommunityService {
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
-        postsCommunityRepository.save(postsCommunity);
+        return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity), postsCommunity.getCommunity().getNickname(), filePostsCommunityService.getFileName(postsCommunity));
+
     }
 }

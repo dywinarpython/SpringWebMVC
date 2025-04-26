@@ -1,18 +1,12 @@
 package com.webapp.springBoot.util;
 
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
 import com.webapp.springBoot.DTO.Users.UserRequestDTO;
-import com.webapp.springBoot.entity.UsersApp;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -51,13 +45,13 @@ public class VerifyPhoneService {
 //        }
         System.out.println(text);
         String uuid = UUID.randomUUID().toString();
-        Cookie cookie = new Cookie("VERIF_PHONE", uuid);
+        Cookie cookie = new Cookie("VERIFY_PHONE", uuid);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 15);
         response.addCookie(cookie);
-        generateCache(uuid, userRequestDTO, generateValue);
+        Objects.requireNonNull(cacheManager.getCache("VERIFY_PHONE")).put(uuid, new CacheSaveVerifyRecord(userRequestDTO, generateValue));
     }
 
     private String generateSixDigitNumber() {
@@ -65,9 +59,5 @@ public class VerifyPhoneService {
         return String.valueOf(random.nextInt(900000) + 100000);
     }
 
-    @CachePut(value = "VERIF_PHONE", key="#uuid")
-    private CacheSaveVerify generateCache(String uuid, UserRequestDTO userRequestDTO, String code){
-        return new CacheSaveVerify(userRequestDTO, code);
-    }
 
 }

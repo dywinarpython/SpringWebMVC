@@ -43,7 +43,7 @@ public class PostsUserApp {
     @JoinColumn
     private UsersApp usersApp;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "post_id")
     private List<PostsUserAppFile> files;
 
