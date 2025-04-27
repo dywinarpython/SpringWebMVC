@@ -1,10 +1,8 @@
 package com.webapp.springBoot.service;
 
-import com.webapp.springBoot.DTO.CommunityPost.RequestCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.SetCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.*;
 import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
+import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.PostsUserApp;
@@ -13,6 +11,7 @@ import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.PostsCommunityRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -92,11 +91,15 @@ public class PostCommunityService {
         return optionalPostsCommunity.get();
     }
 
+
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
-    @CacheEvict(value = "COMMUNITY_POST", key = "#namePost")
+    @Caching(evict = {
+            @CacheEvict(value = "COMMUNITY_POST", key = "#namePost"),
+            @CacheEvict(value = "COMMUNITY_POST_LIST", key = "#deleteCommunityPostDTO.getNickname()")
+    })
     @Transactional
-    public void deletePostCommunity(String namePost, String nicknameUser) throws IOException {
-        PostsCommunity postsCommunity = findByName(namePost);
+    public void deletePostCommunity(DeleteCommunityPostDTO deleteCommunityPostDTO, String nicknameUser) throws IOException {
+        PostsCommunity postsCommunity = findByName(deleteCommunityPostDTO.getNamePost());
         communityService.checkCommunityByNicknameUser(postsCommunity.getCommunity(), nicknameUser);
         postsCommunity.setCommunity(null);
         filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
@@ -104,11 +107,11 @@ public class PostCommunityService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
+    @CacheEvict(value = "COMMUNITY_POST_LIST", key = "#requestCommunityPostDTO.getNicknameCommunity()")
     @CachePut(value = "COMMUNITY_POST" , key = "#result.getNamePost()")
     @Transactional
     public ResponseCommunityPostDTO createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, String nicknameUser, BindingResult bindingResult,
                                                         MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
-
         if (bindingResult.hasErrors()) {
             throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
         }
@@ -134,33 +137,30 @@ public class PostCommunityService {
         postsCommunity.generateName();
         return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity),requestCommunityPostDTO.getNicknameCommunity(), filePostsCommunityService.getFileName(postsCommunity));
     }
+
+    @CacheEvict(value = "COMMUNITY_POST_LIST", key = "#result.getNicknameCommunity()")
     @CachePut(value = "COMMUNITY_POST" , key = "#result.getNamePost()")
     @Transactional
-    public ResponseCommunityPostDTO setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO,String nicknameUser,  BindingResult bindingResult, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
+    public ResponseCommunityPostDTO setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+        if (result.hasErrors()) {
+            throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        boolean flag = false;
         PostsCommunity postsCommunity = findByName(setCommunityPostDTO.getNamePost());
-        communityService.checkCommunityByNicknameUser(postsCommunity.getCommunity(), nicknameUser);
+        Community community = postsCommunity.getCommunity();
+        communityService.checkCommunityByNicknameUser(community, nicknameUser);
         if(setCommunityPostDTO.getTitle() != null) {
             postsCommunity.setTitle(setCommunityPostDTO.getTitle());
-            flag = true;
         }
-        if(setCommunityPostDTO.getDescription() != null){
-            postsCommunity.setDescription(setCommunityPostDTO.getDescription());
-            flag = true;
+        postsCommunity.setDescription(setCommunityPostDTO.getDescription());
+        List<String> fileNames;
+        filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
+        if(multipartFiles!=null) {
+            filePostsCommunityService.createFIlesForPosts(multipartFiles, postsCommunity);
+            fileNames = filePostsCommunityService.getFileName(postsCommunity);
+        } else {
+            fileNames = null;
         }
         postsCommunity.setUpdateDate(LocalDateTime.now());
-        if(multipartFiles!=null) {
-            filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
-            filePostsCommunityService.createFIlesForPosts(multipartFiles, postsCommunity);
-            flag = true;
-        }
-        if(!flag){
-            throw new ValidationErrorWithMethod("Нет даных для обновления");
-        }
-        return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity), postsCommunity.getCommunity().getNickname(), filePostsCommunityService.getFileName(postsCommunity));
-
+        return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity), community.getNickname(), fileNames);
     }
 }

@@ -36,14 +36,11 @@ public class PostsCommunity {
 
     private LocalDateTime updateDate;
 
+    @Setter
     @NotNull
     @ManyToOne
     @JoinColumn
     private Community community;
-
-    public void setCommunity(Community community) {
-        this.community = community;
-    }
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "post_id")

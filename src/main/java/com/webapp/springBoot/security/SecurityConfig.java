@@ -43,13 +43,13 @@ public class SecurityConfig{
 
 
     @Bean
-    public ConfigureJWTAuthetication configureJWTAuthetication() throws ParseException, JOSEException {
+    public ConfigureJWTAuthetication configureJWTAuthetication(){
         return new ConfigureJWTAuthetication();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication, @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthinicated, @Autowired CorsConfigurationSource cors) throws Exception {
-        String [] noAuthenticatedArray = noAuthinicated.split(", ");
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ConfigureJWTAuthetication configureJWTAuthetication, @Value("${antPathRequestMatcher.Notauthinicated}") String noAuthenticated, @Autowired CorsConfigurationSource cors) throws Exception {
+        String [] noAuthenticatedArray = noAuthenticated.split(", ");
         CorsFilter corsFilter = new CorsFilter(cors);
         http
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -69,7 +69,7 @@ public class SecurityConfig{
                 .logout(AbstractHttpConfigurer::disable);
         http.addFilterBefore(corsFilter, SecurityContextHolderFilter.class);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.with(configureJWTAuthetication, configureJWTAutheticationLambda -> {});
+        http.with(configureJWTAuthetication, _ -> {});
 
         return http.build();
     }

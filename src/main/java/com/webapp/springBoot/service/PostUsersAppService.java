@@ -12,6 +12,7 @@ import com.webapp.springBoot.repository.UsersAppRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +110,10 @@ public class PostUsersAppService {
     }
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
-    @CacheEvict(value = "USER_POST", key = "#namePost")
+    @Caching(evict = {
+            @CacheEvict(value = "USER_POST", key = "#namePost"),
+            @CacheEvict(value = "USER_POST_LIST", key = "#nicknameUser")
+    })
     @Transactional
     public void deletePostUsersApp(String namePost, String nicknameUser) throws IOException {
         PostsUserApp postsUserApp = findByName(namePost);
@@ -120,6 +124,7 @@ public class PostUsersAppService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
+    @CacheEvict(value = "USER_POST_LIST", key = "#nicknameUser")
     @CachePut(value = "USER_POST" , key = "#result.getNamePost()")
     @Transactional
     public ResponseUsersPostDTO createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, String nicknameUser, BindingResult bindingResult,
@@ -150,31 +155,27 @@ public class PostUsersAppService {
         postsUserApp.setDescription(requestUsersPostDTO.getDescription());
         return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, filePostsUsersAppService.getFileName(postsUserApp));
     }
+    @CacheEvict(value = "USER_POST_LIST", key = "#nicknameUser")
     @CachePut(value = "USER_POST" , key = "#result.getNamePost()")
     @Transactional
     public ResponseUsersPostDTO setPostUserApp(SetUsersPostDTO setUsersPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        boolean flag = false;
         PostsUserApp postsUserApp = checkPostUserByNicknameUser(setUsersPostDTO.getNamePost(), nicknameUser);
         if(setUsersPostDTO.getTitle() != null) {
             postsUserApp.setTitle(setUsersPostDTO.getTitle());
-            flag = true;
         }
-        if(setUsersPostDTO.getDescription() != null){
-            postsUserApp.setDescription(setUsersPostDTO.getDescription());
-            flag = true;
+        postsUserApp.setDescription(setUsersPostDTO.getDescription());
+        List<String> fileNames;
+        filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
+        if(multipartFiles!=null) {
+            filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
+            fileNames = filePostsUsersAppService.getFileName(postsUserApp);
+        } else {
+            fileNames = null;
         }
         postsUserApp.setUpdateDate(LocalDateTime.now());
-        if(multipartFiles!=null) {
-            filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
-            filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
-            flag = true;
-        }
-        if(!flag){
-            throw new ValidationErrorWithMethod("Нет даных для обновления");
-        }
-        return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, filePostsUsersAppService.getFileName(postsUserApp));
+        return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, fileNames);
     }
 }

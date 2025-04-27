@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
@@ -18,29 +20,18 @@ public class ImagesCommunity {
     private Long id;
 
 
+    @Getter
     @NotNull
     private String nameImage;
 
+    @Setter
+    @Getter
     @NotNull
     private String imageUrl;
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "imageUrl")
-    private Community community;
 
     public ImagesCommunity() {
         nameImage = UUID.randomUUID().toString();
     }
 
-    public String getNameImage() {
-        return nameImage;
-    }
-
-    public String getImageUrl(){
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 }

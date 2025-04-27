@@ -1,4 +1,4 @@
-package com.webapp.springBoot;
+package com.webapp.springBoot.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;

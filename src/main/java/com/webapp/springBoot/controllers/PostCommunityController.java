@@ -1,10 +1,7 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.CommunityPost.RequestCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.SetCommunityPostDTO;
+import com.webapp.springBoot.DTO.CommunityPost.*;
 import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -125,9 +122,9 @@ public class PostCommunityController {
                     @ApiResponse(responseCode = "404", description = "Пост не найден")
             }
     )
-    public ResponseEntity<String> deletePost(@PathVariable(required = false) String nickname, @PathVariable String namePost, Principal principal) throws IOException {
+    public ResponseEntity<String> deletePost(@PathVariable(required = false) String nickname, @RequestBody DeleteCommunityPostDTO deleteCommunityPostDTO, Principal principal) throws IOException {
         nickname = nickname == null? principal.getName() : nickname;
-        postCommunityService.deletePostCommunity(namePost, nickname);
+        postCommunityService.deletePostCommunity(deleteCommunityPostDTO, nickname);
         return ResponseEntity.ok("Пост удален");
     }
 }

@@ -1,8 +1,7 @@
-package com.webapp.springBoot;
+package com.webapp.springBoot.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
 import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
@@ -21,7 +20,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 

@@ -12,5 +12,5 @@ import java.util.List;
 @NoArgsConstructor
 @Schema(description = "Сущность создания постов")
 public class ResponseListCommunityPostDTO {
-    private List<ResponseCommunityPostDTO> usersPosts;
+    private List<ResponseCommunityPostDTO> communityPosts;
 }

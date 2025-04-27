@@ -29,9 +29,6 @@ public class ImagesUsersApp {
     private String imageUrl;
 
 
-    @Getter
-    @OneToOne(mappedBy = "imageUrl")
-    private UsersApp usersApp;
 
     public ImagesUsersApp() {
         nameImage = UUID.randomUUID().toString();
