@@ -1,7 +1,6 @@
 package com.webapp.springBoot.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -11,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.LazyToOne;
+import org.hibernate.annotations.LazyToOneOption;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 @Entity
 public class UsersApp {
 
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -62,7 +64,7 @@ public class UsersApp {
 
     @Setter
     @Getter
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name ="user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -74,20 +76,26 @@ public class UsersApp {
 
     @Getter
     @JsonIgnore
-    @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Community> community;
 
     @Getter
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ImagesUsersApp imageUrl;
 
-    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "usersApp", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PostsUserApp> postUserAppList;
 
 
     @Getter
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private BanUsersApp banUsersApp;
+
+
+    @Setter
+    @Getter
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "usersApp", fetch = FetchType.LAZY)
+    private List<Friends> friends;
 
     public void setPostUserAppList(PostsUserApp postsUserApp) {
         postUserAppList.add(postsUserApp);
@@ -108,5 +116,11 @@ public class UsersApp {
 
     public void rolesAdd(Roles roles) {
         this.roles.add(roles);
+    }
+
+    @Override
+    public boolean equals(Object object){
+        UsersApp usersApp = (UsersApp) object;
+        return this.getNickname().equals(usersApp.getNickname());
     }
 }

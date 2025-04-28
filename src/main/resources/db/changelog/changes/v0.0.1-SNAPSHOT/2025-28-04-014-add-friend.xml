@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="2025-21-04-014-add-friend" author="Dywinar">
+        <createTable tableName="friends">
+            <column name="id" autoIncrement="true" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint"/>
+            <column name="friend_id" type="bigint"/>
+            <column name="create_time" type="timestamp(6)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="friends"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="users_app"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_users_app_friends"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="friends"
+                                 baseColumnNames="friend_id"
+                                 referencedTableName="users_app"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_users_app_friends_friend"
+                                 onDelete="CASCADE"/>
+        <addUniqueConstraint
+                tableName="friends"
+                columnNames="user_id, friend_id"
+                constraintName="uk_friends_unique"/>
+    </changeSet>
+</databaseChangeLog>

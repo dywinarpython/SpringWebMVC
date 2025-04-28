@@ -105,15 +105,15 @@ public class UsersController {
         return usersService.getUserByNickname(nickname);
     }
 
-    @GetMapping("/communty")
+    @GetMapping("/communty/{nickname}")
     @Operation(
             summary="Получение всех сообществ пользователя, поиск по полю nickname",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ListCommunityUsersDTO.class))),
                     @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))
             })
-    public ListCommunityUsersDTO getCommunityForUserByNickname(Principal principal){
-        return usersService.getAllCommunityForUser(principal.getName());
+    public ListCommunityUsersDTO getCommunityForUserByNickname(@PathVariable String nickname){
+        return usersService.getAllCommunityForUser(nickname);
     }
 
     @GetMapping(value = "/image/{nameImage}", produces = MediaType.IMAGE_PNG_VALUE)
