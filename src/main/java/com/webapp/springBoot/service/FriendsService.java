@@ -8,6 +8,10 @@ import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.repository.FriendsRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +37,8 @@ public class FriendsService {
     private UsersAppRepository usersAppRepository;
 
 
-
+    // Первое обязательно Principal
+    @Cacheable(value = "CHECK_FRIEND", key="#nickname1 + '_' + #nickname2")
     public void checkFriend(String nickname1, String nickname2){
         UsersApp usersApp = usersService.findUsersByNickname(nickname1);
         UsersApp friend = usersService.findUsersByNickname(nickname2);
@@ -56,6 +61,7 @@ public class FriendsService {
         friendsRepository.save(friends2);
     }
 
+    @Cacheable(value = "FRIENDS_LIST", key = "#nickname")
     @Transactional(readOnly = true)
     public ListResponseFriendDTO getAllFriend(String nickname){
         UsersApp usersApp = usersService.findUsersByNickname(nickname);
@@ -73,6 +79,13 @@ public class FriendsService {
         return new ListResponseFriendDTO(responseFriendDTOList);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "FRIENDS_LIST", key="#nickname2"),
+                    @CacheEvict(value = "FRIENDS_LIST", key="#nickname1"),
+                    @CacheEvict(value = "CHECK_FRIEND", key="#nickname1 + ' ' + #nickname2")
+            }
+    )
     @Transactional
     public void deleteFriend(String nickname1, String nickname2){
         UsersApp usersApp = usersService.findUsersByNickname(nickname1);

@@ -6,6 +6,7 @@ import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
 import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
 import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
+import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
 import com.webapp.springBoot.DTO.Friend.ResponseFriendDTO;
 import com.webapp.springBoot.DTO.Users.ListUsersDTO;
 import com.webapp.springBoot.DTO.Users.UserResponceDTO;
@@ -67,6 +68,13 @@ public class RedisConfig {
         );
         redisCacheConfigurationMap.put(
                 "COMMUNITY_POST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseCommunityPostDTO.class)))
+        );
+
+        redisCacheConfigurationMap.put(
+                "FRIENDS_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ListResponseFriendDTO.class)))
+        );
+        redisCacheConfigurationMap.put(
+                "CHECK_FRIEND", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class)))
         );
 
 
