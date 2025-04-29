@@ -54,8 +54,6 @@ public class RedisConfig {
         );
 
 
-
-
         redisCacheConfigurationMap.put(
                 "USER_POST_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseListUsersPostDTO.class)))
         );

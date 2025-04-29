@@ -18,7 +18,7 @@ public class SetCommunityDTO {
         @Schema(example = "nickname")
         private String nickname;
 
-        @UniqueCommunity(message = "Значени nickname сообщество должно быть уникальным")
+        @UniqueCommunity(message = "Значение nickname сообщество должно быть уникальным")
         @Size(min = 2, max = 10,  message = "Длина nickname от 2 до 10")
         @Schema(example = "community")
         @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname сообщества должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")

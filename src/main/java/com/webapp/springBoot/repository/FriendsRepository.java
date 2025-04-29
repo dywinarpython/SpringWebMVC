@@ -1,11 +1,13 @@
 package com.webapp.springBoot.repository;
 
 import com.webapp.springBoot.entity.Friends;
+import com.webapp.springBoot.entity.UsersApp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FriendsRepository extends JpaRepository<Friends, Long> {
 
@@ -28,4 +30,5 @@ public interface FriendsRepository extends JpaRepository<Friends, Long> {
            """
     )
     List<Friends> getFriends(@Param("id") Long id);
+    List<Friends> findByUsersAppId(Long id);
 }

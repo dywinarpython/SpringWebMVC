@@ -13,8 +13,10 @@ import com.webapp.springBoot.security.SecurityUsersService;
 import com.webapp.springBoot.util.CacheSaveVerifyRecord;
 import com.webapp.springBoot.util.VerifyPhoneService;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UsersService {
     @Autowired
@@ -49,11 +52,10 @@ public class UsersService {
     private FilePostsUsersAppService filePostsUsersAppService;
     @Autowired
     private VerifyPhoneService verifyPhone;
-
-
-
     @Autowired
     private CacheManager cacheManager;
+    @Autowired
+    private AsyncService asyncService;
 
     // <-----------------------Сохранения сущности пользователя в кеш-------------------->
     public void saveUserInCache(UserRequestDTO userRequestDTO, BindingResult result, HttpServletResponse response) throws Exception {
@@ -182,23 +184,24 @@ public class UsersService {
     // <----------------УДАЛЕНИЕ В СУЩНОСТИ Users ----------------------------->
     @Caching(evict = {
         @CacheEvict(value = "SECURITY", key="#nickname"),
-        @CacheEvict(value = "USER_RESPONSE", key = "#nickname")})
+        @CacheEvict(value = "USER_RESPONSE", key = "#nickname"),
+        @CacheEvict(value = "FRIENDS_LIST", key = "#nickname")})
     @Transactional
     public void deleteUserByNickname(String nickname) throws IOException {
-        Optional<UsersApp> users = userRepository.findByNickname(nickname);
-        if (users.isEmpty()) {
-            throw new UsernameNotFoundException("Nickname пользователя не найден");
-        }
-        UsersApp usersApp = users.get();
-        imageUsersAppService.deleteImageUsersApp(usersApp);
-        for (PostsUserApp postsUserApp : usersApp.getPostsUserAppList()){
+        UsersApp user = findUsersByNickname(nickname);
+        imageUsersAppService.deleteImageUsersApp(user);
+        for (PostsUserApp postsUserApp : user.getPostsUserAppList()){
             filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         }
-        userRepository.delete(usersApp);
+        asyncService.deleteAllCacheFriend(user.getId());
+        userRepository.delete(user);
     }
+    @CacheEvict(value = "USER_RESPONSE", key = "#nickname")
     @Transactional
     public void deleteImageUsersApp(String nickname) throws IOException {
-        imageUsersAppService.deleteImageUsersApp(findUsersByNickname(nickname));
+        UsersApp user =  findUsersByNickname(nickname);
+        asyncService.deleteAllCacheFriend(user.getId());
+        imageUsersAppService.deleteImageUsersApp(user);
     }
 
 
@@ -266,6 +269,7 @@ public class UsersService {
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
+        asyncService.deleteAllCacheFriend(user.getId());
         return new UserResponceDTO(user,  imageUsersAppService.getImageName(user));
     }
     public void setNickname(SetUserDTO apiResponseSetNicknameDTO, UsersApp user) {
@@ -298,4 +302,7 @@ public class UsersService {
         usersApp.rolesAdd(rolesService.getRolesByName(addNewRoleUsersAppDTO.getNameRole()));
         userRepository.save(usersApp);
     }
+
+
+
  }
