@@ -4,19 +4,19 @@ import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
+import com.webapp.springBoot.cache.DeleteCacheService;
 import com.webapp.springBoot.entity.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
 import com.webapp.springBoot.security.SecurityUsersService;
-import com.webapp.springBoot.util.CacheSaveVerifyRecord;
+import com.webapp.springBoot.cache.CacheSaveVerifyRecord;
 import com.webapp.springBoot.util.VerifyPhoneService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -55,7 +55,8 @@ public class UsersService {
     @Autowired
     private CacheManager cacheManager;
     @Autowired
-    private AsyncService asyncService;
+    private DeleteCacheService deleteCacheService;
+
 
     // <-----------------------Сохранения сущности пользователя в кеш-------------------->
     public void saveUserInCache(UserRequestDTO userRequestDTO, BindingResult result, HttpServletResponse response) throws Exception {
@@ -185,7 +186,8 @@ public class UsersService {
     @Caching(evict = {
         @CacheEvict(value = "SECURITY", key="#nickname"),
         @CacheEvict(value = "USER_RESPONSE", key = "#nickname"),
-        @CacheEvict(value = "FRIENDS_LIST", key = "#nickname")})
+        @CacheEvict(value = "FRIENDS_LIST", key = "#nickname"),
+        @CacheEvict(value = "CHECK_FRIEND", key = "#nickname1 < #nickname2 ? #nickname1 + '_' + #nickname2 : #nickname2 + '_' + #nickname1")})
     @Transactional
     public void deleteUserByNickname(String nickname) throws IOException {
         UsersApp user = findUsersByNickname(nickname);
@@ -193,14 +195,14 @@ public class UsersService {
         for (PostsUserApp postsUserApp : user.getPostsUserAppList()){
             filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         }
-        asyncService.deleteAllCacheFriend(user.getId());
+        deleteCacheService.deleteAllCacheFriend(user.getId());
         userRepository.delete(user);
     }
     @CacheEvict(value = "USER_RESPONSE", key = "#nickname")
     @Transactional
     public void deleteImageUsersApp(String nickname) throws IOException {
         UsersApp user =  findUsersByNickname(nickname);
-        asyncService.deleteAllCacheFriend(user.getId());
+        deleteCacheService.deleteAllCacheFriend(user.getId());
         imageUsersAppService.deleteImageUsersApp(user);
     }
 
@@ -239,6 +241,12 @@ public class UsersService {
         return optionalUsers.get();
     }
 
+    public Long getIdWithNickname(String nickname){
+        return userRepository.getUserIdByNickname(nickname).orElseThrow(
+                () -> new UsernameNotFoundException("Пользователь с таким nickname нет")
+        );
+    }
+
     // <----------------ИЗМЕНЕНИЕ В СУЩНОСТИ Users ----------------------------->
     @CachePut(value = "USER_RESPONSE", key = "#result.getNickname()")
     @CacheEvict(value = "SECURITY", key="#nickname", condition = "#setUserDTO.getNicknameAfter() != null")
@@ -269,7 +277,7 @@ public class UsersService {
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
-        asyncService.deleteAllCacheFriend(user.getId());
+        deleteCacheService.deleteAllCacheFriend(user.getId());
         return new UserResponceDTO(user,  imageUsersAppService.getImageName(user));
     }
     public void setNickname(SetUserDTO apiResponseSetNicknameDTO, UsersApp user) {
@@ -302,7 +310,5 @@ public class UsersService {
         usersApp.rolesAdd(rolesService.getRolesByName(addNewRoleUsersAppDTO.getNameRole()));
         userRepository.save(usersApp);
     }
-
-
 
  }

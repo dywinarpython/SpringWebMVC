@@ -2,6 +2,7 @@ package com.webapp.springBoot.controllers;
 
 
 import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
+import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.FriendsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,7 +28,7 @@ public class FriendController {
             responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseEntity.class)))
     )
     @PostMapping("/{nickname}")
-    public ResponseEntity<String> createFriend(@PathVariable String nickname, Principal principal){
+    public ResponseEntity<String> createFriend(@PathVariable String nickname, Principal principal) throws ValidationErrorWithMethod {
         friendsService.createFriend(principal.getName(), nickname);
         return  ResponseEntity.ok("Пользователь успешно добавлен в друзья");
     }

@@ -1,6 +1,7 @@
 package com.webapp.springBoot.util;
 
 import com.webapp.springBoot.DTO.Users.UserRequestDTO;
+import com.webapp.springBoot.cache.CacheSaveVerifyRecord;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.webapp.springBoot.util;
+package com.webapp.springBoot.cache;
 
 import com.webapp.springBoot.DTO.Users.UserRequestDTO;
 

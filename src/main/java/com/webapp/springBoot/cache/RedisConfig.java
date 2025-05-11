@@ -1,4 +1,4 @@
-package com.webapp.springBoot.config;
+package com.webapp.springBoot.cache;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,7 +7,6 @@ import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
 import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
 import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
 import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
-import com.webapp.springBoot.DTO.Friend.ResponseFriendDTO;
 import com.webapp.springBoot.DTO.Users.ListUsersDTO;
 import com.webapp.springBoot.DTO.Users.UserResponceDTO;
 import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
@@ -76,14 +75,6 @@ public class RedisConfig {
         );
 
 
-
-
-
-
-
-
-
-
         redisCacheConfigurationMap.put(
                 "REGISTER_OAUTH2", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(15)).serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(GoogleUserInfo.class)))
         );
@@ -103,4 +94,6 @@ public class RedisConfig {
         return RedisCacheManager.builder(redisConnectionFactory).withInitialCacheConfigurations(redisCacheConfigurationMap)
                 .build();
     }
+
+
 }

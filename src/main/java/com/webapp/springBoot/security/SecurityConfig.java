@@ -57,12 +57,7 @@ public class SecurityConfig{
                 {
                     authorizationManagerRequestMatcherRegistry.requestMatchers(noAuthenticatedArray).permitAll();
                     authorizationManagerRequestMatcherRegistry.anyRequest().authenticated();})
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new AuthenticationEntryPoint() {
-                    @Override
-                    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    }
-                }))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)))
                 .requiresChannel(channelRequestMatcherRegistry -> channelRequestMatcherRegistry.anyRequest().requiresSecure())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)

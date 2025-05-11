@@ -27,7 +27,7 @@ public class OAuth2AuthenticatedAuthenticationProvider implements Authentication
         } else {
             logger.debug(LogMessage.format("OAuth2AuthenticatedAuthenticationProvider authentication request: %s", authentication));
             if (authentication.getPrincipal() == null) {
-                throw new BadCredentialsException("Не переданны даныне о пользователе");
+                throw new BadCredentialsException("Не переданны даные о пользователе");
             } else if (authentication.getCredentials() == null) {
                     throw new BadCredentialsException("Не переданы полномочия пользователя");
             } else {
