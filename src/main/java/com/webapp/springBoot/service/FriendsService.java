@@ -66,8 +66,9 @@ public class FriendsService {
             }
     )
     public Boolean createFriend(String nickname1, String nickname2) throws ValidationErrorWithMethod {
-        if(checkFriend(nickname1, nickname2)){
-                throw new ValidationErrorWithMethod("Пользователи уже друзья");
+        if(checkFriend(nickname1, nickname2) || nickname1.equals(nickname2)){
+            log.error(STR."\{nickname1}_\{nickname2}");
+                throw new ValidationErrorWithMethod("Ошибка добавления друга");
         };
         UsersApp usersApp = usersService.findUsersByNickname(nickname1);
         UsersApp friend = usersService.findUsersByNickname(nickname2);
