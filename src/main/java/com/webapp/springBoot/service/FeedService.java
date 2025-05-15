@@ -42,11 +42,12 @@ public class FeedService {
         Long userId = usersAppRepository.getUserIdByNickname(nickname).orElseThrow(
                 () -> new UsernameNotFoundException("Пользователь с таким nickname нет"));
         Cache cache = cacheManager.getCache("LIST_FEED_USER");
-        Cache cachePost = cacheManager.getCache("USER_POST");
+        Cache cachePost = cacheManager.getCache("POST");
         if(cache == null || cachePost == null){
             throw new RuntimeException("Кеш не доступен");
         }
         ListFeedDTO listFeedDTO = cache.get(userId + ":" + page, ListFeedDTO.class);
+        System.out.println(listFeedDTO);
         List<FeedDTO> feed;
         if(listFeedDTO == null){
             feed = feedRepository.findByUserIdOrderByCreateTimeDesc(userId, PageRequest.of(page, size));
