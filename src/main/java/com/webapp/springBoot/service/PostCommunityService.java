@@ -1,11 +1,8 @@
 package com.webapp.springBoot.service;
 
-import com.webapp.springBoot.DTO.CommunityPost.*;
-import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
+import com.webapp.springBoot.DTO.Post.*;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.PostsCommunity;
-import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.PostsCommunityRepository;
@@ -29,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -49,22 +47,41 @@ public class PostCommunityService {
     private PostsCommunityRepository postsCommunityRepository;
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
-    @Cacheable(value = "COMMUNITY_POST_LIST", key = "#nickname")
+
     @Transactional(readOnly = true)
-    public ResponseListCommunityPostDTO getPostsByNickname(String nickname){
+    public Long getUserIdForCommunityNickname(String nickname){
+        return communityService.findCommunityByNickname(nickname).getUserOwner().getId();
+    }
+
+
+    @Cacheable(value = "COMMUNITY_POST_LIST")
+    @Transactional(readOnly = true)
+    public ResponseListPostDTO getPostsByNickname(String nickname){
         Community community = communityService.findCommunityByNickname(nickname);
         List<PostsCommunity> postsCommunityList = community.getPostsCommunityList();
-        List<ResponseCommunityPostDTO> responseCommunityPostDTO = new ArrayList<>();
-        postsCommunityList.forEach(postsCommunity ->
-                        responseCommunityPostDTO.add(new ResponseCommunityPostDTO(
-                                postsCommunity.getTitle(),
-                                postsCommunity.getDescription(),
-                                nickname,
-                                postsCommunity.getName(),
-                                filePostsCommunityService.getFileName(postsCommunity)
-                ))
-                );
-        return new ResponseListCommunityPostDTO(responseCommunityPostDTO);
+        List<ResponsePostDTO> responseCommunityPostDTO = new ArrayList<>();
+        postsCommunityList.forEach(postsCommunity -> {
+                    boolean set;
+                    LocalDateTime localDateTime;
+                    if(postsCommunity.getUpdateDate() != null){
+                        set = true;
+                        localDateTime = postsCommunity.getUpdateDate();
+                    } else {
+                        set = false;
+                        localDateTime = postsCommunity.getCreateDate();
+                    }
+                    responseCommunityPostDTO.add(new ResponsePostDTO(
+                            postsCommunity.getTitle(),
+                            postsCommunity.getDescription(),
+                            nickname,
+                            postsCommunity.getName(),
+                            filePostsCommunityService.getFileName(postsCommunity),
+                            localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond(),
+                            set
+                    ));
+                }
+        );
+        return new ResponseListPostDTO(responseCommunityPostDTO);
     }
 
     public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
@@ -76,10 +93,19 @@ public class PostCommunityService {
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(resource);
     }
-    @Cacheable(value = "COMMUNITY_POST", key = "#namePost")
-    public ResponseCommunityPostDTO getPost(String namePost){
+    @Cacheable(value = "POST", key = "#namePost")
+    public ResponsePostDTO getPost(String namePost){
         PostsCommunity postsCommunity = findByName(namePost);
-        return new ResponseCommunityPostDTO(postsCommunity, postsCommunity.getCommunity().getNickname(), filePostsCommunityService.getFileName(postsCommunity));
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsCommunity.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsCommunity.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsCommunity.getCreateDate();
+        }
+        return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set);
     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostCommunityService-------------------------->
@@ -94,7 +120,7 @@ public class PostCommunityService {
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
     @Caching(evict = {
-            @CacheEvict(value = "COMMUNITY_POST", key = "#namePost"),
+            @CacheEvict(value = "POST", key = "#deleteCommunityPostDTO.getNamePost()"),
             @CacheEvict(value = "COMMUNITY_POST_LIST", key = "#deleteCommunityPostDTO.getNickname()")
     })
     @Transactional
@@ -108,10 +134,10 @@ public class PostCommunityService {
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
     @CacheEvict(value = "COMMUNITY_POST_LIST", key = "#requestCommunityPostDTO.getNicknameCommunity()")
-    @CachePut(value = "COMMUNITY_POST" , key = "#result.getNamePost()")
+    @CachePut(value = "POST" , key = "#result.getNamePost()")
     @Transactional
-    public ResponseCommunityPostDTO createPostCommunity(RequestCommunityPostDTO requestCommunityPostDTO, String nicknameUser, BindingResult bindingResult,
-                                                        MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
+    public ResponsePostDTO createPostCommunity(RequestPostCommunityDTO requestCommunityPostDTO, String nicknameUser, BindingResult bindingResult,
+                                               MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
         if (bindingResult.hasErrors()) {
             throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
         }
@@ -135,13 +161,14 @@ public class PostCommunityService {
             throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста сообщества");
         }
         postsCommunity.generateName();
-        return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity),requestCommunityPostDTO.getNicknameCommunity(), filePostsCommunityService.getFileName(postsCommunity));
+        postsCommunityRepository.save(postsCommunity);
+        return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), LocalDateTime.now(), false);
     }
 
     @CacheEvict(value = "COMMUNITY_POST_LIST", key = "#result.getNicknameCommunity()")
-    @CachePut(value = "COMMUNITY_POST" , key = "#result.getNamePost()")
+    @CachePut(value = "POST" , key = "#result.getNamePost()")
     @Transactional
-    public ResponseCommunityPostDTO setPostCommunnity(SetCommunityPostDTO setCommunityPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+    public ResponsePostDTO setPostCommunnity(SetPostCommunityDTO setCommunityPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
@@ -161,6 +188,7 @@ public class PostCommunityService {
             fileNames = null;
         }
         postsCommunity.setUpdateDate(LocalDateTime.now());
-        return new ResponseCommunityPostDTO(postsCommunityRepository.save(postsCommunity), community.getNickname(), fileNames);
+        return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), postsCommunity.getUpdateDate(), true);
+
     }
 }

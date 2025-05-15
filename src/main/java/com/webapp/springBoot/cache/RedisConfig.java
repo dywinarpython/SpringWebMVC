@@ -4,13 +4,12 @@ package com.webapp.springBoot.cache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponseListCommunityPostDTO;
-import com.webapp.springBoot.DTO.CommunityPost.ResponseCommunityPostDTO;
+import com.webapp.springBoot.DTO.Feed.ListFeedDTO;
 import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
 import com.webapp.springBoot.DTO.Users.ListUsersDTO;
 import com.webapp.springBoot.DTO.Users.UserResponceDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -54,17 +53,13 @@ public class RedisConfig {
 
 
         redisCacheConfigurationMap.put(
-                "USER_POST_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseListUsersPostDTO.class)))
+                "POST_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseListPostDTO.class)))
         );
         redisCacheConfigurationMap.put(
-                "USER_POST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseUsersPostDTO.class)))
-        );
-
-        redisCacheConfigurationMap.put(
-                "COMMUNITY_POST_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseListCommunityPostDTO.class)))
+                "COMMUNITY_POST_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseListPostDTO.class)))
         );
         redisCacheConfigurationMap.put(
-                "COMMUNITY_POST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseCommunityPostDTO.class)))
+                "POST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponsePostDTO.class)))
         );
 
         redisCacheConfigurationMap.put(
@@ -91,6 +86,12 @@ public class RedisConfig {
         redisCacheConfigurationMap.put(
                 "SECURITY", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
         );
+
+
+        redisCacheConfigurationMap.put(
+                "LIST_FEED_USER", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ListFeedDTO.class)))
+        );
+
         return RedisCacheManager.builder(redisConnectionFactory).withInitialCacheConfigurations(redisCacheConfigurationMap)
                 .build();
     }

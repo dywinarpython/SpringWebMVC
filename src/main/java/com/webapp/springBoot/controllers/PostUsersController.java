@@ -1,11 +1,10 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
-import com.webapp.springBoot.entity.PostsUserApp;
+import com.webapp.springBoot.DTO.Post.RequestPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
+import com.webapp.springBoot.DTO.Post.SetPostDTO;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.PostUsersAppService;
 
@@ -44,37 +43,37 @@ public class PostUsersController {
     @GetMapping("/{nickname}")
     @Operation(summary = "Получение постов по nickname пользователя",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseListUsersPostDTO getPostByNicknameUsersApp(@PathVariable String nickname){
+    public ResponseListPostDTO getPostByNicknameUsersApp(@PathVariable String nickname){
         return postUsersAppService.getPostsByNickname(nickname);
     }
 
     @GetMapping
     @Operation(summary = "Получение постов пользователя",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseListUsersPostDTO getPostByNicknameUsersApp(Principal principal){
+    public ResponseListPostDTO getPostByNicknameUsersApp(Principal principal){
         return postUsersAppService.getPostsByNickname(principal.getName());
     }
 
     @GetMapping("/name")
     @Operation(summary = "Получение поста пользователя по имени",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponsePostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseUsersPostDTO getPostByName(@RequestParam String namePost){
+    public ResponsePostDTO getPostByName(@RequestParam String namePost){
         return postUsersAppService.getPost(namePost);
     }
 
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
     @Operation(summary = "Получение файла поста",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
                     @ApiResponse(responseCode = "404", description = "ФАйл не найден")
             }
     )
@@ -102,10 +101,10 @@ public class PostUsersController {
             )
     )
     public ResponseEntity<String> addNewPost(
-            @Valid @RequestPart("metadata") RequestUsersPostDTO requestUsersPostDTO, BindingResult result,
+            @Valid @RequestPart("metadata") RequestPostDTO requestPostDTO, BindingResult result,
             @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!")MultipartFile[] multipartFiles, Principal principal
     ) throws ValidationErrorWithMethod, IOException {
-        postUsersAppService.createPostUsersApp(requestUsersPostDTO,principal.getName(), result, multipartFiles);
+        postUsersAppService.createPostUsersApp(requestPostDTO,principal.getName(), result, multipartFiles);
         return new ResponseEntity<>("Пост добавлен", HttpStatus.CREATED);
     }
 
@@ -120,8 +119,8 @@ public class PostUsersController {
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetUsersPostDTO setUsersPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file, Principal principal) throws ValidationErrorWithMethod, IOException {
-        postUsersAppService.setPostUserApp(setUsersPostDTO,principal.getName(), result, file);
+    public ResponseEntity<String> setUsers(@Valid @RequestPart("metadata") SetPostDTO setPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file, Principal principal) throws ValidationErrorWithMethod, IOException {
+        postUsersAppService.setPostUserApp(setPostDTO,principal.getName(), result, file);
         return ResponseEntity.ok("Сущность поста пользователя изменена");
     }
 

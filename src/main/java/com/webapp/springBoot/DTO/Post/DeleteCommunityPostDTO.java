@@ -1,4 +1,4 @@
-package com.webapp.springBoot.DTO.CommunityPost;
+package com.webapp.springBoot.DTO.Post;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Сущность удаления поста сообщества")
 public class DeleteCommunityPostDTO {
 
-    @NotNull(message = "Nickname сообещство не может быть null")
+    @NotNull(message = "Nickname сообщества не может быть null")
     private String nickname;
 
     @NotNull(message = "Имя поста сообщества не может быть null")

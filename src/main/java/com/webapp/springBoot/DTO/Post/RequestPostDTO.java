@@ -1,4 +1,4 @@
-package com.webapp.springBoot.DTO.CommunityPost;
+package com.webapp.springBoot.DTO.Post;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -11,16 +11,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Сущность создания постов")
-public class RequestCommunityPostDTO {
-    @Schema(description = "nickname")
-    @NotNull(message = "nickname не может быть null")
-    private String nicknameCommunity;
+public class RequestPostDTO {
 
-    @Schema(description = "Title поста сообщества")
-    @Size(max = 30, min = 3)
+
+    @Schema(description = "Title поста ")
+    @Size(max = 60, min = 3)
     private String title;
 
-    @Schema(description = "Description поста сообщества")
+    @Schema(description = "Description поста")
     @Size(max = 280)
     private String description;
 

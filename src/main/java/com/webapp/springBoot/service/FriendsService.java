@@ -94,7 +94,9 @@ public class FriendsService {
             evict = {
                     @CacheEvict(value = "FRIENDS_LIST", key="#nickname2"),
                     @CacheEvict(value = "FRIENDS_LIST", key="#nickname1"),
-                    @CacheEvict(value = "CHECK_FRIEND", key = "#nickname1 < #nickname2 ? #nickname1 + '_' + #nickname2 : #nickname2 + '_' + #nickname1")
+                    @CacheEvict(value = "CHECK_FRIEND", key = "#nickname1 < #nickname2 ? #nickname1 + '_' + #nickname2 : #nickname2 + '_' + #nickname1"),
+                    @CacheEvict(value = "FRIEND_LIST_NICKNAME", key="#nickname1"),
+                    @CacheEvict(value = "FRIEND_LIST_NICKNAME", key="#nickname2"),
             }
     )
     @Transactional
@@ -113,5 +115,5 @@ public class FriendsService {
         usersAppRepository.save(usersAppFriend);
     }
 
-    }
+}
 

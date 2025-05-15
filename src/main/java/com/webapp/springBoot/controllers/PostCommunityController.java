@@ -1,9 +1,7 @@
 package com.webapp.springBoot.controllers;
 
 
-import com.webapp.springBoot.DTO.CommunityPost.*;
-import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
+import com.webapp.springBoot.DTO.Post.*;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.service.PostCommunityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,17 +38,17 @@ public class PostCommunityController {
     @GetMapping("/{nickname}")
     @Operation(summary = "Получение постов по nickname сообщества",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseListCommunityPostDTO getPostByNicknameCommunityPosts(@PathVariable String nickname){
+    public ResponseListPostDTO getPostByNicknameCommunityPosts(@PathVariable String nickname){
         return postCommunityService.getPostsByNickname(nickname);
     }
 
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
     @Operation(summary = "Получение файла поста",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListUsersPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
                     @ApiResponse(responseCode = "404", description = "ФАйл не найден")
             }
     )
@@ -61,10 +59,10 @@ public class PostCommunityController {
     @GetMapping("/name")
     @Operation(summary = "Получение поста сообщества по имени",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseCommunityPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponsePostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseCommunityPostDTO getPostByName(@RequestParam String namePost){
+    public ResponsePostDTO getPostByName(@RequestParam String namePost){
         return postCommunityService.getPost(namePost);
     }
 
@@ -88,7 +86,7 @@ public class PostCommunityController {
             )
     )
     public ResponseEntity<String> addNewPost(
-            @Valid @RequestPart("metadata") RequestCommunityPostDTO requestCommunityPostDTO, BindingResult result,
+            @Valid @RequestPart("metadata") RequestPostCommunityDTO requestCommunityPostDTO, BindingResult result,
             @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!")MultipartFile[] multipartFiles, Principal principal
     ) throws ValidationErrorWithMethod, IOException {
         postCommunityService.createPostCommunity(requestCommunityPostDTO, principal.getName(), result, multipartFiles);
@@ -106,7 +104,7 @@ public class PostCommunityController {
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))},
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(contentType = MediaType.APPLICATION_JSON_VALUE, name = "metadata")))
     )
-    public ResponseEntity<String> setCommunityPosts(@Valid @RequestPart("metadata") SetCommunityPostDTO setCommunityPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file, Principal principal) throws ValidationErrorWithMethod, IOException {
+    public ResponseEntity<String> setCommunityPosts(@Valid @RequestPart("metadata") SetPostCommunityDTO setCommunityPostDTO, BindingResult result, @RequestPart(value = "file", required = false) @Schema(description = "Формат только png или mp4!") MultipartFile[] file, Principal principal) throws ValidationErrorWithMethod, IOException {
         postCommunityService.setPostCommunnity(setCommunityPostDTO, principal.getName(), result, file);
         return ResponseEntity.ok("Сущность поста сообщества изменена");
     }

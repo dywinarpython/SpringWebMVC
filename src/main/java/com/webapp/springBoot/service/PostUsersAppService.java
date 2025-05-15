@@ -1,9 +1,9 @@
 package com.webapp.springBoot.service;
 
-import com.webapp.springBoot.DTO.UsersPost.RequestUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseListUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.ResponseUsersPostDTO;
-import com.webapp.springBoot.DTO.UsersPost.SetUsersPostDTO;
+import com.webapp.springBoot.DTO.Post.RequestPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
+import com.webapp.springBoot.DTO.Post.SetPostDTO;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -30,8 +30,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -67,22 +67,34 @@ public class PostUsersAppService {
     }
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
-    @Cacheable(value = "USER_POST_LIST", key = "#nickname")
+    @Cacheable(value = "POST_LIST", key = "#nickname")
     @Transactional(readOnly = true)
-    public ResponseListUsersPostDTO getPostsByNickname(String nickname){
+    public ResponseListPostDTO getPostsByNickname(String nickname){
         UsersApp usersApp = usersService.findUsersByNickname(nickname);
         List<PostsUserApp> postsUserAppList = usersApp.getPostsUserAppList();
-        List<ResponseUsersPostDTO> usersPostDTOList = new ArrayList<>();
-        postsUserAppList.forEach(postsUserApp ->
-                usersPostDTOList.add(new ResponseUsersPostDTO(
-                        postsUserApp.getTitle(),
-                        postsUserApp.getDescription(),
-                        nickname,
-                        postsUserApp.getName(),
-                        filePostsUsersAppService.getFileName(postsUserApp)
-                ))
+        List<ResponsePostDTO> usersPostDTOList = new ArrayList<>();
+        postsUserAppList.forEach(postsUserApp -> {
+            boolean set;
+            LocalDateTime localDateTime;
+            if(postsUserApp.getUpdateDate() != null){
+                set = true;
+                localDateTime = postsUserApp.getUpdateDate();
+            } else {
+                set = false;
+                localDateTime = postsUserApp.getCreateDate();
+            }
+                    usersPostDTOList.add(new ResponsePostDTO(
+                            postsUserApp.getTitle(),
+                            postsUserApp.getDescription(),
+                            nickname,
+                            postsUserApp.getName(),
+                            filePostsUsersAppService.getFileName(postsUserApp),
+                            localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond(),
+                            set
+                    ));
+                }
                 );
-        return new ResponseListUsersPostDTO(usersPostDTOList);
+        return new ResponseListPostDTO(usersPostDTOList);
     }
 
     public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
@@ -94,10 +106,19 @@ public class PostUsersAppService {
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(resource);
     }
-     @Cacheable(value = "USER_POST", key = "#namePost")
-     public ResponseUsersPostDTO getPost(String namePost){
+     @Cacheable(value = "POST", key = "#namePost")
+     public ResponsePostDTO getPost(String namePost){
         PostsUserApp postsUserApp = findByName(namePost);
-        return new ResponseUsersPostDTO(postsUserApp, postsUserApp.getUsersApp().getNickname(), filePostsUsersAppService.getFileName(postsUserApp));
+         boolean set;
+         LocalDateTime localDateTime;
+         if(postsUserApp.getUpdateDate() != null){
+             set = true;
+             localDateTime = postsUserApp.getUpdateDate();
+         } else {
+             set = false;
+             localDateTime = postsUserApp.getCreateDate();
+         }
+        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set);
      }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostUsersAppService-------------------------->
@@ -111,8 +132,8 @@ public class PostUsersAppService {
 
     // <------------------------ УДАЛЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Caching(evict = {
-            @CacheEvict(value = "USER_POST", key = "#namePost"),
-            @CacheEvict(value = "USER_POST_LIST", key = "#nicknameUser")
+            @CacheEvict(value = "POST", key = "#namePost"),
+            @CacheEvict(value = "POST_LIST", key = "#nicknameUser")
     })
     @Transactional
     public void deletePostUsersApp(String namePost, String nicknameUser) throws IOException {
@@ -124,23 +145,23 @@ public class PostUsersAppService {
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
-    @CacheEvict(value = "USER_POST_LIST", key = "#nicknameUser")
-    @CachePut(value = "USER_POST" , key = "#result.getNamePost()")
+    @CacheEvict(value = "POST_LIST", key = "#nicknameUser")
+    @CachePut(value = "POST" , key = "#result.getNamePost()")
     @Transactional
-    public ResponseUsersPostDTO createPostUsersApp(RequestUsersPostDTO requestUsersPostDTO, String nicknameUser, BindingResult bindingResult,
-                                                   MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
+    public ResponsePostDTO createPostUsersApp(RequestPostDTO requestPostDTO, String nicknameUser, BindingResult bindingResult,
+                                              MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
         if (bindingResult.hasErrors()) {
             throw new ValidationErrorWithMethod(bindingResult.getAllErrors());
         }
         boolean flag = false;
         PostsUserApp postsUserApp = new PostsUserApp();
         postsUserApp.setUsersApp(usersService.findUsersByNickname(nicknameUser));
-        if(requestUsersPostDTO.getTitle() != null){
-            postsUserApp.setTitle(requestUsersPostDTO.getTitle());
+        if(requestPostDTO.getTitle() != null){
+            postsUserApp.setTitle(requestPostDTO.getTitle());
             flag = true;
         }
-        if(requestUsersPostDTO.getDescription() != null){
-            postsUserApp.setDescription(requestUsersPostDTO.getDescription());
+        if(requestPostDTO.getDescription() != null){
+            postsUserApp.setDescription(requestPostDTO.getDescription());
             flag = true;
         }
         if(multipartFiles!=null) {
@@ -150,23 +171,23 @@ public class PostUsersAppService {
         if(!flag){
             throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста пользователя");
         }
-        postsUserApp.setTitle(requestUsersPostDTO.getTitle());
         postsUserApp.generateName();
-        postsUserApp.setDescription(requestUsersPostDTO.getDescription());
-        return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, filePostsUsersAppService.getFileName(postsUserApp));
+        postsUsersAppRepository.save(postsUserApp);
+        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), LocalDateTime.now(), false);
+
     }
-    @CacheEvict(value = "USER_POST_LIST", key = "#nicknameUser")
-    @CachePut(value = "USER_POST" , key = "#result.getNamePost()")
+    @CacheEvict(value = "POST_LIST", key = "#nicknameUser")
+    @CachePut(value = "POST" , key = "#result.getNamePost()")
     @Transactional
-    public ResponseUsersPostDTO setPostUserApp(SetUsersPostDTO setUsersPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
+    public ResponsePostDTO setPostUserApp(SetPostDTO setPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        PostsUserApp postsUserApp = checkPostUserByNicknameUser(setUsersPostDTO.getNamePost(), nicknameUser);
-        if(setUsersPostDTO.getTitle() != null) {
-            postsUserApp.setTitle(setUsersPostDTO.getTitle());
+        PostsUserApp postsUserApp = checkPostUserByNicknameUser(setPostDTO.getNamePost(), nicknameUser);
+        if(setPostDTO.getTitle() != null) {
+            postsUserApp.setTitle(setPostDTO.getTitle());
         }
-        postsUserApp.setDescription(setUsersPostDTO.getDescription());
+        postsUserApp.setDescription(setPostDTO.getDescription());
         List<String> fileNames;
         filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         if(multipartFiles!=null) {
@@ -176,6 +197,7 @@ public class PostUsersAppService {
             fileNames = null;
         }
         postsUserApp.setUpdateDate(LocalDateTime.now());
-        return new ResponseUsersPostDTO(postsUsersAppRepository.save(postsUserApp), nicknameUser, fileNames);
+        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), postsUserApp.getUpdateDate(), true);
+
     }
 }
