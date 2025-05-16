@@ -53,7 +53,10 @@ public class FriendsService {
         if(Boolean.TRUE.equals(cache.get(nickname1.compareTo(nickname2) < 0 ? nickname1 + '_' + nickname2 : nickname2 + '_' + nickname1, Boolean.class))){
             return true;
         }
-        return friendsRepository.checkFriends(usersService.getIdWithNickname(nickname1), usersService.getIdWithNickname(nickname2));
+        boolean checkFriends = friendsRepository.checkFriends(usersService.getIdWithNickname(nickname1), usersService.getIdWithNickname(nickname2));
+        cache.put(nickname1.compareTo(nickname2) < 0 ? nickname1 + '_' + nickname2 : nickname2 + '_' + nickname1, checkFriends);
+        System.out.println(checkFriends);
+        return checkFriends;
     }
 
     @Caching(

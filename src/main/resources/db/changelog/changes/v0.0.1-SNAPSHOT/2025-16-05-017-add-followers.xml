@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="2025-16-05-017-add-followers" author="Dywinar">
+        <createTable tableName="followers">
+            <column name="id" autoIncrement="true" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="community_id" type="bigint"/>
+            <column name="followers_id" type="bigint"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="followers"
+                                 baseColumnNames="followers_id"
+                                 referencedTableName="users_app"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_users_app_followers"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="followers"
+                                 baseColumnNames="community_id"
+                                 referencedTableName="community"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_users_app_followers_community"
+                                 onDelete="CASCADE"/>
+        <addUniqueConstraint
+                tableName="followers"
+                columnNames="community_id, followers_id"
+                constraintName="uk_followers_unique"/>
+    </changeSet>
+</databaseChangeLog>

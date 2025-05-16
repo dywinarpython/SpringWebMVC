@@ -12,6 +12,7 @@ import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.OAuth2.GoogleUserInfo;
 import com.webapp.springBoot.security.SecurityUsersService;
 import com.webapp.springBoot.cache.CacheSaveVerifyRecord;
+import com.webapp.springBoot.util.DeleteCookie;
 import com.webapp.springBoot.util.VerifyPhoneService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -189,14 +190,15 @@ public class UsersService {
         @CacheEvict(value = "FRIENDS_LIST", key = "#nickname"),
         @CacheEvict(value = "CHECK_FRIEND", key = "#nickname1 < #nickname2 ? #nickname1 + '_' + #nickname2 : #nickname2 + '_' + #nickname1")})
     @Transactional
-    public void deleteUserByNickname(String nickname) throws IOException {
+    public void deleteUserByNickname(String nickname, HttpServletResponse response) throws IOException {
         UsersApp user = findUsersByNickname(nickname);
+        deleteCacheService.deleteAllCacheFriend(user.getId());
         imageUsersAppService.deleteImageUsersApp(user);
         for (PostsUserApp postsUserApp : user.getPostsUserAppList()){
             filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         }
-        deleteCacheService.deleteAllCacheFriend(user.getId());
         userRepository.delete(user);
+        DeleteCookie.deleteCookie(response, "__Host_authinticatedToken");
     }
     @CacheEvict(value = "USER_RESPONSE", key = "#nickname")
     @Transactional

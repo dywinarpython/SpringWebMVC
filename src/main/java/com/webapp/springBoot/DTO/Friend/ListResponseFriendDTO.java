@@ -14,6 +14,6 @@ import java.util.List;
 @Schema(name = "Сущность друзей пользователя")
 public class ListResponseFriendDTO {
 
-    private List<ResponseFriendDTO> friends;
+    private List<ResponseFriendDTO> users;
 
 }

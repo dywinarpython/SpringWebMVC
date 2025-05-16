@@ -208,8 +208,8 @@ public class UsersController {
                     @ApiResponse(
                             responseCode = "404", content = @Content(schema = @Schema(implementation = String.class)))}
     )
-    public ResponseEntity<String> deleteUserByNickname(Principal principal) throws IOException {
-        usersService.deleteUserByNickname(principal.getName());
+    public ResponseEntity<String> deleteUserByNickname(Principal principal, HttpServletResponse response) throws IOException {
+        usersService.deleteUserByNickname(principal.getName(), response);
         return ResponseEntity.ok("Пользователь был успешно удален");
     }
 

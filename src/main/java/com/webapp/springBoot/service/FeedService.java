@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class FeedService {
@@ -35,6 +36,9 @@ public class FeedService {
     @Autowired
     private FeedRepository feedRepository;
 
+    @Autowired
+    private PostCommunityService postCommunityService;
+
     @Value("${size.feed}")
     private Integer size;
 
@@ -47,7 +51,6 @@ public class FeedService {
             throw new RuntimeException("Кеш не доступен");
         }
         ListFeedDTO listFeedDTO = cache.get(userId + ":" + page, ListFeedDTO.class);
-        System.out.println(listFeedDTO);
         List<FeedDTO> feed;
         if(listFeedDTO == null){
             feed = feedRepository.findByUserIdOrderByCreateTimeDesc(userId, PageRequest.of(page, size));
@@ -59,7 +62,11 @@ public class FeedService {
         feed.forEach(fd -> {
             ResponsePostDTO responsePostDTO = cachePost.get(fd.getNamePost(), ResponsePostDTO.class);
             if(responsePostDTO == null){
-                responsePostDTO = postUsersAppService.getPost(fd.getNamePost());
+                try{
+                    responsePostDTO = postUsersAppService.getPost(fd.getNamePost());
+                } catch (NoSuchElementException e){
+                    responsePostDTO = postCommunityService.getPost(fd.getNamePost());
+                }
             }
                     responsePostDTOS.add(responsePostDTO);
                 }

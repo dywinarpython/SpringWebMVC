@@ -2,7 +2,7 @@ package com.webapp.springBoot.service;
 
 
 import com.webapp.springBoot.DTO.Community.*;
-import com.webapp.springBoot.DTO.Users.ListCommunityUsersDTO;
+import com.webapp.springBoot.cache.DeleteCacheService;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.UsersApp;
@@ -11,6 +11,7 @@ import com.webapp.springBoot.repository.CommunityRepository;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,6 +43,9 @@ public class CommunityService {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private DeleteCacheService deleteCacheService;
 
 
 
@@ -124,7 +128,10 @@ public class CommunityService {
 
 
     // <----------------УДАЛЕНИЕ  В СУЩНОСТИ  Community ----------------------------->
-    @CacheEvict(value = "COMMUNITY_RESPONSE", key = "#nickname")
+    @Caching(evict = {
+            @CacheEvict(value = "COMMUNITY_RESPONSE", key = "#nickname"),
+            @CacheEvict(value = "FOLLOWERS_LIST", key="#nickname")
+    })
     @Transactional
     public void deleteCommunityByNickname(String nickname, String nicknameUser) throws IOException{
         Community community = checkCommunityByNicknameUser(nickname, nicknameUser);
@@ -133,6 +140,7 @@ public class CommunityService {
             for (PostsCommunity postsCommunity : community.getPostsCommunityList()){
                 filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
             }
+            deleteCacheService.deleteAllFolowersCache(nickname);
             communityRepository.delete(community);
     }
 
