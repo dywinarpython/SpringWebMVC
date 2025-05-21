@@ -3,6 +3,7 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
 import com.webapp.springBoot.DTO.Friend.ResponseFriendDTO;
+import com.webapp.springBoot.DTO.Kafka.RequestFriendDTOFeed;
 import com.webapp.springBoot.entity.Friends;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -16,14 +17,12 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,6 +44,9 @@ public class FriendsService {
     @Autowired
     private CacheManager cacheManager;
 
+    @Autowired
+    private KafkaTemplate<String, RequestFriendDTOFeed> kafkaTemplate;
+
 
     // Первое обязательно Principal
     public Boolean checkFriend(String nickname1, String nickname2) {
@@ -55,7 +57,6 @@ public class FriendsService {
         }
         boolean checkFriends = friendsRepository.checkFriends(usersService.getIdWithNickname(nickname1), usersService.getIdWithNickname(nickname2));
         cache.put(nickname1.compareTo(nickname2) < 0 ? nickname1 + '_' + nickname2 : nickname2 + '_' + nickname1, checkFriends);
-        System.out.println(checkFriends);
         return checkFriends;
     }
 
@@ -83,6 +84,7 @@ public class FriendsService {
         friends2.setFriendUsersApp(usersApp);
         friendsRepository.save(friends);
         friendsRepository.save(friends2);
+        kafkaTemplate.send("news-feed-topic-friend", null, new RequestFriendDTOFeed(nickname1, nickname2));
         return true;
     }
 
@@ -116,7 +118,7 @@ public class FriendsService {
         usersAppFriend.getFriends().remove(friends);
         friendsRepository.delete(friends);
         usersAppRepository.save(usersAppFriend);
+        kafkaTemplate.send("news-feed-topic-friend-del", null, new RequestFriendDTOFeed(nickname1, nickname2));
     }
-
 }
 

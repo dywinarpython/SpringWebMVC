@@ -95,7 +95,29 @@ public class PostCommunityService {
     }
     @Cacheable(value = "POST", key = "#namePost")
     public ResponsePostDTO getPost(String namePost){
-        PostsCommunity postsCommunity = findByName(namePost);
+        Optional<PostsCommunity>  optionalPostsCommunity = findByName(namePost);
+        if (optionalPostsCommunity.isEmpty()) {
+            throw new NoSuchElementException("Пост не найден");
+        }
+        PostsCommunity postsCommunity = optionalPostsCommunity.get();
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsCommunity.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsCommunity.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsCommunity.getCreateDate();
+        }
+        return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set);
+    }
+
+    public ResponsePostDTO getPostNull(String namePost){
+        Optional<PostsCommunity>  optionalPostsCommunity = findByName(namePost);
+        if (optionalPostsCommunity.isEmpty()) {
+            return null;
+        }
+        PostsCommunity postsCommunity = optionalPostsCommunity.get();
         boolean set;
         LocalDateTime localDateTime;
         if(postsCommunity.getUpdateDate() != null){
@@ -109,12 +131,8 @@ public class PostCommunityService {
     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostCommunityService-------------------------->
-    public PostsCommunity findByName(String name) {
-        Optional<PostsCommunity> optionalPostsCommunity = postsCommunityRepository.findByName(name);
-        if (optionalPostsCommunity.isEmpty()) {
-            throw new NoSuchElementException("Пост не найден");
-        }
-        return optionalPostsCommunity.get();
+    public Optional<PostsCommunity> findByName(String name) {
+        return postsCommunityRepository.findByName(name);
     }
 
 
@@ -125,7 +143,11 @@ public class PostCommunityService {
     })
     @Transactional
     public void deletePostCommunity(DeleteCommunityPostDTO deleteCommunityPostDTO, String nicknameUser) throws IOException {
-        PostsCommunity postsCommunity = findByName(deleteCommunityPostDTO.getNamePost());
+        Optional<PostsCommunity>  optionalPostsCommunity = findByName(deleteCommunityPostDTO.getNamePost());
+        if (optionalPostsCommunity.isEmpty()) {
+            throw new NoSuchElementException("Пост не найден");
+        }
+        PostsCommunity postsCommunity = optionalPostsCommunity.get();
         communityService.checkCommunityByNicknameUser(postsCommunity.getCommunity(), nicknameUser);
         postsCommunity.setCommunity(null);
         filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
@@ -172,7 +194,11 @@ public class PostCommunityService {
         if (result.hasErrors()) {
             throw new ValidationErrorWithMethod(result.getAllErrors());
         }
-        PostsCommunity postsCommunity = findByName(setCommunityPostDTO.getNamePost());
+        Optional<PostsCommunity>  optionalPostsCommunity = findByName(setCommunityPostDTO.getNamePost());
+        if (optionalPostsCommunity.isEmpty()) {
+            throw new NoSuchElementException("Пост не найден");
+        }
+        PostsCommunity postsCommunity = optionalPostsCommunity.get();
         Community community = postsCommunity.getCommunity();
         communityService.checkCommunityByNicknameUser(community, nicknameUser);
         if(setCommunityPostDTO.getTitle() != null) {
@@ -183,9 +209,6 @@ public class PostCommunityService {
         filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
         if(multipartFiles!=null) {
             filePostsCommunityService.createFIlesForPosts(multipartFiles, postsCommunity);
-            fileNames = filePostsCommunityService.getFileName(postsCommunity);
-        } else {
-            fileNames = null;
         }
         postsCommunity.setUpdateDate(LocalDateTime.now());
         return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), postsCommunity.getUpdateDate(), true);

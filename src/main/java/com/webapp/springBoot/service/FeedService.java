@@ -60,15 +60,18 @@ public class FeedService {
         }
         List<ResponsePostDTO> responsePostDTOS = new ArrayList<>();
         feed.forEach(fd -> {
-            ResponsePostDTO responsePostDTO = cachePost.get(fd.getNamePost(), ResponsePostDTO.class);
-            if(responsePostDTO == null){
-                try{
-                    responsePostDTO = postUsersAppService.getPost(fd.getNamePost());
-                } catch (NoSuchElementException e){
-                    responsePostDTO = postCommunityService.getPost(fd.getNamePost());
-                }
-            }
-                    responsePostDTOS.add(responsePostDTO);
+                    ResponsePostDTO responsePostDTO = cachePost.get(fd.getNamePost(), ResponsePostDTO.class);
+                    if (responsePostDTO == null) {
+                        responsePostDTO = postUsersAppService.getPostNull(fd.getNamePost());
+                        if (responsePostDTO == null) {
+                            responsePostDTO = postCommunityService.getPostNull(fd.getNamePost());
+                        }
+                    }
+                    if (responsePostDTO != null) {
+                        responsePostDTOS.add(responsePostDTO);
+                    } else {
+                        cache.evict(userId + ":" + page);
+                    }
                 }
         );
         return new ResponseListPostDTO(responsePostDTOS);
