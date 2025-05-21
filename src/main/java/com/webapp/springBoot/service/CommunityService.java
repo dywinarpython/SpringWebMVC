@@ -8,10 +8,12 @@ import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -46,6 +48,10 @@ public class CommunityService {
 
     @Autowired
     private DeleteCacheService deleteCacheService;
+
+    @Qualifier("stringKafkaTemplate")
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
 
 
@@ -142,6 +148,7 @@ public class CommunityService {
             }
             deleteCacheService.deleteAllFolowersCache(nickname);
             communityRepository.delete(community);
+            kafkaTemplate.send("news-feed-topic-community-del", null, community.getNickname());
     }
 
     @Transactional

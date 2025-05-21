@@ -12,13 +12,16 @@ import com.webapp.springBoot.repository.FollowersRepository;
 import com.webapp.springBoot.repository.FriendsRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.example.RequestFollowersFeedDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,10 @@ public class FollowersService {
     @Autowired
     private CacheManager cacheManager;
 
+    @Qualifier("requestFollowerKafkaTemplate")
+    @Autowired
+    private KafkaTemplate<String, RequestFollowersFeedDTO> kafkaTemplate;
+
 
     // Первое обязательно Principal
     public Boolean checkFollowers(String nickname, String nicknameCommunity) {
@@ -74,6 +81,7 @@ public class FollowersService {
         followers.setUsersApp(usersApp);
         followers.setCommunity(community);
         followersRepository.save(followers);
+        kafkaTemplate.send("news-feed-topic-follower", null, new RequestFollowersFeedDTO(nickname, nicknameCommunity));
         return true;
     }
 
@@ -94,6 +102,7 @@ public class FollowersService {
     public void deleteFollowers(String nickname, String nicknameCommunity){
         Followers followers = followersRepository.findFollowers(nickname, nicknameCommunity).orElseThrow(() -> new NoSuchElementException("Пользователь не подписан на данное сообщество"));
         followersRepository.delete(followers);
+        kafkaTemplate.send("news-feed-topic-follower-del", null, new RequestFollowersFeedDTO(nickname, nicknameCommunity));
     }
 }
 

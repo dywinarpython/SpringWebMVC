@@ -6,9 +6,11 @@ import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.PostsCommunityRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -45,6 +47,10 @@ public class PostCommunityService {
 
     @Autowired
     private PostsCommunityRepository postsCommunityRepository;
+
+    @Qualifier("stringKafkaTemplate")
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
 
@@ -147,11 +153,12 @@ public class PostCommunityService {
         if (optionalPostsCommunity.isEmpty()) {
             throw new NoSuchElementException("Пост не найден");
         }
-        PostsCommunity postsCommunity = optionalPostsCommunity.get();
-        communityService.checkCommunityByNicknameUser(postsCommunity.getCommunity(), nicknameUser);
-        postsCommunity.setCommunity(null);
-        filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
-        postsCommunityRepository.delete(postsCommunity);
+        PostsCommunity postCommunity = optionalPostsCommunity.get();
+        communityService.checkCommunityByNicknameUser(postCommunity.getCommunity(), nicknameUser);
+        postCommunity.setCommunity(null);
+        filePostsCommunityService.deleteFilePostsCommunityService(postCommunity);
+        postsCommunityRepository.delete(postCommunity);
+        kafkaTemplate.send("news-feed-topic-namePost-del", null, postCommunity.getName());
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
@@ -184,6 +191,7 @@ public class PostCommunityService {
         }
         postsCommunity.generateName();
         postsCommunityRepository.save(postsCommunity);
+        kafkaTemplate.send("news-feed-topic-community", requestCommunityPostDTO.getNicknameCommunity(), postsCommunity.getName());
         return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), LocalDateTime.now(), false);
     }
 

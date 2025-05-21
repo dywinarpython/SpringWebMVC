@@ -1,6 +1,6 @@
 package com.webapp.springBoot.service;
 
-import com.webapp.springBoot.DTO.Kafka.RequestFeedDTO;
+
 import com.webapp.springBoot.DTO.Post.RequestPostDTO;
 import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
 import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
@@ -12,6 +12,7 @@ import com.webapp.springBoot.repository.PostsUsersAppRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -58,6 +59,7 @@ public class PostUsersAppService {
     @Autowired
     private PostsUsersAppRepository postsUsersAppRepository;
 
+    @Qualifier("stringKafkaTemplate")
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
@@ -180,6 +182,7 @@ public class PostUsersAppService {
         postsUserApp.setUsersApp(null);
         filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         postsUsersAppRepository.delete(postsUserApp);
+        kafkaTemplate.send("news-feed-topic-namePost-del", null, postsUserApp.getName());
     }
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->

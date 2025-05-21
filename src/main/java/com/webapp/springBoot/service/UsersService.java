@@ -16,8 +16,10 @@ import com.webapp.springBoot.util.DeleteCookie;
 import com.webapp.springBoot.util.VerifyPhoneService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -57,6 +59,10 @@ public class UsersService {
     private CacheManager cacheManager;
     @Autowired
     private DeleteCacheService deleteCacheService;
+
+    @Qualifier("stringKafkaTemplate")
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
 
     // <-----------------------Сохранения сущности пользователя в кеш-------------------->
@@ -198,6 +204,7 @@ public class UsersService {
             filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         }
         userRepository.delete(user);
+        kafkaTemplate.send("news-feed-topic-user-del", null, nickname);
         DeleteCookie.deleteCookie(response, "__Host_authinticatedToken");
     }
     @CacheEvict(value = "USER_RESPONSE", key = "#nickname")

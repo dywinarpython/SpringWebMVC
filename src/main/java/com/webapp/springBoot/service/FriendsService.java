@@ -3,14 +3,16 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
 import com.webapp.springBoot.DTO.Friend.ResponseFriendDTO;
-import com.webapp.springBoot.DTO.Kafka.RequestFriendDTOFeed;
 import com.webapp.springBoot.entity.Friends;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.FriendsRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.example.DeleteFriendDTO;
+import org.example.RequestFriendDTOFeed;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -46,6 +48,9 @@ public class FriendsService {
 
     @Autowired
     private KafkaTemplate<String, RequestFriendDTOFeed> kafkaTemplate;
+
+    @Autowired
+    private KafkaTemplate<String, DeleteFriendDTO> kafkaTemplate2;
 
 
     // Первое обязательно Principal
@@ -118,7 +123,7 @@ public class FriendsService {
         usersAppFriend.getFriends().remove(friends);
         friendsRepository.delete(friends);
         usersAppRepository.save(usersAppFriend);
-        kafkaTemplate.send("news-feed-topic-friend-del", null, new RequestFriendDTOFeed(nickname1, nickname2));
+        kafkaTemplate2.send("news-feed-topic-friend-del", null, new DeleteFriendDTO(usersApp.getId(), usersAppFriend.getId()));
     }
 }
 
