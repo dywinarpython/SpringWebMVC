@@ -45,8 +45,9 @@ public class DeleteCacheService {
             throw new RuntimeException("Кеш не доступен, а именно: FOLLOWERS_LIST");
         }
         followersList.forEach(followers -> {
-            cache.evict(followers.getCommunity().getNickname());
+            cache.evict(nickname + ":" + followers.getUsersApp().getNickname());
         });
+        followersRepository.deleteAll(followersList);
     }
 
 }

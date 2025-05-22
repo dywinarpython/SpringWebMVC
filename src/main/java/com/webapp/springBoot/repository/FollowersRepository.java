@@ -1,6 +1,7 @@
 package com.webapp.springBoot.repository;
 
 import com.webapp.springBoot.DTO.Friend.ResponseFriendDTO;
+import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.Followers;
 import com.webapp.springBoot.entity.Friends;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,11 +13,12 @@ import java.util.Optional;
 
 public interface FollowersRepository extends JpaRepository<Followers, Long> {
     @Query(
-            """
+            value = """
                  SELECT COUNT(f) > 0
-                 FROM Followers f
-                 WHERE f.community.nickname = :nickname AND f.usersApp.id = :id
-           """
+                          FROM Followers f
+                          join community c on f.community_id = c.id
+                          WHERE c.nickname = :nickname AND f.followers_id = :id
+           """, nativeQuery = true
     )
     boolean checkFollowers(@Param("id") Long id, @Param("nickname") String nickname);
 

@@ -122,7 +122,7 @@ public class CommunityController {
     )
     public ResponseEntity<String> deleteCommunityByNickname(@PathVariable(required = false) String nicknameUser, @PathVariable String nicknameCommunity, Principal principal) throws IOException{
         nicknameUser = nicknameUser == null? principal.getName() : nicknameUser;
-        communityService.deleteCommunityByNickname(nicknameCommunity, nicknameUser);
+        communityService.deleteCommunityByNickname(nicknameCommunity, nicknameUser, true);
         return ResponseEntity.ok("Сообщество удалено");
     }
 
@@ -140,5 +140,4 @@ public class CommunityController {
         communityService.deleteImageCommunity(nicknameCommunity, nicknameUser);
         return ResponseEntity.ok("Изображение сообщества удалено");
     }
-
 }

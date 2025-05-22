@@ -22,6 +22,7 @@ public class Community {
     private Long id;
 
 
+
     @Getter
     @NotNull
     @Column(length = 20)
@@ -61,6 +62,7 @@ public class Community {
     public List<PostsCommunity> getPostsUserAppList() {
         return postsCommunityList;
     }
+
 
     public Long getCountUser() {
         return countUser;

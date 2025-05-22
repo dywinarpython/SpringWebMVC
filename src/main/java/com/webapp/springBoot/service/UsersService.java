@@ -2,6 +2,7 @@ package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Admin.AddNewRoleUsersAppDTO;
 import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
+import com.webapp.springBoot.DTO.Listner.UserHelperDTODelCommunity;
 import com.webapp.springBoot.DTO.OAuth2.UserRequestOAuth2DTO;
 import com.webapp.springBoot.DTO.Users.*;
 import com.webapp.springBoot.cache.DeleteCacheService;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +65,9 @@ public class UsersService {
     @Qualifier("stringKafkaTemplate")
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
+    private ApplicationEventPublisher publisher;
 
 
     // <-----------------------Сохранения сущности пользователя в кеш-------------------->
@@ -203,7 +208,11 @@ public class UsersService {
         for (PostsUserApp postsUserApp : user.getPostsUserAppList()){
             filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         }
+        for(Community community: user.getCommunity()){
+            publisher.publishEvent(new UserHelperDTODelCommunity(nickname, community.getNickname()));
+        }
         userRepository.delete(user);
+        kafkaTemplate.send("news-feed-topic-community-del", null, "Очистка сообществ");
         kafkaTemplate.send("news-feed-topic-user-del", null, nickname);
         DeleteCookie.deleteCookie(response, "__Host_authinticatedToken");
     }

@@ -55,6 +55,8 @@ public class CommunityService {
 
 
 
+
+
     // <----------------ПРОВЕРКА ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
     public Community checkCommunityByNicknameUser(String nickname, String nicknameUser){
         Community community = findCommunityByNickname(nickname);
@@ -87,6 +89,11 @@ public class CommunityService {
     }
 
     // <----------------ПОЛУЧЕНИЕ ДАННЫХ В СУЩНОСТИ  Community ----------------------------->
+
+
+    public Long getCommunityId(String nickname){
+        return communityRepository.getIdCommunity(nickname).orElseThrow(() -> new NoSuchElementException("Сообщество не найдено"));
+    }
 
     @Cacheable(value = "COMMUNITY_RESPONSE", key="#nickname")
     public CommunityResponseDTO getByNickname(String nickname){
@@ -139,16 +146,17 @@ public class CommunityService {
             @CacheEvict(value = "FOLLOWERS_LIST", key="#nickname")
     })
     @Transactional
-    public void deleteCommunityByNickname(String nickname, String nicknameUser) throws IOException{
+    public void deleteCommunityByNickname(String nickname, String nicknameUser, boolean sendToKafka) throws IOException{
         Community community = checkCommunityByNicknameUser(nickname, nicknameUser);
-            community.getUserOwner().setCommunity(null);
-            imageCommunityService.deleteImageCommunity(community);
-            for (PostsCommunity postsCommunity : community.getPostsCommunityList()){
+        imageCommunityService.deleteImageCommunity(community);
+        for (PostsCommunity postsCommunity : community.getPostsCommunityList()){
                 filePostsCommunityService.deleteFilePostsCommunityService(postsCommunity);
             }
-            deleteCacheService.deleteAllFolowersCache(nickname);
-            communityRepository.delete(community);
-            kafkaTemplate.send("news-feed-topic-community-del", null, community.getNickname());
+        deleteCacheService.deleteAllFolowersCache(nickname);
+        communityRepository.delete(community);
+        if(sendToKafka) {
+                kafkaTemplate.send("news-feed-topic-community-del", null, community.getNickname());
+            }
     }
 
     @Transactional

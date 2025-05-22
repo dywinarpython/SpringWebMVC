@@ -40,7 +40,7 @@ public class FollowersController {
     @DeleteMapping("/{nickname}")
     public ResponseEntity<String> deleteFriend(@PathVariable String nickname, Principal principal){
         followersService.deleteFollowers(principal.getName(), nickname);
-        return  ResponseEntity.ok("Пользователь успешно удален из друзей");
+        return  ResponseEntity.ok("Пользователь успешно удален из подписчиков");
     }
     @Operation(
             summary = "Получение всех подписчиков сообщества",

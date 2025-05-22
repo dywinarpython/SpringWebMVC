@@ -1,6 +1,7 @@
 package com.webapp.springBoot.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.example.DeleteFollowerDTO;
 import org.example.DeleteFriendDTO;
 import org.example.RequestFollowersFeedDTO;
 import org.example.RequestFriendDTOFeed;
@@ -83,6 +84,13 @@ public class KafkaConfig {
     @Qualifier("deleteFriendKafkaTemplate")
     public KafkaTemplate<String, DeleteFriendDTO> deleteFriendKafkaTemplate(
             ProducerFactory<String, DeleteFriendDTO> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    @Qualifier("deleteFollowerKafkaTemplate")
+    public KafkaTemplate<String, DeleteFollowerDTO> deleteFollowerKafkaTemplate(
+            ProducerFactory<String, DeleteFollowerDTO> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
     }
 

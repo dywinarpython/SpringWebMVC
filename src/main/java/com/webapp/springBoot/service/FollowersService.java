@@ -12,6 +12,7 @@ import com.webapp.springBoot.repository.FollowersRepository;
 import com.webapp.springBoot.repository.FriendsRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.example.DeleteFollowerDTO;
 import org.example.RequestFollowersFeedDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,14 +56,22 @@ public class FollowersService {
     @Autowired
     private KafkaTemplate<String, RequestFollowersFeedDTO> kafkaTemplate;
 
+    @Qualifier("deleteFollowerKafkaTemplate")
+    @Autowired
+    private KafkaTemplate<String, DeleteFollowerDTO> kafkaTemplate2;
+
+
+
 
     // Первое обязательно Principal
+    @Cacheable(value = "CHECK_FOLLOWERS", key ="#nickname + ':' + nicknameCommunity")
     public Boolean checkFollowers(String nickname, String nicknameCommunity) {
         Cache cache = cacheManager.getCache("CHECK_FOLLOWERS");
         assert cache != null;
         if(Boolean.TRUE.equals(cache.get(nickname + ":" + nicknameCommunity, Boolean.class))){
             return true;
         }
+        System.out.println(usersService.getIdWithNickname(nickname));
         return followersRepository.checkFollowers(usersService.getIdWithNickname(nickname), nicknameCommunity);
     }
 
@@ -75,6 +84,9 @@ public class FollowersService {
             }
     )
     public Boolean createFollowers(String nickname, String nicknameCommunity) throws ValidationErrorWithMethod {
+        if(checkFollowers(nickname, nicknameCommunity)){
+            throw new ValidationErrorWithMethod("Пользователь  уже подписан на сообщество");
+        }
         UsersApp usersApp = usersService.findUsersByNickname(nickname);
         Community community = communityService.findCommunityByNickname(nicknameCommunity);
         Followers followers = new Followers();
@@ -102,7 +114,7 @@ public class FollowersService {
     public void deleteFollowers(String nickname, String nicknameCommunity){
         Followers followers = followersRepository.findFollowers(nickname, nicknameCommunity).orElseThrow(() -> new NoSuchElementException("Пользователь не подписан на данное сообщество"));
         followersRepository.delete(followers);
-        kafkaTemplate.send("news-feed-topic-follower-del", null, new RequestFollowersFeedDTO(nickname, nicknameCommunity));
+        kafkaTemplate2.send("news-feed-topic-follower-del", null, new DeleteFollowerDTO(usersService.getIdWithNickname(nickname), communityService.getCommunityId(nicknameCommunity)));
     }
 }
 
