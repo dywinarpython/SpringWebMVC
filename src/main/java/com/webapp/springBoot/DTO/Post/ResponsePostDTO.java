@@ -32,7 +32,12 @@ public class ResponsePostDTO {
 
     private Boolean set;
 
-    public ResponsePostDTO(String title, String description, String namePost , String nickname, List<String> namePostsFile, LocalDateTime localDateTime, Boolean set){
+    private Boolean communityBol;
+
+    private Long rating;
+
+
+    public ResponsePostDTO(String title, String description, String namePost , String nickname, List<String> namePostsFile, LocalDateTime localDateTime, Boolean set, Boolean communityBol, Long rating){
         this.title = title;
         this.description = description;
         this.nickname = nickname;
@@ -40,6 +45,8 @@ public class ResponsePostDTO {
         this.namePost = namePost;
         this.localDateTime = localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
         this.set = set;
+        this.communityBol = communityBol;
+        this.rating = rating;
     }
 
 }

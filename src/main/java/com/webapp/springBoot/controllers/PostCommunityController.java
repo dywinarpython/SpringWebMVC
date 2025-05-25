@@ -35,14 +35,14 @@ public class PostCommunityController {
 
     // <------------------------ GET ЗАПРОСЫ -------------------------->
 
-    @GetMapping("/{nickname}")
+    @GetMapping("/{nickname}/{page}")
     @Operation(summary = "Получение постов по nickname сообщества",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTOReaction.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseListPostDTO getPostByNicknameCommunityPosts(@PathVariable String nickname){
-        return postCommunityService.getPostsByNickname(nickname);
+    public ResponseListPostDTOReaction getPostByNicknameCommunityPosts(@PathVariable String nickname, @PathVariable int page, Principal principal){
+        return postCommunityService.getPostsByNicknameReaction(nickname, page, principal.getName());
     }
 
     @GetMapping(value = "/file/{nameFile}", produces = {MediaType.IMAGE_PNG_VALUE, "video/mp4"})
@@ -59,11 +59,11 @@ public class PostCommunityController {
     @GetMapping("/name")
     @Operation(summary = "Получение поста сообщества по имени",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponsePostDTO.class))),
+                    @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponsePostDTOReaction.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponsePostDTO getPostByName(@RequestParam String namePost){
-        return postCommunityService.getPost(namePost);
+    public ResponsePostDTOReaction getPostByName(@RequestParam String namePost, Principal principal){
+        return postCommunityService.getPostWithReaction(namePost, principal.getName());
     }
 
     // <------------------------ POST ЗАПРОСЫ -------------------------->

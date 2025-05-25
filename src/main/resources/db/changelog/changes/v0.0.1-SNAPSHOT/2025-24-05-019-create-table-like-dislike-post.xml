@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+<changeSet id="2025-24-05-029-create-table-like-dislike-post" author="Dywinar">
+             <addColumn tableName="posts_community">
+                <column name = "rating" type="bigint" defaultValueNumeric="0"> <constraints nullable="false"/></column>
+            </addColumn>
+            <addColumn tableName="posts_user_app">
+                <column name = "rating" type="bigint" defaultValueNumeric="0"> <constraints nullable="false"/></column>
+            </addColumn>
+            <createTable tableName="user_post_reaction">
+                <column name="id" type="bigint" autoIncrement="true">
+                    <constraints primaryKey="true"/>
+                </column>
+                <column name="user_id" type="bigint"><constraints nullable="false"/></column>
+                <column name="rating" type="int"><constraints nullable="false"/></column>
+                <column name="name_post" type="varchar(255)">
+                    <constraints nullable="false"/> </column>
+            </createTable>
+    <addForeignKeyConstraint
+            baseTableName="user_post_reaction"
+            baseColumnNames="user_id"
+            constraintName="users_app_user_post_reaction"
+            referencedTableName="users_app"
+            referencedColumnNames="id"/>
+</changeSet>
+</databaseChangeLog>

@@ -26,10 +26,13 @@ public class CommunityResponseDTO {
 
     private String nameImage;
 
-    public CommunityResponseDTO(Community community, String nameImage){
+    private Long  countFollowers;
+
+    public CommunityResponseDTO(Community community, String nameImage, Long countFollowers){
         this.name = community.getName();
         this.description = community.getDescription();
         this.nicknameUser = community.getNickname();
+        this.countFollowers = countFollowers;
         this.nameImage = nameImage;
         this.nicknameCommunity = community.getNickname();
     }

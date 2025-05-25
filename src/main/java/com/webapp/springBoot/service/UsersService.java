@@ -190,7 +190,9 @@ public class UsersService {
                 community.getDescription(),
                 usersApp.getNickname(),
                 community.getNickname(),
-                imageCommunityService.getImageName(community))));
+                imageCommunityService.getImageName(community),
+                community.getCountUser()
+                )));
         return new ListCommunityUsersDTO(listCommunityUsersDTO);
     }
 
@@ -267,7 +269,6 @@ public class UsersService {
 
     // <----------------ИЗМЕНЕНИЕ В СУЩНОСТИ Users ----------------------------->
     @CachePut(value = "USER_RESPONSE", key = "#result.getNickname()")
-    @CacheEvict(value = "SECURITY", key="#nickname", condition = "#setUserDTO.getNicknameAfter() != null")
     @Transactional
     public UserResponceDTO setUsers(SetUserDTO setUserDTO, String nickname, BindingResult bindingResult, MultipartFile file) throws ValidationErrorWithMethod, IOException {
         if (bindingResult.hasErrors()) {
@@ -287,20 +288,11 @@ public class UsersService {
             setImageUsersApp(user, file);
             flag = true;
         }
-        if(setUserDTO.getNicknameAfter() != null){
-            setNickname(setUserDTO, user);
-            Objects.requireNonNull(cacheManager.getCache("USER_RESPONSE")).evict(nickname);
-            flag = true;
-        }
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
         deleteCacheService.deleteAllCacheFriend(user.getId());
         return new UserResponceDTO(user,  imageUsersAppService.getImageName(user));
-    }
-    public void setNickname(SetUserDTO apiResponseSetNicknameDTO, UsersApp user) {
-        user.setNickname(apiResponseSetNicknameDTO.getNicknameAfter());
-        userRepository.save(user);
     }
 
     public void setName(SetUserDTO setUserDTO,  UsersApp user){

@@ -8,6 +8,7 @@ import com.webapp.springBoot.entity.Followers;
 import com.webapp.springBoot.entity.Friends;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
+import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.FollowersRepository;
 import com.webapp.springBoot.repository.FriendsRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -48,6 +50,9 @@ public class FollowersService {
 
     @Autowired
     private CommunityService communityService;
+
+    @Autowired
+    private CommunityRepository communityRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -71,10 +76,10 @@ public class FollowersService {
         if(Boolean.TRUE.equals(cache.get(nickname + ":" + nicknameCommunity, Boolean.class))){
             return true;
         }
-        System.out.println(usersService.getIdWithNickname(nickname));
         return followersRepository.checkFollowers(usersService.getIdWithNickname(nickname), nicknameCommunity);
     }
 
+    @Transactional
     @Caching(
             put = {
                     @CachePut(value = "CHECK_FOLLOWERS", key = "#nickname + ':' + #nicknameCommunity")
@@ -89,10 +94,14 @@ public class FollowersService {
         }
         UsersApp usersApp = usersService.findUsersByNickname(nickname);
         Community community = communityService.findCommunityByNickname(nicknameCommunity);
+        if(Objects.equals(usersApp.getId(), community.getUserOwner().getId())){
+            throw new ValidationErrorWithMethod("Пользователь не может подписаться на свое же сообщество");
+        }
         Followers followers = new Followers();
         followers.setUsersApp(usersApp);
         followers.setCommunity(community);
         followersRepository.save(followers);
+        communityRepository.incrementFollowers(community.getId());
         kafkaTemplate.send("news-feed-topic-follower", null, new RequestFollowersFeedDTO(nickname, nicknameCommunity));
         return true;
     }
@@ -114,6 +123,7 @@ public class FollowersService {
     public void deleteFollowers(String nickname, String nicknameCommunity){
         Followers followers = followersRepository.findFollowers(nickname, nicknameCommunity).orElseThrow(() -> new NoSuchElementException("Пользователь не подписан на данное сообщество"));
         followersRepository.delete(followers);
+        communityRepository.reduceFollowers(followers.getCommunity().getId());
         kafkaTemplate2.send("news-feed-topic-follower-del", null, new DeleteFollowerDTO(usersService.getIdWithNickname(nickname), communityService.getCommunityId(nicknameCommunity)));
     }
 }

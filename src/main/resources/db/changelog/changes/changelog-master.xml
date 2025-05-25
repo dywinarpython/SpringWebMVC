@@ -18,5 +18,7 @@
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-21-04-013-add-unique-number.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-28-04-014-add-friend.xml"/>
     <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-16-05-017-add-followers.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-24-05-019-create-table-like-dislike-post.xml"/>
+    <include file="/db/changelog/changes/v0.0.1-SNAPSHOT/2025-24-05-020-add-unique-namePost-userid.xml"/>
 </databaseChangeLog>
     

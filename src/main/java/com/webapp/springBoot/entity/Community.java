@@ -17,6 +17,7 @@ import java.util.List;
 @Schema(description = "Сущность сообщества")
 @Entity
 public class Community {
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,6 +39,7 @@ public class Community {
     private String description;
 
 
+    @Getter
     private Long countUser;
 
     @Getter
@@ -52,7 +54,7 @@ public class Community {
     private ImagesCommunity imageUrl;
 
     @Getter
-    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "community", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PostsCommunity> postsCommunityList;
 
     public void setPostCommunityList(PostsCommunity postsCommunity) {
@@ -64,18 +66,15 @@ public class Community {
     }
 
 
-    public Long getCountUser() {
-        return countUser;
-    }
-
     public ImagesCommunity getImageUrlId() {
         return imageUrl;
     }
 
-    public Community(UsersApp userOwnerId, String description, String name, String nickname) {
+    public Community(UsersApp userOwnerId, String description, String name, String nickname, Long countUser) {
         this.userOwner = userOwnerId;
         this.description = description;
         this.name = name;
         this.nickname = nickname;
+        this.countUser = countUser;
     }
 }

@@ -14,12 +14,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "Работа с изменением сущности UsersApp")
 public class SetUserDTO {
-    @Unique
-    @Size(min = 2, max = 10,  message = "Длина nickname от 2 до 10")
-    @Schema(example = "nickname1")
-    @Pattern(regexp = "^[a-zA-Z]{2}[a-zA-z0-9]*$", message = "Nickname пользователя должен состоять из букв латинского языка (без спец. символов), первые 2 символа nickname не могут быть цифрами")
-    private String nicknameAfter;
-
     @Schema( example = "Иванов")
     @Size(min = 2, max = 20, message = "Длина фамилии от 2 до 20")
     @Pattern(regexp = "[A-ZА-ЯЁё][a-zа-яё]*$", message = "Surname должен состоять из букв латинского, русского языка (без спец. символов и цифр), только первая буква большая")

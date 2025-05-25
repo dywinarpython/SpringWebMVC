@@ -3,6 +3,7 @@ package com.webapp.springBoot.repository;
 import com.webapp.springBoot.entity.Community;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,4 +23,23 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
             WHERE nickname = :nickname
             """, nativeQuery = true)
     Optional<Long> getIdCommunity(@Param("nickname") String nickname);
+
+
+    @Modifying
+    @Query(value = """
+            UPDATE community
+            SET count_user = count_user + 1
+            where id = :id
+            """, nativeQuery = true)
+    void incrementFollowers(@Param("id") Long id);
+
+
+    @Modifying
+    @Query(value = """
+            UPDATE community
+            SET count_user = count_user - 1
+            where id = :id
+            """, nativeQuery = true)
+    void reduceFollowers(@Param("id") Long id);
+
 }

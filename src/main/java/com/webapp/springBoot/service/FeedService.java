@@ -4,7 +4,9 @@ package com.webapp.springBoot.service;
 import com.webapp.springBoot.DTO.Feed.FeedDTO;
 import com.webapp.springBoot.DTO.Feed.ListFeedDTO;
 import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
+import com.webapp.springBoot.DTO.Post.ResponseListPostDTOReaction;
 import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
+import com.webapp.springBoot.DTO.Post.ResponsePostDTOReaction;
 import com.webapp.springBoot.repository.FeedRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +41,13 @@ public class FeedService {
     @Autowired
     private PostCommunityService postCommunityService;
 
+    @Autowired
+    private UserPostReactionService userPostReactionService;
+
     @Value("${size.feed}")
     private Integer size;
 
-    public ResponseListPostDTO getFeed(String nickname, Integer page) {
+    public ResponseListPostDTOReaction getFeed(String nickname, Integer page) {
         Long userId = usersAppRepository.getUserIdByNickname(nickname).orElseThrow(
                 () -> new UsernameNotFoundException("Пользователь с таким nickname нет"));
         Cache cache = cacheManager.getCache("LIST_FEED_USER");
@@ -54,11 +59,11 @@ public class FeedService {
         List<FeedDTO> feed;
         if(listFeedDTO == null){
             feed = feedRepository.findByUserIdOrderByCreateTimeDesc(userId, PageRequest.of(page, size));
-            // нужен прогрев кеша
+            cache.put(userId + ":" + page, new ListFeedDTO(feed));
         } else{
             feed = listFeedDTO.getFeedList();
         }
-        List<ResponsePostDTO> responsePostDTOS = new ArrayList<>();
+        List<ResponsePostDTOReaction> responsePostDTOS = new ArrayList<>();
         feed.forEach(fd -> {
                     ResponsePostDTO responsePostDTO = cachePost.get(fd.getNamePost(), ResponsePostDTO.class);
                     if (responsePostDTO == null) {
@@ -68,13 +73,14 @@ public class FeedService {
                         }
                     }
                     if (responsePostDTO != null) {
-                        responsePostDTOS.add(responsePostDTO);
+                        Integer reaction = userPostReactionService.getRating(nickname, fd.getNamePost());
+                        responsePostDTOS.add(new ResponsePostDTOReaction(responsePostDTO, reaction));
                     } else {
                         cache.evict(userId + ":" + page);
                     }
                 }
         );
-        return new ResponseListPostDTO(responsePostDTOS);
+        return new ResponseListPostDTOReaction(responsePostDTOS);
 
     }
 

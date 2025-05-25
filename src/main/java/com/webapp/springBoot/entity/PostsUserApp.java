@@ -37,6 +37,9 @@ public class PostsUserApp {
 
     private LocalDateTime updateDate;
 
+    @Getter
+    private Long rating;
+
     @Setter
     @NotNull
     @ManyToOne(cascade = CascadeType.ALL)

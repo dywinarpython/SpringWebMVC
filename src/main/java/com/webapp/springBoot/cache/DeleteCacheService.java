@@ -3,6 +3,7 @@ package com.webapp.springBoot.cache;
 
 import com.webapp.springBoot.entity.Followers;
 import com.webapp.springBoot.entity.Friends;
+import com.webapp.springBoot.entity.UserPostReaction;
 import com.webapp.springBoot.repository.FollowersRepository;
 import com.webapp.springBoot.repository.FriendsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,17 @@ public class DeleteCacheService {
             cache.evict(nickname + ":" + followers.getUsersApp().getNickname());
         });
         followersRepository.deleteAll(followersList);
+    }
+
+
+    public void deleteAllReaction(List<UserPostReaction> userPostReactions){
+        Cache cache = cacheManager.getCache("REACTION");
+        if (cache == null) {
+            throw new RuntimeException("Кеш не доступен, а именно: REACTION");
+        }
+        userPostReactions.forEach(userPostReaction -> {
+            cache.evict(userPostReaction.getUsersApp().getNickname() + ":" + userPostReaction.getNamePost());
+        });
     }
 
 }

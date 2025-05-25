@@ -81,8 +81,8 @@ public class CommunityService {
         }
         UsersApp userApp = usersService.findUsersByNickname(nickameUser);
         if(userApp.getCommunity().size() < 3) {
-            Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity());
-            return new CommunityResponseDTO(communityRepository.save(community), imageCommunityService.getImageName(community));
+            Community community = new Community(userApp, communityDTO.getDescription(), communityDTO.getName(), communityDTO.getNicknameCommunity(), 0L);
+            return new CommunityResponseDTO(communityRepository.save(community), imageCommunityService.getImageName(community), 0L);
         } else {
             throw new ValidationErrorWithMethod("Пользователь не может иметь более 3 сообществ");
         }
@@ -103,7 +103,8 @@ public class CommunityService {
                 community.getDescription(),
                 community.getUserOwner().getNickname(),
                 community.getNickname(),
-                imageCommunityService.getImageName(community)
+                imageCommunityService.getImageName(community),
+                community.getCountUser()
         );
     }
     @Cacheable(value = "COMMUNITY_RESPONSE_LIST", key="#page")
@@ -116,7 +117,8 @@ public class CommunityService {
                                 community.getDescription(),
                                 community.getUserOwner().getNickname(),
                                 community.getNickname(),
-                                imageCommunityService.getImageName(community)
+                                imageCommunityService.getImageName(community),
+                                community.getCountUser()
                         )
                 )
         );
@@ -132,7 +134,8 @@ public class CommunityService {
                                 community.getDescription(),
                                 community.getUserOwner().getNickname(),
                                 community.getNickname(),
-                                imageCommunityService.getImageName(community)
+                                imageCommunityService.getImageName(community),
+                                community.getCountUser()
                         )
                 )
         );
@@ -191,26 +194,17 @@ public class CommunityService {
             flag = true;
         }
         if(file != null){
-            setImage(setCommunityDTO,community, file);
-            flag = true;
-        }
-        if(setCommunityDTO.getNicknameAfter() != null){
-            setNickname(setCommunityDTO, community);
-            Objects.requireNonNull(cacheManager.getCache("USER_RESPONSE")).evict(setCommunityDTO.getNickname());
+            setImage(community, file);
             flag = true;
         }
         if(!flag){
             throw new ValidationErrorWithMethod("Нет даных для обновления");
         }
-        return new CommunityResponseDTO(community,  imageCommunityService.getImageName(community));
+        return new CommunityResponseDTO(community,  imageCommunityService.getImageName(community), community.getCountUser());
     }
 
     public void setDescription(SetCommunityDTO setCommunityDTO, Community community)  {
         community.setDescription(setCommunityDTO.getDescription());
-        communityRepository.save(community);
-    }
-    public void setNickname(SetCommunityDTO setNicknameCommunity, Community community) {
-        community.setNickname(setNicknameCommunity.getNicknameAfter());
         communityRepository.save(community);
     }
     public void setName(SetCommunityDTO setNameCommunityDTO, Community community){
@@ -218,7 +212,7 @@ public class CommunityService {
         communityRepository.save(community);
     }
     @Transactional
-    public void setImage(SetCommunityDTO setCommunityDTO,Community community, MultipartFile file) throws IOException, ValidationErrorWithMethod {
+    public void setImage(Community community, MultipartFile file) throws IOException, ValidationErrorWithMethod {
         imageCommunityService.setImagesCommunity(file, community);
     }
 }

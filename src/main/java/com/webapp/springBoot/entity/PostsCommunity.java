@@ -36,6 +36,10 @@ public class PostsCommunity {
 
     private LocalDateTime updateDate;
 
+    @Getter
+    private Long rating;
+
+
     @Setter
     @NotNull
     @ManyToOne

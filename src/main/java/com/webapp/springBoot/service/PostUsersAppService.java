@@ -1,10 +1,7 @@
 package com.webapp.springBoot.service;
 
 
-import com.webapp.springBoot.DTO.Post.RequestPostDTO;
-import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
-import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
-import com.webapp.springBoot.DTO.Post.SetPostDTO;
+import com.webapp.springBoot.DTO.Post.*;
 import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -13,12 +10,13 @@ import com.webapp.springBoot.repository.UsersAppRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -62,6 +59,12 @@ public class PostUsersAppService {
     @Qualifier("stringKafkaTemplate")
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
+    private UserPostReactionService userPostReactionService;
 
     // <------------------------ ПРОВЕРКА В СУЩНОСТИ PostUsersAppService-------------------------->
     public void checkPostUserByNicknameUser(UsersApp usersApp, String nicknameUser){
@@ -85,7 +88,7 @@ public class PostUsersAppService {
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Cacheable(value = "POST_LIST", key = "#nickname")
     @Transactional(readOnly = true)
-    public ResponseListPostDTO getPostsByNickname(String nickname){
+    public ResponseListPostDTO getPostsForMe(String nickname){
         UsersApp usersApp = usersService.findUsersByNickname(nickname);
         List<PostsUserApp> postsUserAppList = usersApp.getPostsUserAppList();
         List<ResponsePostDTO> usersPostDTOList = new ArrayList<>();
@@ -99,6 +102,46 @@ public class PostUsersAppService {
                 set = false;
                 localDateTime = postsUserApp.getCreateDate();
             }
+            usersPostDTOList.add(new ResponsePostDTO(
+                            postsUserApp.getTitle(),
+                            postsUserApp.getDescription(),
+                            nickname,
+                            postsUserApp.getName(),
+                            filePostsUsersAppService.getFileName(postsUserApp),
+                            localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond(),
+                            set,
+                            false,
+                            postsUserApp.getRating()
+                    ));
+                }
+                );
+        return new ResponseListPostDTO(usersPostDTOList);
+    }
+
+    // С кешом пока что не работаем по скольоку будет разделения с пагинацией
+    @Transactional(readOnly = true)
+    public ResponseListPostDTO getPostsForNickname(String nickname, String nicknameGet, int page) throws ValidationErrorWithMethod {
+        if(nickname.equals(nicknameGet)){
+            throw new ValidationErrorWithMethod("Пользователь не может получить свои же собственные данные, в качестве друга");
+        }
+        List<PostsUserApp> postsUserAppList = postsUsersAppRepository.findByUserId(usersService.getIdWithNickname(nickname), PageRequest.of(page, 5));
+        List<ResponsePostDTO> usersPostDTOList = new ArrayList<>();
+        Cache cache = cacheManager.getCache("REACTION");
+        if(cache == null){
+            log.error("Не возможно получить пост пользователя, кеш не доступен");
+            throw new RuntimeException("Кеш не доступен");
+        }
+
+        postsUserAppList.forEach(postsUserApp -> {
+                    boolean set;
+                    LocalDateTime localDateTime;
+                    if(postsUserApp.getUpdateDate() != null){
+                        set = true;
+                        localDateTime = postsUserApp.getUpdateDate();
+                    } else {
+                        set = false;
+                        localDateTime = postsUserApp.getCreateDate();
+                    }
                     usersPostDTOList.add(new ResponsePostDTO(
                             postsUserApp.getTitle(),
                             postsUserApp.getDescription(),
@@ -106,12 +149,30 @@ public class PostUsersAppService {
                             postsUserApp.getName(),
                             filePostsUsersAppService.getFileName(postsUserApp),
                             localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond(),
-                            set
+                            set,
+                            false,
+                            postsUserApp.getRating()
                     ));
                 }
-                );
+        );
         return new ResponseListPostDTO(usersPostDTOList);
     }
+
+    // как то продумать кеш...
+    public ResponseListPostDTOReaction getPostsByNicknameReaction(String nickname, int page, String nicknameGet) throws ValidationErrorWithMethod {
+        ResponseListPostDTO responseListPostDTO = getPostsForNickname(nickname, nicknameGet, page);
+        List<ResponsePostDTOReaction> responsePostDTOReactions = new ArrayList<>();
+        responseListPostDTO.getPosts().forEach( userPostDTOList -> {
+            ResponsePostDTOReaction responsePostDTOReaction = new ResponsePostDTOReaction();
+            responsePostDTOReaction.setResponsePostDTO(userPostDTOList);
+            responsePostDTOReaction.setReaction(userPostReactionService.getRating(nicknameGet, userPostDTOList.getNamePost()));
+            responsePostDTOReactions.add(responsePostDTOReaction);
+        });
+        return new ResponseListPostDTOReaction(responsePostDTOReactions);
+    }
+
+
+
 
     public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
         String fileStringPath = filePostsUsersAppService.getFile(nameFile);
@@ -122,24 +183,51 @@ public class PostUsersAppService {
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(resource);
     }
-     @Cacheable(value = "POST", key = "#namePost")
-     public ResponsePostDTO getPost(String namePost){
-         Optional<PostsUserApp> optionalPostsUserApp = findByName(namePost);
-         if (optionalPostsUserApp.isEmpty()) {
-             throw new NoSuchElementException("Пост не найден");
-         }
-         PostsUserApp postsUserApp = optionalPostsUserApp.get();
-         boolean set;
-         LocalDateTime localDateTime;
-         if(postsUserApp.getUpdateDate() != null){
-             set = true;
-             localDateTime = postsUserApp.getUpdateDate();
-         } else {
-             set = false;
-             localDateTime = postsUserApp.getCreateDate();
-         }
-        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set);
-     }
+
+    public ResponsePostDTO getPost(String namePost){
+        Optional<PostsUserApp> optionalPostsUserApp = findByName(namePost);
+        if (optionalPostsUserApp.isEmpty()) {
+            throw new NoSuchElementException("Пост не найден");
+        }
+        PostsUserApp postsUserApp = optionalPostsUserApp.get();
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsUserApp.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsUserApp.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsUserApp.getCreateDate();
+        }
+        Cache cache = cacheManager.getCache("POST");
+        if(cache == null){
+            log.error("Кеш для записи поста не доступен");
+            throw new RuntimeException("Кеш не дотсупен");
+        }
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set, false, postsUserApp.getRating());
+        cache.put(namePost, responsePostDTO);
+        return responsePostDTO;
+    }
+
+    public ResponsePostDTOReaction getPostWithReaction(String namePost, String nicknameUser){
+        Cache cachePost = cacheManager.getCache("POST");
+        Cache cache = cacheManager.getCache("REACTION");
+        if(cache == null || cachePost == null){
+            log.error("Не возможно получить пост пользователя, кеш не доступен");
+            throw new RuntimeException("Кеш не доступен");
+        }
+        ResponsePostDTO responsePostDTO = cachePost.get(namePost, ResponsePostDTO.class);
+        if(responsePostDTO == null){
+            responsePostDTO = getPost(namePost);
+            cachePost.put(namePost, responsePostDTO);
+        }
+        Integer reaction = cache.get(nicknameUser + ':' + responsePostDTO.getNamePost(), Integer.class);
+        if(reaction == null){
+            reaction = userPostReactionService.getRating(nicknameUser, responsePostDTO.getNamePost());
+        }
+        return new ResponsePostDTOReaction(responsePostDTO, reaction);
+    }
+
 
     public ResponsePostDTO getPostNull(String namePost){
         Optional<PostsUserApp> optionalPostsUserApp = findByName(namePost);
@@ -156,7 +244,16 @@ public class PostUsersAppService {
             set = false;
             localDateTime = postsUserApp.getCreateDate();
         }
-        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set);
+        Cache cache = cacheManager.getCache("POST");
+        if(cache == null){
+           log.error("Кеш не доступен, пост не может быть положен в кеш");
+           throw new RuntimeException("Кеш не доступен");
+        }
+
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set, false, postsUserApp.getRating());
+        cache.put(namePost, responsePostDTO);
+        return responsePostDTO;
+
     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostUsersAppService-------------------------->
@@ -187,7 +284,6 @@ public class PostUsersAppService {
 
     // <------------------------ СОЗДАНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @CacheEvict(value = "POST_LIST", key = "#nicknameUser")
-    @CachePut(value = "POST" , key = "#result.getNamePost()")
     @Transactional
     public ResponsePostDTO createPostUsersApp(RequestPostDTO requestPostDTO, String nicknameUser, BindingResult bindingResult,
                                               MultipartFile[] multipartFiles) throws ValidationErrorWithMethod, IOException {
@@ -213,22 +309,13 @@ public class PostUsersAppService {
             throw new ValidationErrorWithMethod("Не переданы необходимые параметры для создания поста пользователя");
         }
         postsUserApp.generateName();
+        postsUserApp.setRating(0L);
         postsUsersAppRepository.save(postsUserApp);
-        CompletableFuture<SendResult<String, String>> future =  kafkaTemplate.send("news-feed-topic-user", nicknameUser, postsUserApp.getName());
-        future.whenComplete((result, exception) -> {
-            if(exception != null){
-                log.error("Возникла ошибка добавления поста в ленту", exception);
-            } else {
-                RecordMetadata meta = result.getRecordMetadata();
-                log.info("Сообщение отправлено в топик '{}' партиция {} офсэт {}",
-                        meta.topic(), meta.partition(), meta.offset());
-            }
-        });
-        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), LocalDateTime.now(), false);
-
+        kafkaTemplate.send("news-feed-topic-user", nicknameUser, postsUserApp.getName());
+        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), LocalDateTime.now(), false, false, 0L);
     }
+    // <------------------------ ИЗМЕНЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @CacheEvict(value = "POST_LIST", key = "#nicknameUser")
-    @CachePut(value = "POST" , key = "#result.getNamePost()")
     @Transactional
     public ResponsePostDTO setPostUserApp(SetPostDTO setPostDTO, String nicknameUser, BindingResult result, MultipartFile[] multipartFiles) throws IOException, ValidationErrorWithMethod {
         if (result.hasErrors()) {
@@ -239,16 +326,11 @@ public class PostUsersAppService {
             postsUserApp.setTitle(setPostDTO.getTitle());
         }
         postsUserApp.setDescription(setPostDTO.getDescription());
-        List<String> fileNames;
         filePostsUsersAppService.deleteFileTapeUsersAppService(postsUserApp);
         if(multipartFiles!=null) {
             filePostsUsersAppService.createFIlesForPosts(multipartFiles, postsUserApp);
-            fileNames = filePostsUsersAppService.getFileName(postsUserApp);
-        } else {
-            fileNames = null;
         }
         postsUserApp.setUpdateDate(LocalDateTime.now());
-        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), postsUserApp.getUpdateDate(), true);
-
+        return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), postsUserApp.getUpdateDate(), true, false, postsUserApp.getRating());
     }
 }

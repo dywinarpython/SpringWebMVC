@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+<changeSet id="2025-24-05-020-add-unique-namePost-userid.xml" author="Dywinar">
+            <addUniqueConstraint tableName="user_post_reaction" columnNames="user_id, name_post" constraintName="fk_user_id_name_post"/>
+</changeSet>
+</databaseChangeLog>
