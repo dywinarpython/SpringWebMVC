@@ -35,3 +35,4 @@ idea/
 logs/
 uploads/
 resources/keystore.p12
+src/main/resources/application.properties
