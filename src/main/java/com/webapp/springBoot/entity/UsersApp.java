@@ -118,9 +118,4 @@ public class UsersApp {
         this.roles.add(roles);
     }
 
-    @Override
-    public boolean equals(Object object){
-        UsersApp usersApp = (UsersApp) object;
-        return this.getNickname().equals(usersApp.getNickname());
-    }
 }
