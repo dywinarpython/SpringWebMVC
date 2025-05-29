@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+<changeSet id="2025-29-05-020-create-table-message" author="Dywinar">
+            <createTable tableName="messages">
+                <column name="id" type="bigint" autoIncrement="true">
+                    <constraints primaryKey="true"/>
+                </column>
+                <column name="sender_id" type="bigint"><constraints nullable="false"/></column>
+                <column name="recipient_id" type="int"><constraints nullable="false"/></column>
+                <column name="message" type="varchar(255)">
+                    <constraints nullable="false"/> </column>
+                <column name="time" type="timestamp(6)"> <constraints nullable="false"/></column>
+            </createTable>
+    <addForeignKeyConstraint
+            baseTableName="messages"
+            baseColumnNames="sender_id"
+            constraintName="users_app_sender"
+            referencedTableName="users_app"
+            referencedColumnNames="id"/>
+    <addForeignKeyConstraint
+            baseTableName="messages"
+            baseColumnNames="recipient_id"
+            constraintName="users_app_recipient"
+            referencedTableName="users_app"
+            referencedColumnNames="id"/>
+</changeSet>
+</databaseChangeLog>
