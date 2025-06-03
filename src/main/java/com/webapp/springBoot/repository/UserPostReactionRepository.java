@@ -1,5 +1,6 @@
 package com.webapp.springBoot.repository;
 
+import com.webapp.springBoot.DTO.UserReaction.UserReactionDTO;
 import com.webapp.springBoot.entity.UserPostReaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,6 +13,13 @@ import java.util.Optional;
 public interface UserPostReactionRepository extends JpaRepository<UserPostReaction, Long> {
 
     Optional<UserPostReaction> findByUsersApp_IdAndNamePost(Long userId, String namePost);
+
+    @Query("""
+            select new com.webapp.springBoot.DTO.UserReaction.UserReactionDTO(u.namePost,u.rating)
+            from UserPostReaction u
+            where u.usersApp.nickname = :nickname and u.namePost in :namePost
+            """)
+    List<UserReactionDTO> findByUsersApp_NicknameAndNamePost(String nickname, List<String> namePost);
 
     @Modifying
     @Query(value = """

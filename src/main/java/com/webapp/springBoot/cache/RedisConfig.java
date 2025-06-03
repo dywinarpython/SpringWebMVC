@@ -6,6 +6,7 @@ import com.webapp.springBoot.DTO.Community.CommunityResponseDTO;
 import com.webapp.springBoot.DTO.Community.ListCommunityDTO;
 import com.webapp.springBoot.DTO.Feed.ListFeedDTO;
 import com.webapp.springBoot.DTO.Friend.ListResponseFriendDTO;
+import com.webapp.springBoot.DTO.UserReaction.ListUserReactionDTO;
 import com.webapp.springBoot.DTO.Users.ListUsersDTO;
 import com.webapp.springBoot.DTO.Users.UserResponceDTO;
 import com.webapp.springBoot.DTO.Post.ResponseListPostDTO;
@@ -26,6 +27,7 @@ import org.springframework.security.jackson2.SecurityJackson2Modules;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @EnableCaching
@@ -53,9 +55,6 @@ public class RedisConfig {
         );
 
 
-        redisCacheConfigurationMap.put(
-                "POST_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponseListPostDTO.class)))
-        );
         redisCacheConfigurationMap.put(
                 "POST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(15)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ResponsePostDTO.class)))
         );
@@ -100,7 +99,11 @@ public class RedisConfig {
 
 
         redisCacheConfigurationMap.put(
-                "REACTION", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Integer.class)))
+                "REACTION", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(Integer.class)))
+        );
+
+        redisCacheConfigurationMap.put(
+                "REACTION_LIST", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new Jackson2JsonRedisSerializer<>(ListUserReactionDTO.class)))
         );
 
         return RedisCacheManager.builder(redisConnectionFactory).withInitialCacheConfigurations(redisCacheConfigurationMap)

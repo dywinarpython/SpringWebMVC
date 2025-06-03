@@ -22,4 +22,7 @@ public class ResponsePostDTOReaction {
 
     private Integer reaction;
 
+    public ResponsePostDTOReaction(ResponsePostDTO responsePostDTO) {
+        this.responsePostDTO = responsePostDTO;
+    }
 }

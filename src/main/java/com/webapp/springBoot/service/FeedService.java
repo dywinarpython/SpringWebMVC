@@ -16,6 +16,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class FeedService {
     @Value("${size.feed}")
     private Integer size;
 
+    @Transactional(readOnly = true)
     public ResponseListPostDTOReaction getFeed(String nickname, Integer page) {
         Long userId = usersAppRepository.getUserIdByNickname(nickname).orElseThrow(
                 () -> new UsernameNotFoundException("Пользователь с таким nickname нет"));

@@ -47,14 +47,14 @@ public class PostUsersController {
         return postUsersAppService.getPostsByNicknameReaction(nickname, page, principal.getName());
     }
 
-    @GetMapping
+    @GetMapping("/{page}")
     @Operation(summary = "Получение постов пользователя",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseListPostDTO getPostByNicknameUsersApp(Principal principal){
-        return postUsersAppService.getPostsForMe(principal.getName());
+    public ResponseListPostDTO getPostByNicknameUsersApp(@PathVariable Integer page, Principal principal){
+        return postUsersAppService.getPostsForUser(principal.getName(), page);
     }
 
     @GetMapping("/name")

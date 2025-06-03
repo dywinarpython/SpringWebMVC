@@ -1,7 +1,9 @@
 package com.webapp.springBoot.service;
 
 
+import com.webapp.springBoot.DTO.UserReaction.ListUserReactionDTO;
 import com.webapp.springBoot.DTO.UserReaction.RequestUserReactionDTO;
+import com.webapp.springBoot.DTO.UserReaction.UserReactionDTO;
 import com.webapp.springBoot.cache.DeleteCacheService;
 import com.webapp.springBoot.entity.UserPostReaction;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
@@ -101,5 +103,9 @@ public class UserPostReactionService {
     public Integer getRating(String nickname, String namePost){
         Optional<UserPostReaction> userPostReaction = userPostReactionRepository.findByUsersApp_IdAndNamePost(usersService.getIdWithNickname(nickname), namePost);
         return userPostReaction.map(UserPostReaction::getRating).orElse(0);
+    }
+    @Cacheable(value = "REACTION_LIST", key = "#nickname + ':' + #namePost.hashCode()")
+    public ListUserReactionDTO getRating(String nickname, List<String> namePost){
+        return new ListUserReactionDTO(userPostReactionRepository.findByUsersApp_NicknameAndNamePost(nickname, namePost));
     }
 }
