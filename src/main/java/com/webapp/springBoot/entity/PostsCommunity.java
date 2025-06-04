@@ -42,11 +42,11 @@ public class PostsCommunity {
 
     @Setter
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     private Community community;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private List<PostsCommunityFile> files;
 

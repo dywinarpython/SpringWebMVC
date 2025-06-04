@@ -41,7 +41,7 @@ public class PostCommunityController {
                     @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponseListPostDTOReaction.class))),
                     @ApiResponse(responseCode = "400", description = "Ошибка валидации")
             })
-    public ResponseListPostDTOReaction getPostByNicknameCommunityPosts(@PathVariable String nickname, @PathVariable int page, Principal principal){
+    public ResponseListPostDTOReaction getPostByNicknameCommunityPosts(@PathVariable String nickname, @PathVariable int page, Principal principal)  {
         return postCommunityService.getPostsByNicknameReaction(nickname, page, principal.getName());
     }
 

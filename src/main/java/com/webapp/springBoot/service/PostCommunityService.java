@@ -1,24 +1,23 @@
 package com.webapp.springBoot.service;
 
 import com.webapp.springBoot.DTO.Post.*;
+import com.webapp.springBoot.DTO.UserReaction.ListUserReactionDTO;
+import com.webapp.springBoot.DTO.UserReaction.UserReactionDTO;
 import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.PostsCommunity;
+import com.webapp.springBoot.entity.PostsUserApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.PostsCommunityRepository;
-import com.webapp.springBoot.repository.UserPostReactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -34,10 +33,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -65,45 +62,35 @@ public class PostCommunityService {
     private UserPostReactionService userPostReactionService;
 
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostCommunityService-------------------------->
-    @Transactional(readOnly = true)
-    public ResponseListPostDTO getPostsByNickname(String nickname, int page){
-        Community community = communityService.findCommunityByNickname(nickname);
-        List<PostsCommunity> postsCommunityList = postsCommunityRepository.findByCommunityId(community.getId(), PageRequest.of(page, 5));
-        List<ResponsePostDTO> responseCommunityPostDTO = new ArrayList<>();
-        postsCommunityList.forEach(postsCommunity -> {
-                    boolean set;
-                    LocalDateTime localDateTime;
-                    if(postsCommunity.getUpdateDate() != null){
-                        set = true;
-                        localDateTime = postsCommunity.getUpdateDate();
-                    } else {
-                        set = false;
-                        localDateTime = postsCommunity.getCreateDate();
-                    }
-                    responseCommunityPostDTO.add(new ResponsePostDTO(
-                            postsCommunity.getTitle(),
-                            postsCommunity.getDescription(),
-                            nickname,
-                            postsCommunity.getName(),
-                            filePostsCommunityService.getFileName(postsCommunity),
-                            localDateTime.atZone(ZoneId.systemDefault()).toEpochSecond(),
-                            set,
-                            true,
-                            postsCommunity.getRating()
-                    ));
-                }
-        );
-        return new ResponseListPostDTO(responseCommunityPostDTO);
+    private ResponseListPostDTO getPostsForCommunity(String nickname, Integer page){
+        List<PostsCommunity> postsCommunityList = postsCommunityRepository.findByCommunityNickname(nickname, PageRequest.of(page, 5));
+        return getPostWithPostList(postsCommunityList);
     }
 
-    // как то продумать кеш...
-    public ResponseListPostDTOReaction getPostsByNicknameReaction(String nickname, int page, String nicknameUser){
-        ResponseListPostDTO responseListPostDTO = getPostsByNickname(nickname, page);
+    private ResponseListPostDTO getPostWithPostList(List<PostsCommunity> postsCommunityList){
+        List<ResponsePostDTO> responsePostDTOList = new ArrayList<>();
+        postsCommunityList.forEach(postsCommunity -> {
+            responsePostDTOList.add(getPost(postsCommunity));
+        });
+        return new ResponseListPostDTO(responsePostDTOList);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseListPostDTOReaction getPostsByNicknameReaction(String nickname, int page, String nicknameGet) {
+        ResponseListPostDTO responseListPostDTO = getPostsForCommunity(nickname,page);
+        ListUserReactionDTO userPostReactionsDto = userPostReactionService.getRating(nicknameGet,
+                responseListPostDTO.getPosts().stream()
+                        .map(ResponsePostDTO::getNamePost
+                        ).toList()
+        );
+        Map<String, Integer> integerMap = userPostReactionsDto.getUserReactionDTO()
+                .stream().collect(Collectors.toMap(
+                        UserReactionDTO::getNamePost, UserReactionDTO::getReaction));
         List<ResponsePostDTOReaction> responsePostDTOReactions = new ArrayList<>();
-        responseListPostDTO.getPosts().forEach( userPostDTOList -> {
+        responseListPostDTO.getPosts().forEach(post -> {
             ResponsePostDTOReaction responsePostDTOReaction = new ResponsePostDTOReaction();
-            responsePostDTOReaction.setResponsePostDTO(userPostDTOList);
-            responsePostDTOReaction.setReaction(userPostReactionService.getRating(nicknameUser, userPostDTOList.getNamePost()));
+            responsePostDTOReaction.setResponsePostDTO(post);
+            responsePostDTOReaction.setReaction(integerMap.get(post.getNamePost()) == null ? 0: integerMap.get(post.getNamePost()));
             responsePostDTOReactions.add(responsePostDTOReaction);
         });
         return new ResponseListPostDTOReaction(responsePostDTOReactions);
@@ -118,13 +105,12 @@ public class PostCommunityService {
                 .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                 .body(resource);
     }
-    @Cacheable(value = "POST", key = "#namePost")
-    public ResponsePostDTO getPost(String namePost){
-        Optional<PostsCommunity>  optionalPostsCommunity = findByName(namePost);
-        if (optionalPostsCommunity.isEmpty()) {
-            throw new NoSuchElementException("Пост не найден");
+    private ResponsePostDTO getPost(PostsCommunity postsCommunity){
+        Cache cache = cacheManager.getCache("POST");
+        if(cache == null){
+            log.error("Кеш для записи поста не доступен");
+            throw new RuntimeException("Кеш не дотсупен");
         }
-        PostsCommunity postsCommunity = optionalPostsCommunity.get();
         boolean set;
         LocalDateTime localDateTime;
         if(postsCommunity.getUpdateDate() != null){
@@ -134,7 +120,9 @@ public class PostCommunityService {
             set = false;
             localDateTime = postsCommunity.getCreateDate();
         }
-        return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set, true, postsCommunity.getRating());
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set, true, postsCommunity.getRating());
+        cache.put(postsCommunity.getName(), responsePostDTO);
+        return responsePostDTO;
     }
 
     public ResponsePostDTO getPostNull(String namePost){
@@ -143,27 +131,19 @@ public class PostCommunityService {
             return null;
         }
         PostsCommunity postsCommunity = optionalPostsCommunity.get();
-        boolean set;
-        LocalDateTime localDateTime;
-        if(postsCommunity.getUpdateDate() != null){
-            set = true;
-            localDateTime = postsCommunity.getUpdateDate();
-        } else {
-            set = false;
-            localDateTime = postsCommunity.getCreateDate();
-        }
-        Cache cache = cacheManager.getCache("POST");
-        if(cache == null){
-            log.error("Кеш не доступен, пост не может быть положен в кеш");
-            throw new RuntimeException("Кеш не доступен");
-        }
-        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(),
-                postsCommunity.getCommunity().getNickname() ,
-                filePostsCommunityService.getFileName(postsCommunity), localDateTime, set, true, postsCommunity.getRating());
-        cache.put(namePost, responsePostDTO);
-        return  responsePostDTO;
+        return getPost(postsCommunity);
     }
 
+    private ResponsePostDTO getPostWithName(String namePost){
+        Optional<PostsCommunity> optionalPostsUserApp = findByName(namePost);
+        if (optionalPostsUserApp.isEmpty()) {
+            throw new NoSuchElementException("Пост не найден");
+        }
+        PostsCommunity postsCommunity = optionalPostsUserApp.get();
+        return getPost(postsCommunity);
+    }
+
+    @Transactional(readOnly = true)
     public ResponsePostDTOReaction getPostWithReaction(String namePost, String nicknameUser){
         Cache cachePost = cacheManager.getCache("POST");
         Cache cache = cacheManager.getCache("REACTION");
@@ -171,10 +151,15 @@ public class PostCommunityService {
             log.error("Не возможно получить пост пользователя, кеш не доступен");
             throw new RuntimeException("Кеш не доступен");
         }
+
         ResponsePostDTO responsePostDTO = cachePost.get(namePost, ResponsePostDTO.class);
         if(responsePostDTO == null){
-            responsePostDTO = getPost(namePost);
+            responsePostDTO = getPostWithName(namePost);
         }
+        if(responsePostDTO.getNickname().equals(nicknameUser)){
+            return new ResponsePostDTOReaction(responsePostDTO);
+        }
+
         Integer reaction = cache.get(nicknameUser + ':' + responsePostDTO.getNamePost(), Integer.class);
         if(reaction == null){
             reaction = userPostReactionService.getRating(nicknameUser, responsePostDTO.getNamePost());

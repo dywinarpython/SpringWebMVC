@@ -85,7 +85,7 @@ public class PostUsersAppService {
     // <------------------------ ПОЛУЧЕНИЕ В СУЩНОСТИ PostUsersAppService-------------------------->
     @Transactional(readOnly = true)
     public ResponseListPostDTO getPostsForUser(String nickname, Integer page){
-        List<PostsUserApp> postsUserAppList = postsUsersAppRepository.findByUserId(usersService.getIdWithNickname(nickname), PageRequest.of(page, 5));
+        List<PostsUserApp> postsUserAppList = postsUsersAppRepository.findByUserNickname(nickname, PageRequest.of(page, 5));
         return getPostWithPostList(postsUserAppList);
     }
 
@@ -154,9 +154,12 @@ public class PostUsersAppService {
 
     public ResponseListPostDTO getPostWithPostList(List<PostsUserApp> postsUserAppList){
         List<ResponsePostDTO> responsePostDTOList = new ArrayList<>();
-        postsUserAppList.forEach(postsUserApp -> {
-            responsePostDTOList.add(getPost(postsUserApp));
-        });
+        Cache cache = cacheManager.getCache("POST");
+        if(cache == null){
+            log.error("Кеш для записи поста не доступен");
+            throw new RuntimeException("Кеш не дотсупен");
+        }
+        postsUserAppList.forEach(postsUserApp -> responsePostDTOList.add(getPost(postsUserApp)));
         return new ResponseListPostDTO(responsePostDTOList);
     }
 

@@ -15,6 +15,6 @@ public interface PostsUsersAppRepository extends JpaRepository<PostsUserApp, Lon
     List<PostsUserApp> findByTitleContainingIgnoreCase(String title);
     Optional<PostsUserApp> findByName(String name);
 
-    @Query("SELECT p FROM PostsUserApp p WHERE p.usersApp.id = :userId")
-    List<PostsUserApp> findByUserId(@Param("userId") Long userId, Pageable pageable);
+    @Query("SELECT p FROM PostsUserApp p WHERE p.usersApp.nickname = :nickname")
+    List<PostsUserApp> findByUserNickname(@Param("nickname") String nickname, Pageable pageable);
 }

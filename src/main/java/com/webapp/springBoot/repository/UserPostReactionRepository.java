@@ -12,7 +12,15 @@ import java.util.Optional;
 
 public interface UserPostReactionRepository extends JpaRepository<UserPostReaction, Long> {
 
-    Optional<UserPostReaction> findByUsersApp_IdAndNamePost(Long userId, String namePost);
+    @Query(
+            """
+            select ua
+            from UserPostReaction ua
+            join ua.usersApp u
+            where u.nickname = :nickname and ua.namePost = :namePost
+            """
+    )
+    Optional<UserPostReaction> findByUsersApp_NicknameAndNamePost(@Param("nickname") String nickname, @Param("namePost") String namePost);
 
     @Query("""
             select new com.webapp.springBoot.DTO.UserReaction.UserReactionDTO(u.namePost,u.rating)

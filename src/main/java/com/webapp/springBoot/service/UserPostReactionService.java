@@ -74,7 +74,7 @@ public class UserPostReactionService {
     @CacheEvict(value = "REACTION", key = "#nickname + ':' + #namePost")}
     )
     public void deleteUserReaction(String nickname, String namePost){
-        UserPostReaction userPostReaction = userPostReactionRepository.findByUsersApp_IdAndNamePost(usersService.getIdWithNickname(nickname),namePost).orElseThrow(
+        UserPostReaction userPostReaction = userPostReactionRepository.findByUsersApp_NicknameAndNamePost(nickname,namePost).orElseThrow(
                 () -> new NoSuchElementException("Реакция пользователя не найдена")
         );
         userPostReactionRepository.updateRatingForPost(namePost, -userPostReaction.getRating());
@@ -101,7 +101,7 @@ public class UserPostReactionService {
 
     @Cacheable(value = "REACTION", key = "#nickname + ':' + #namePost")
     public Integer getRating(String nickname, String namePost){
-        Optional<UserPostReaction> userPostReaction = userPostReactionRepository.findByUsersApp_IdAndNamePost(usersService.getIdWithNickname(nickname), namePost);
+        Optional<UserPostReaction> userPostReaction = userPostReactionRepository.findByUsersApp_NicknameAndNamePost(nickname, namePost);
         return userPostReaction.map(UserPostReaction::getRating).orElse(0);
     }
     @Cacheable(value = "REACTION_LIST", key = "#nickname + ':' + #namePost.hashCode()")

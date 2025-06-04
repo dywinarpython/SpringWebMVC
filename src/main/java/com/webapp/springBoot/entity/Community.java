@@ -44,12 +44,12 @@ public class Community {
 
     @Getter
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "id")
     private UsersApp userOwner;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "id")
     private ImagesCommunity imageUrl;
 

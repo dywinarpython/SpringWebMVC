@@ -34,9 +34,20 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
     volumes:
       - kafka1_data:/bitnami/kafka
+  feed:
+    image: dywinar/newsfeed-app:1.0
+    environment:
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=create-feed
+      - SIZE_FEED=5
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db/SpringWeb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS=kafka-1:9090
 
 
 volumes:
   springwebmvc_gdata:
   kafka1_data:
-  kafka2_data:
+  feed_data:
