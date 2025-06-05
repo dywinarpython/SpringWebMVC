@@ -82,10 +82,7 @@ public class UserPostReactionService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "POST", key = "#namePost"),
-            @CacheEvict(value = "REACTION", key = "#nickname + ':' + #namePost")}
-    )
+    @CacheEvict(value = "REACTION", key = "#nickname + ':' + #namePost")
     public void deleteUserReactionByNamePost(String namePost){
         List<UserPostReaction> userPostReactions = userPostReactionRepository.findByNamePost(namePost);
         deleteCacheService.deleteAllReaction(userPostReactions);
@@ -104,7 +101,6 @@ public class UserPostReactionService {
         Optional<UserPostReaction> userPostReaction = userPostReactionRepository.findByUsersApp_NicknameAndNamePost(nickname, namePost);
         return userPostReaction.map(UserPostReaction::getRating).orElse(0);
     }
-    @Cacheable(value = "REACTION_LIST", key = "#nickname + ':' + #namePost.hashCode()")
     public ListUserReactionDTO getRating(String nickname, List<String> namePost){
         return new ListUserReactionDTO(userPostReactionRepository.findByUsersApp_NicknameAndNamePost(nickname, namePost));
     }

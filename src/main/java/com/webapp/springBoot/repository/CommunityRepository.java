@@ -42,4 +42,12 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
             """, nativeQuery = true)
     void reduceFollowers(@Param("id") Long id);
 
+    @Query(value = """
+    select not exists (
+        select 1 from community where nickname = :nickname
+    )
+    """, nativeQuery = true)
+    boolean checkNicknameUser(@Param("nickname") String nickname);
+
+
 }

@@ -1,6 +1,5 @@
 package com.webapp.springBoot.DTO.Post;
 
-import com.webapp.springBoot.entity.PostsUserApp;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Schema(description = "Сущность ленты пользователя")
-public class PostsUserApp {
+public class PostsUserApp  {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

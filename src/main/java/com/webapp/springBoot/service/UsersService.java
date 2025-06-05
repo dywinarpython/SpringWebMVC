@@ -98,6 +98,10 @@ public class UsersService {
             throw new ValidationErrorWithMethod("Код не совпадает!");
         }
         UserRequestDTO userRequestDTO = cacheSaveVerifyRecord.userRequestDTO();
+        if(!userRepository.checkNicknameUser(userRequestDTO.getNickname())){
+            cache.evict(uuid);
+            throw new ValidationErrorWithMethod("Возникла ошибка: Ваш никнейм уже занят, повторите вход. Скорее всего кто то быстрее вас зарегистрировался)");
+        }
         Roles roles = rolesService.getRolesByName("USER");
         UsersApp usersApp = new UsersApp();
         usersApp.setName(userRequestDTO.getName());

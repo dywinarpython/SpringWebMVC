@@ -27,4 +27,12 @@ public interface UsersAppRepository extends JpaRepository<UsersApp, Long>{
     )
     Optional<Long> getUserIdByNickname(String nickname);
 
+    @Query(value = """
+    select not exists (
+        select 1 from users_app where nickname = :nickname
+    )
+    """, nativeQuery = true)
+    boolean checkNicknameUser(@Param("nickname") String nickname);
+
+
 }

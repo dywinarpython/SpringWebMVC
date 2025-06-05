@@ -3,7 +3,9 @@ package com.webapp.springBoot.util;
 
 
 import com.twilio.Twilio;
+import com.webapp.springBoot.entity.Community;
 import com.webapp.springBoot.entity.UsersApp;
+import com.webapp.springBoot.repository.CommunityRepository;
 import com.webapp.springBoot.repository.RolesRepository;
 import com.webapp.springBoot.repository.UsersAppRepository;
 import com.webapp.springBoot.security.SecurityUsersService;
@@ -48,6 +50,9 @@ public class PostService {
     private UsersAppRepository usersAppRepository;
 
     @Autowired
+    private CommunityRepository communityRepository;
+
+    @Autowired
     private SecurityUsersService securityUsersService;
 
     @Autowired
@@ -84,6 +89,12 @@ public class PostService {
             usersApp.setAge(21);
             usersApp.setPassword(securityUsersService.passwordEncode("Dywinar1@"));
             usersApp.rolesAdd(rolesRepository.findByName("ADMIN").orElseThrow(() -> new RuntimeException("Ошибка добавления суперпользователя")));
+            Community community = new Community();
+            community.setUserOwner(usersApp);
+            community.setDescription("Сообщество приложения");
+            community.setNickname("community");
+            community.setName("Офицальное сообщество");
+            communityRepository.save(community);
             usersAppRepository.save(usersApp);
         }
 

@@ -18,9 +18,7 @@ public class UniqueValidationCommunity implements ConstraintValidator<UniqueComm
 
     @Override
     public boolean isValid(String nickname, ConstraintValidatorContext constraintValidatorContext) {
-
-        Optional<Community> optionalUsers = communityRepository.findByNickname(nickname);
-        return optionalUsers.isEmpty() || communityRepository.count() == 0;
+        return communityRepository.checkNicknameUser(nickname);
     }
 
     }

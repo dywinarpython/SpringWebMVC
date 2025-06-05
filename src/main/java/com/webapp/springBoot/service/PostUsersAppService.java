@@ -5,6 +5,7 @@ import com.webapp.springBoot.DTO.Post.*;
 import com.webapp.springBoot.DTO.UserReaction.ListUserReactionDTO;
 import com.webapp.springBoot.DTO.UserReaction.UserReactionDTO;
 import com.webapp.springBoot.entity.PostsUserApp;
+import com.webapp.springBoot.entity.UserPostReaction;
 import com.webapp.springBoot.entity.UsersApp;
 import com.webapp.springBoot.exception.validation.ValidationErrorWithMethod;
 import com.webapp.springBoot.repository.PostsUsersAppRepository;
@@ -105,17 +106,7 @@ public class PostUsersAppService {
                         .map(ResponsePostDTO::getNamePost
                         ).toList()
         );
-        Map<String, Integer> integerMap = userPostReactionsDto.getUserReactionDTO()
-                .stream().collect(Collectors.toMap(
-                                UserReactionDTO::getNamePost, UserReactionDTO::getReaction));
-        List<ResponsePostDTOReaction> responsePostDTOReactions = new ArrayList<>();
-        responseListPostDTO.getPosts().forEach(post -> {
-            ResponsePostDTOReaction responsePostDTOReaction = new ResponsePostDTOReaction();
-            responsePostDTOReaction.setResponsePostDTO(post);
-            responsePostDTOReaction.setReaction(integerMap.get(post.getNamePost()) == null ? 0: integerMap.get(post.getNamePost()));
-            responsePostDTOReactions.add(responsePostDTOReaction);
-        });
-        return new ResponseListPostDTOReaction(responsePostDTOReactions);
+        return getPostWithReaction(userPostReactionsDto, responseListPostDTO);
     }
 
     public ResponseEntity<Resource> getFilePost(String nameFile) throws IOException {
@@ -128,6 +119,20 @@ public class PostUsersAppService {
                 .body(resource);
     }
 
+    public ResponseListPostDTOReaction getPostWithReaction(ListUserReactionDTO  userReactionDTO, ResponseListPostDTO responseListPostDTO){
+        Map<String, Integer> integerMap = userReactionDTO.getUserReactionDTO()
+                .stream().collect(Collectors.toMap(
+                        UserReactionDTO::getNamePost, UserReactionDTO::getReaction));
+        List<ResponsePostDTOReaction> responsePostDTOReactions = new ArrayList<>();
+        responseListPostDTO.getPosts().forEach(post -> {
+            ResponsePostDTOReaction responsePostDTOReaction = new ResponsePostDTOReaction();
+            responsePostDTOReaction.setResponsePostDTO(post);
+            responsePostDTOReaction.setReaction(integerMap.get(post.getNamePost()) == null ? 0: integerMap.get(post.getNamePost()));
+            responsePostDTOReactions.add(responsePostDTOReaction);
+        });
+        return new ResponseListPostDTOReaction(responsePostDTOReactions);
+    }
+
     private ResponsePostDTO getPost(PostsUserApp postsUserApp){
         Cache cache = cacheManager.getCache("POST");
         if(cache == null){
@@ -138,18 +143,7 @@ public class PostUsersAppService {
         if(responsePostDTO != null){
             return responsePostDTO;
         }
-        boolean set;
-        LocalDateTime localDateTime;
-        if(postsUserApp.getUpdateDate() != null){
-            set = true;
-            localDateTime = postsUserApp.getUpdateDate();
-        } else {
-            set = false;
-            localDateTime = postsUserApp.getCreateDate();
-        }
-        responsePostDTO = new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set, false, postsUserApp.getRating());
-        cache.put(postsUserApp.getName(), responsePostDTO);
-        return responsePostDTO;
+        return createPostDTO(postsUserApp, cache);
     }
 
     public ResponseListPostDTO getPostWithPostList(List<PostsUserApp> postsUserAppList){
@@ -204,6 +198,10 @@ public class PostUsersAppService {
         }
         PostsUserApp postsUserApp = optionalPostsUserApp.get();
         return getPost(postsUserApp);
+    }
+
+    public List<PostsUserApp> getPostUsersApp(List<String> namePosts){
+        return postsUsersAppRepository.findPostByNamePosts(namePosts);
     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostUsersAppService-------------------------->
@@ -277,5 +275,39 @@ public class PostUsersAppService {
         }
         postsUserApp.setUpdateDate(LocalDateTime.now());
         return new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), postsUserApp.getUpdateDate(), true, false, postsUserApp.getRating());
+    }
+    // <------------------------ Util В СУЩНОСТИ PostUsersAppService-------------------------->
+    public ResponsePostDTO createPostDTO(PostsUserApp postsUserApp, Cache cache){
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsUserApp.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsUserApp.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsUserApp.getCreateDate();
+        }
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set, false, postsUserApp.getRating());
+        cache.put(postsUserApp.getName(), responsePostDTO);
+        return responsePostDTO;
+    }
+    public ResponsePostDTO createPostDTO(PostsUserApp postsUserApp){
+        Cache cache = cacheManager.getCache("POST");
+        if(cache == null){
+            log.error("Кеш для записи поста не доступен");
+            throw new RuntimeException("Кеш не дотсупен");
+        }
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsUserApp.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsUserApp.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsUserApp.getCreateDate();
+        }
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsUserApp.getTitle(), postsUserApp.getDescription(),postsUserApp.getName(), postsUserApp.getUsersApp().getNickname() , filePostsUsersAppService.getFileName(postsUserApp), localDateTime, set, false, postsUserApp.getRating());
+        cache.put(postsUserApp.getName(), responsePostDTO);
+        return responsePostDTO;
     }
 }

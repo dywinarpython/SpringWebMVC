@@ -4,9 +4,11 @@ package com.webapp.springBoot.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.webapp.springBoot.DTO.Post.ResponsePostDTO;
 import com.webapp.springBoot.entity.PostsCommunity;
 import com.webapp.springBoot.entity.PostsUserApp;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,4 +19,14 @@ public interface PostsUsersAppRepository extends JpaRepository<PostsUserApp, Lon
 
     @Query("SELECT p FROM PostsUserApp p WHERE p.usersApp.nickname = :nickname")
     List<PostsUserApp> findByUserNickname(@Param("nickname") String nickname, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"usersApp", "files"})
+    @Query(
+            """
+            select u
+            from PostsUserApp u
+            where u.name in :namePosts
+            """
+    )
+    List<PostsUserApp> findPostByNamePosts(@Param("namePosts") List<String> namePosts);
 }

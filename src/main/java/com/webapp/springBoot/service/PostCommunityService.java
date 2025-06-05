@@ -111,18 +111,7 @@ public class PostCommunityService {
             log.error("Кеш для записи поста не доступен");
             throw new RuntimeException("Кеш не дотсупен");
         }
-        boolean set;
-        LocalDateTime localDateTime;
-        if(postsCommunity.getUpdateDate() != null){
-            set = true;
-            localDateTime = postsCommunity.getUpdateDate();
-        } else {
-            set = false;
-            localDateTime = postsCommunity.getCreateDate();
-        }
-        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set, true, postsCommunity.getRating());
-        cache.put(postsCommunity.getName(), responsePostDTO);
-        return responsePostDTO;
+        return createPostDTO(postsCommunity);
     }
 
     public ResponsePostDTO getPostNull(String namePost){
@@ -165,6 +154,10 @@ public class PostCommunityService {
             reaction = userPostReactionService.getRating(nicknameUser, responsePostDTO.getNamePost());
         }
         return new ResponsePostDTOReaction(responsePostDTO, reaction);
+    }
+
+    public List<PostsCommunity> getPostUsersApp(List<String> namePosts){
+        return postsCommunityRepository.findPostByNamePosts(namePosts);
     }
 
     // <------------------------ ПОИСК В СУЩНОСТИ PostCommunityService-------------------------->
@@ -245,5 +238,39 @@ public class PostCommunityService {
         }
         postsCommunity.setUpdateDate(LocalDateTime.now());
         return new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), postsCommunity.getUpdateDate(), true, true, postsCommunity.getRating());
+    }
+    // <------------------------ Util В СУЩНОСТИ PostUsersAppService-------------------------->
+    public ResponsePostDTO createPostDTO(PostsCommunity postsCommunity, Cache cache){
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsCommunity.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsCommunity.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsCommunity.getCreateDate();
+        }
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set, true, postsCommunity.getRating());
+        cache.put(postsCommunity.getName(), responsePostDTO);
+        return responsePostDTO;
+    }
+    public ResponsePostDTO createPostDTO(PostsCommunity postsCommunity){
+        Cache cache = cacheManager.getCache("POST");
+        if(cache == null){
+            log.error("Кеш для записи поста не доступен");
+            throw new RuntimeException("Кеш не дотсупен");
+        }
+        boolean set;
+        LocalDateTime localDateTime;
+        if(postsCommunity.getUpdateDate() != null){
+            set = true;
+            localDateTime = postsCommunity.getUpdateDate();
+        } else {
+            set = false;
+            localDateTime = postsCommunity.getCreateDate();
+        }
+        ResponsePostDTO responsePostDTO = new ResponsePostDTO(postsCommunity.getTitle(), postsCommunity.getDescription(),postsCommunity.getName(), postsCommunity.getCommunity().getNickname() , filePostsCommunityService.getFileName(postsCommunity), localDateTime, set, true, postsCommunity.getRating());
+        cache.put(postsCommunity.getName(), responsePostDTO);
+        return responsePostDTO;
     }
 }
